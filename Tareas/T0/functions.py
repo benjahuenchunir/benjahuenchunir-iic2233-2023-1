@@ -2,7 +2,16 @@
 
 
 def cargar_tablero(nombre_archivo: str) -> list:
-    pass
+    with open(nombre_archivo, "rt") as archivo_tablero:
+        tablero_desordenado = archivo_tablero.readline().strip()
+        tablero = []
+        fila = []
+        for casillero in tablero_desordenado:
+            fila.append(casillero)
+            if len(fila) == int(len(tablero_desordenado) ** 0.5):
+                tablero.append(fila)
+                fila = []
+        return tablero
 
 
 def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
