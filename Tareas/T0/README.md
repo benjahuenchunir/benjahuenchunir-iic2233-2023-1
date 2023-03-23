@@ -22,11 +22,11 @@ Explicación: mantén el emoji correspondiente, de manera honesta, para cada ite
 - ✅ si completaste **correctamente** lo pedido
 - 🟠 si el item está **incompleto** o tiene algunos errores
 #### Menú de Inicio (5 pts) (7%)
-##### ❌✅🟠 Seleccionar Archivo
-##### ❌✅🟠 Validar Archivos
+##### ✅ Seleccionar Archivo
+##### ✅ Validar Archivos
 #### Menú de Acciones (11 pts) (15%) 
-##### ❌✅🟠 Opciones
-##### ❌✅🟠 Mostrar tablero 
+##### ✅ Opciones
+##### ✅ Mostrar tablero 
 ##### ❌✅🟠 Validar bombas y tortugas
 ##### ❌✅🟠 Revisar solución
 ##### ❌✅🟠 Solucionar tablero

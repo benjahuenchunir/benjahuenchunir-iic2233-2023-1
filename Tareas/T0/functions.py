@@ -19,7 +19,7 @@ def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
 
 
 def verificar_valor_bombas(tablero: list) -> int:
-    tamaño_maximo = 2*len(tablero[0]) - 1
+    tamaño_maximo = 2 * len(tablero[0]) - 1
     bombas_invalidas = 0
     for fil in tablero:
         for col in fil:
@@ -29,7 +29,10 @@ def verificar_valor_bombas(tablero: list) -> int:
 
 
 def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
-    pass
+    casillero = tablero[coordenada[0]][coordenada[1]]
+    if not casillero.isdecimal():
+        return 0
+    
 
 
 def verificar_tortugas(tablero: list) -> int:
