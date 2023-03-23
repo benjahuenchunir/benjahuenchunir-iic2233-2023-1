@@ -36,11 +36,13 @@ def buscar_archivo(carpeta: dict, nombre_archivo: str) -> list:
 
     # Recursión (Completar)
     if carpeta["subcarpeta_1"]:
-        resultado_parcial = buscar_archivo(carpeta["subcarpeta_1"], nombre_archivo)
+        resultado_parcial = buscar_archivo(
+            carpeta["subcarpeta_1"], nombre_archivo)
         if resultado_parcial != []:
             return [carpeta["nombre_carpeta"]] + resultado_parcial
     if carpeta["subcarpeta_2"]:
-        resultado_parcial = buscar_archivo(carpeta["subcarpeta_2"], nombre_archivo)
+        resultado_parcial = buscar_archivo(
+            carpeta["subcarpeta_2"], nombre_archivo)
         if resultado_parcial != []:
             return [carpeta["nombre_carpeta"]] + resultado_parcial
     return []

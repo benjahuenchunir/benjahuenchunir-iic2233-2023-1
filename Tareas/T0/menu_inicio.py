@@ -9,6 +9,7 @@ def mostrar_menu_inicio():
         path = "Archivos/" + nombre_archivo
         if os.path.lexists(path):
             menu_acciones.mostrar_menu_acciones(path)
+            exit
         else:
             nombre_archivo = input(
                 """El nombre ingresado no existe, por favor ingrese otro nombre: """)
