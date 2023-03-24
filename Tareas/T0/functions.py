@@ -76,11 +76,6 @@ def solucionar_tablero(tablero: list) -> list:
     pass
 
 
-def transponer_tablero(tablero: list) -> list:
-    return [[tablero[y][x] for y in range(len(tablero))]
-            for x in range(len(tablero))]
-
-
 if __name__ == "__main__":
     tablero_2x2 = [
         ['-', "2"],

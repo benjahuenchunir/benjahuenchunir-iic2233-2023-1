@@ -7,7 +7,7 @@ def mostrar_menu_inicio():
     print("*** Menú de Inicio ***\n")
     nombre_archivo = input("Indique el nombre del archivo que desea abrir: ")
     path = "Archivos/" + nombre_archivo  # TODO enter crashea
-    if os.path.lexists(path):
+    if nombre_archivo != "" and os.path.lexists(path):
         mostrar_menu_acciones(nombre_archivo)
     else:
         print("El archivo no existe, cerrando el programa")
@@ -21,7 +21,7 @@ def mostrar_menu_acciones(nombre_archivo):
                 "3": revisar_solucion,
                 "4": solucionar_tablero}
     while seleccion != "5":
-        print("*** Menú de Acciones ***\n[1] Mostrar tablero\n"
+        print("\n*** Menú de Acciones ***\n[1] Mostrar tablero\n"
               "[2] Validar tablero\n[3] Revisar solución\n"
               "[4] Solucionar tablero\n[5] Salir del programa\n")
         seleccion = input("Indique su opción: (1, 2, 3, 4, o 5)\n")
@@ -37,10 +37,11 @@ def imprimir_tablero(tablero: list):
 
 
 def validar_tablero(tablero: list):
-    print(functions.verificar_valor_bombas(tablero))
-    # print(functions.verificar_alcance_bomba(tablero))
-    funciones_tablero.imprimir_tablero(functions.transponer_tablero(tablero))
-    print(functions.verificar_tortugas(tablero))
+    if (not functions.verificar_valor_bombas(tablero)
+            and not functions.verificar_tortugas(tablero)):
+        print("El tablero es valido")
+    else:
+        print("El tablero es invalido")
 
 
 def revisar_solucion(tablero: list):

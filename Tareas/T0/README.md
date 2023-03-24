@@ -36,7 +36,7 @@ Explicación: mantén el emoji correspondiente, de manera honesta, para cada ite
 ##### ❌✅🟠 Guardar tablero
 ##### ✅ Valor bombas
 ##### ✅ Alcance bomba
-##### ❌✅🟠 Verificar tortugas
+##### ✅ Verificar tortugas
 ##### ❌✅🟠 Solucionar tablero
 #### General: (19 pts) (25%)
 ##### ❌✅🟠 Manejo de Archivos
