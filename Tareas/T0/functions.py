@@ -26,7 +26,7 @@ def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
 def verificar_valor_bombas(tablero: list) -> int:
     tamaño_maximo = 2 * len(tablero[0]) - 1
     bombas_invalidas = 0
-    #[col for fila in tablero for col in fila if col.isdecimal() and (int(col) > tamaño_maximo or int(col) < 2)]
+    # [col for fila in tablero for col in fila if col.isdecimal() and (int(col) > tamaño_maximo or int(col) < 2)]
     for fil in tablero:
         for col in fil:
             if col.isdecimal() and (int(col) > tamaño_maximo or int(col) < 2):
@@ -36,8 +36,6 @@ def verificar_valor_bombas(tablero: list) -> int:
 
 def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
     if not tablero[coordenada[1]][coordenada[0]].isdecimal():
-        print(tablero[coordenada[1]][coordenada[0]])
-        print("Entre aca")
         return 0
     rango_explosion = 1
     direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -62,12 +60,16 @@ def posicion_valida(tablero, posicion):
 
 
 def verificar_tortugas(tablero: list) -> int:
-    seguidas = 0
-    for fila in tablero + transponer_tablero(tablero):
-        for x in range(len(fila) - 1):
-            if fila[x] == "T" and fila[x] == fila[x + 1]:
-                seguidas += 1
-    return seguidas
+    seguidas = []
+    for y in range(len(tablero)):
+        for x in range(len(tablero)):
+            if tablero[y][x] != "T":
+                continue
+            if len(tablero) > (y + 1) and tablero[y + 1][x] == "T":
+                seguidas += [(x, y), (x, y + 1)]
+            if len(tablero) > (x + 1) and tablero[y][x + 1] == "T":
+                seguidas += [(x, y), (x + 1, y)]
+    return len(set(seguidas))
 
 
 def solucionar_tablero(tablero: list) -> list:
