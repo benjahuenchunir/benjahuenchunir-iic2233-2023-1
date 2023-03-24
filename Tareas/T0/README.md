@@ -27,25 +27,25 @@ Explicación: mantén el emoji correspondiente, de manera honesta, para cada ite
 #### Menú de Acciones (11 pts) (15%) 
 ##### ✅ Opciones
 ##### ✅ Mostrar tablero 
-##### ❌✅🟠 Validar bombas y tortugas
-##### ❌✅🟠 Revisar solución
+##### ✅ Validar bombas y tortugas
+##### ✅ Revisar solución
 ##### ❌✅🟠 Solucionar tablero
-##### ❌✅🟠 Salir
+##### ✅ Salir
 #### Funciones (34 pts) (45%)
 ##### ✅ Cargar tablero
-##### ❌✅🟠 Guardar tablero
+##### ✅ Guardar tablero
 ##### ✅ Valor bombas
 ##### ✅ Alcance bomba
 ##### ✅ Verificar tortugas
 ##### ❌✅🟠 Solucionar tablero
 #### General: (19 pts) (25%)
-##### ❌✅🟠 Manejo de Archivos
-##### ❌✅🟠 Menús
-##### ❌✅🟠 tablero.py
-##### ❌✅🟠 Módulos
-##### ❌✅🟠 PEP-8
+##### ✅ Manejo de Archivos
+##### ✅ Menús
+##### ✅ tablero.py
+##### ✅ Módulos
+##### ✅ PEP-8
 #### Bonus: 6 décimas
-##### ❌✅🟠 Funciones atómicas
+##### ✅ Funciones atómicas
 ##### ❌✅🟠 Regla 5
 ## Ejecución :computer:
 El módulo principal de la tarea a ejecutar es  ```archivo.py```. Además se debe crear los siguientes archivos y directorios adicionales:
