@@ -48,6 +48,7 @@ def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
     return rango_explosion
 
 
+# Permite validar si moverse en cierta direccion es un movimiento valido
 def posicion_valida(tablero, posicion):
     x, y = posicion
     if x < 0 or x >= len(tablero):
@@ -72,26 +73,58 @@ def verificar_tortugas(tablero: list) -> int:
     return len(set(seguidas))
 
 
+# Verifica que un tablero sea valido (cumpla 2 y 4)
+def es_valido(tablero: list):
+    if verificar_valor_bombas(tablero):
+        return False
+    if verificar_tortugas(tablero):
+        return False
+    return True
+
+
+# Verifica que el tablero sea solucion (cumpla 1, 2, 3 y 4)
+def es_solucion(tablero: list):
+    bombas = [(x, y) for y, fila in enumerate(tablero)
+              for x, col in enumerate(fila) if col.isdecimal()]
+    for x, y in bombas:
+        if verificar_alcance_bomba(tablero, (x, y)) != int(tablero[y][x]):
+            return False
+    else:
+        return True
+
+
 def solucionar_tablero(tablero: list) -> list:
-    pass
+    if not es_valido(tablero):
+        return None
+    if es_solucion(tablero):
+        return tablero
+    for y in range(len(tablero)):  # Probara reemplazar cada guion por una tortuga
+        for x in range(len(tablero)):
+            if tablero[y][x] == "-":
+                tablero[y][x] = "T"
+                solucion = solucionar_tablero(tablero)
+                if solucion is None:  # Deshacer el cambio porque no es valido
+                    tablero[y][x] = "-"
+                else:
+                    return tablero # El cambio es valido, continar agregando tortugas
 
 
 if __name__ == "__main__":
     tablero_2x2 = [
-        ['-', "2"],
+        ['-', 2],
         ['-', '-']
     ]
     resultado = verificar_valor_bombas(tablero_2x2)
     print(resultado)  # Debería ser 0
 
-    resultado = verificar_alcance_bomba(tablero_2x2, (1, 0))
+    resultado = verificar_alcance_bomba(tablero_2x2, (0, 1))
     print(resultado)  # Debería ser 3
 
     tablero_resuelto = solucionar_tablero(tablero_2x2)
     print(tablero_resuelto)
 
     tablero_2x2_sol = [
-        ['T', "2"],
+        ['T', 2],
         ['-', '-']
     ]
 

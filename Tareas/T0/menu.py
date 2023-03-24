@@ -16,16 +16,16 @@ def mostrar_menu_inicio():
 def mostrar_menu_acciones(nombre_archivo):
     tablero = functions.cargar_tablero(nombre_archivo)
     seleccion = ""
-    opciones = {"1": imprimir_tablero,
-                "2": validar_tablero,
-                "3": revisar_solucion,
-                "4": solucionar_tablero}
+    opciones = {"1": imprimir_tablero, "2": validar_tablero,
+                "3": revisar_solucion}
     while seleccion != "5":
         print("\n*** Menú de Acciones ***\n[1] Mostrar tablero\n"
               "[2] Validar tablero\n[3] Revisar solución\n"
               "[4] Solucionar tablero\n[5] Salir del programa\n")
         seleccion = input("Indique su opción (1, 2, 3, 4, o 5):\n")
-        if seleccion in opciones:
+        if seleccion == "4":
+            solucionar_tablero(tablero, nombre_archivo)
+        elif seleccion in opciones:
             opciones[seleccion](tablero)
         elif seleccion != "5":
             print("El valor ingresado no corresponde a una de las opciones")
@@ -60,7 +60,7 @@ def revisar_solucion(tablero: list):  # TODO por como esta definida la funcion a
         print("El tablero no esta resuelto y es invalido")
 
 
-def solucionar_tablero(tablero: list):
+def solucionar_tablero(tablero: list, nombre_archivo: str):
     pass
 
 
