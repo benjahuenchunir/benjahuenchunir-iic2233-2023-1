@@ -32,10 +32,10 @@ Explicación: mantén el emoji correspondiente, de manera honesta, para cada ite
 ##### ❌✅🟠 Solucionar tablero
 ##### ❌✅🟠 Salir
 #### Funciones (34 pts) (45%)
-##### ❌✅🟠 Cargar tablero
+##### ✅ Cargar tablero
 ##### ❌✅🟠 Guardar tablero
-##### ❌✅🟠 Valor bombas
-##### ❌✅🟠 Alcance bomba
+##### ✅ Valor bombas
+##### ✅ Alcance bomba
 ##### ❌✅🟠 Verificar tortugas
 ##### ❌✅🟠 Solucionar tablero
 #### General: (19 pts) (25%)
