@@ -93,20 +93,34 @@ def es_solucion(tablero: list):
         return True
 
 
+def encontrar_ultima_tortuga(tablero: list):
+    """
+    Encuentra la ultima tortuga y asi evito iteraciones incecesarias
+    """
+    for y in range(len(tablero) - 1, -1, -1):
+        for x in range(len(tablero) - 1, -1, -1):
+            if tablero[y][x] == "T":
+                return (x, y)
+        else:
+            return (0, 0)
+
+
+# Quizas en vez de iterar sobre toda la lista encontrar el ultimo T y partir de ahi
 def solucionar_tablero(tablero: list) -> list:
     if not es_valido(tablero):
         return None
     if es_solucion(tablero):
         return tablero
-    for y in range(len(tablero)):  # Probara reemplazar cada guion por una tortuga
-        for x in range(len(tablero)):
+    iniciox, inicioy = encontrar_ultima_tortuga(tablero)
+    for y in range(inicioy, len(tablero)):  # Probara reemplazar cada guion por una tortuga
+        for x in range(iniciox, len(tablero)):
             if tablero[y][x] == "-":
                 tablero[y][x] = "T"
                 solucion = solucionar_tablero(tablero)
                 if solucion is None:  # Deshacer el cambio porque no es valido
                     tablero[y][x] = "-"
                 else:
-                    return tablero # El cambio es valido, continar agregando tortugas
+                    return tablero  # Los cambios son validos
 
 
 if __name__ == "__main__":
