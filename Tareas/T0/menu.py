@@ -4,6 +4,9 @@ import tablero as funciones_tablero
 
 
 def mostrar_menu_inicio():
+    """
+    Imprime el menu de inicio y valida el input
+    """
     print("*** Menú de Inicio ***\n")
     nombre_archivo = input("Indique el nombre del archivo que desea abrir: ")
     path = "Archivos/" + nombre_archivo  # TODO enter crashea
@@ -14,54 +17,74 @@ def mostrar_menu_inicio():
 
 
 def mostrar_menu_acciones(nombre_archivo):
-    tablero = functions.cargar_tablero(nombre_archivo)
+    """
+    Imprime el menu de acciones
+    """
     seleccion = ""
-    opciones = {"1": imprimir_tablero, "2": validar_tablero,
-                "3": revisar_solucion}
     while seleccion != "5":
         print("\n*** Menú de Acciones ***\n[1] Mostrar tablero\n"
               "[2] Validar tablero\n[3] Revisar solución\n"
               "[4] Solucionar tablero\n[5] Salir del programa\n")
         seleccion = input("Indique su opción (1, 2, 3, 4, o 5):\n")
-        if seleccion == "4":
-            solucionar_tablero(tablero, nombre_archivo)
-        elif seleccion in opciones:
-            opciones[seleccion](tablero)
-        elif seleccion != "5":
-            print("El valor ingresado no corresponde a una de las opciones")
+        manejar_seleccion(seleccion, nombre_archivo) 
     print("Cerrando el programa")
 
 
+def manejar_seleccion(seleccion: str, nombre_archivo):
+    """
+    Maneja la seleccion del usuario
+    """
+    tablero = functions.cargar_tablero(nombre_archivo)
+    opciones = {"1": imprimir_tablero, "2": validar_tablero,
+                "3": revisar_solucion}
+    if seleccion == "4":
+        solucionar_tablero(tablero, nombre_archivo)
+    elif seleccion in opciones:
+        opciones[seleccion](tablero)
+    elif seleccion != "5":
+        print("El valor ingresado no corresponde a una de las opciones")
+
+
 def imprimir_tablero(tablero: list):
+    """
+    Imprime el tablero
+    """
     funciones_tablero.imprimir_tablero(tablero, utf8=True)
 
 
 def validar_tablero(tablero: list):
-    if (not functions.verificar_valor_bombas(tablero)
-            and not functions.verificar_tortugas(tablero)):
+    """
+    Verifica que un tablero sea valido (cumpla 2 y 4)
+    """
+    if functions.es_valido(tablero):
         print("El tablero es valido")
-        return True
     else:
         print("El tablero es invalido")
-        return False
 
 
 def revisar_solucion(tablero: list):  # TODO por como esta definida la funcion alcance no es necesario pasarle las bombas
-    if validar_tablero(tablero):  # TODO esto printea si el tablero es valido y hay que sacarlo
-        bombas = [(x, y) for y, fila in enumerate(tablero)
-                  for x, col in enumerate(fila) if col.isdecimal()]
-        for x, y in bombas:
-            if functions.verificar_alcance_bomba(tablero, (x, y)) != int(tablero[y][x]):
-                print("El tablero no esta resuelto")
-                break
-        else:
+    """
+    Verifica las reglas 1, 2, 3 y 4
+    """
+    if (functions.es_valido(tablero)):
+        if functions.es_solucion(tablero):
             print("El tablero esta resuelto")
+        else:
+            print("El tablero no esta resuelto")
     else:
         print("El tablero no esta resuelto y es invalido")
 
 
 def solucionar_tablero(tablero: list, nombre_archivo: str):
-    pass
+    """
+    Intenta solucionar el tablero y lo guarda
+    """
+    solucion = functions.solucionar_tablero(tablero)
+    if solucion is None:
+        print("El tablero no se pudo solucionar")
+    else:
+        funciones_tablero.imprimir_tablero(solucion)
+        functions.guardar_tablero(nombre_archivo, tablero)
 
 
 mostrar_menu_inicio()
