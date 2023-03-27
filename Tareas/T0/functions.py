@@ -40,16 +40,16 @@ def verificar_valor_bombas(tablero: list) -> int:
 
 
 def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
-    if not tablero[coordenada[1]][coordenada[0]].isdecimal():
+    if not tablero[coordenada[0]][coordenada[1]].isdecimal():
         return 0
     rango_explosion = 1
     direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     for dx, dy in direcciones:
-        x, y = coordenada
-        x, y = x + dx, y + dy
+        y, x = coordenada
+        y, x = y + dy, x + dx
         while posicion_valida(tablero, (x, y)):
             rango_explosion += 1
-            x, y = x + dx, y + dy
+            y, x = y + dy, x + dx
     return rango_explosion
 
 
@@ -100,36 +100,23 @@ def es_solucion(tablero: list):
     """
     if not es_valido:
         return None
-    bombas = ((x, y) for y, fila in enumerate(tablero)
+    bombas = ((y, x) for y, fila in enumerate(tablero)
               for x, col in enumerate(fila) if col.isdecimal())
-    for x, y in bombas:
-        if verificar_alcance_bomba(tablero, (x, y)) != int(tablero[y][x]):
+    for y, x in bombas:
+        if verificar_alcance_bomba(tablero, (y, x)) != int(tablero[y][x]):
             return False
     else:
         return True
 
 
-def encontrar_ultima_tortuga(tablero: list):
-    """
-    Encuentra la ultima tortuga y asi evito iteraciones incecesarias
-    """
-    for y in range(len(tablero) - 1, -1, -1):
-        for x in range(len(tablero) - 1, -1, -1):
-            if tablero[y][x] == "T":
-                return (x, y)
-        else:
-            return (0, 0)
-
-
 def solucionar_tablero(tablero: list) -> list:
     if not es_valido(tablero):
         return None
-    if es_solucion(tablero):
+    if es_solucion(tablero): # Hace el es valido 2 veces
         return tablero
-    iniciox, inicioy = encontrar_ultima_tortuga(tablero)
     # Probara reemplazar cada guion por una tortuga
-    for y in range(inicioy, len(tablero)):
-        for x in range(iniciox, len(tablero)):
+    for y in range(len(tablero)):
+        for x in range(len(tablero)):
             if tablero[y][x] == "-":
                 tablero[y][x] = "T"
                 solucion = solucionar_tablero(tablero)
@@ -140,12 +127,12 @@ def solucionar_tablero(tablero: list) -> list:
                     return tablero  # Los cambios son validos
 
 
-"""tablero = cargar_tablero("5x5.txt")
+tablero = cargar_tablero("5x5.txt")
 t0 = time.monotonic_ns()
-#print(verificar_tortugas(tablero))
+# print(verificar_tortugas(tablero))
 print(solucionar_tablero(tablero))
 t1 = time.monotonic_ns()
-print(f'{(t1-t0)/1_000_000_000:.10f}')"""
+print(f'{(t1-t0)/1_000_000_000:.10f}')
 
 
 """if __name__ == "__main__":
