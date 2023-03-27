@@ -1,6 +1,7 @@
 # Agregar los imports que estimen necesarios
 import tablero as funciones_tablero
 import os
+import time
 
 
 def cargar_tablero(nombre_archivo: str) -> list:
@@ -20,12 +21,11 @@ def cargar_tablero(nombre_archivo: str) -> list:
 def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
     nombre, extension = os.path.splitext(os.path.basename(nombre_archivo))
     nuevo_nombre = (nombre + "_sol" + extension)
-    path = ("Archivos/" +
-            "_sol" + nombre_archivo.split(".")[1])
+    path = ("Archivos/" + nuevo_nombre)
     with open(path, "wt") as archivo_tablero:
         archivo_tablero.write(
-            str(len(tablero)) +
-            ",".join([casillero for fila in tablero for casillero in fila]))
+            f"{len(tablero)}," +
+            f"{','.join([col for fil in tablero for col in fil])}")
 
 
 def verificar_valor_bombas(tablero: list) -> int:
@@ -70,16 +70,16 @@ def posicion_valida(tablero, posicion):
 
 
 def verificar_tortugas(tablero: list) -> int:
-    seguidas = []
+    seguidas = set()
     for y in range(len(tablero)):
         for x in range(len(tablero)):
             if tablero[y][x] != "T":
                 continue
             if len(tablero) > (y + 1) and tablero[y + 1][x] == "T":
-                seguidas += [(x, y), (x, y + 1)]
+                seguidas |= {(x, y), (x, y + 1)}
             if len(tablero) > (x + 1) and tablero[y][x + 1] == "T":
-                seguidas += [(x, y), (x + 1, y)]
-    return len(set(seguidas))
+                seguidas |= {(x, y), (x + 1, y)}
+    return len(seguidas)
 
 
 def es_valido(tablero: list):
@@ -93,12 +93,15 @@ def es_valido(tablero: list):
     return True
 
 
+# TODO por como esta definida la funcion alcance no es necesario pasarle las bombas
 def es_solucion(tablero: list):
     """
     Verifica que el tablero este solucionado (cumpla 1, 2, 3 y 4)
     """
-    bombas = [(x, y) for y, fila in enumerate(tablero)
-              for x, col in enumerate(fila) if col.isdecimal()]
+    if not es_valido:
+        return None
+    bombas = ((x, y) for y, fila in enumerate(tablero)
+              for x, col in enumerate(fila) if col.isdecimal())
     for x, y in bombas:
         if verificar_alcance_bomba(tablero, (x, y)) != int(tablero[y][x]):
             return False
@@ -137,7 +140,15 @@ def solucionar_tablero(tablero: list) -> list:
                     return tablero  # Los cambios son validos
 
 
-if __name__ == "__main__":
+"""tablero = cargar_tablero("5x5.txt")
+t0 = time.monotonic_ns()
+#print(verificar_tortugas(tablero))
+print(solucionar_tablero(tablero))
+t1 = time.monotonic_ns()
+print(f'{(t1-t0)/1_000_000_000:.10f}')"""
+
+
+"""if __name__ == "__main__":
     tablero_2x2 = [
         ['-', 2],
         ['-', '-']
@@ -160,4 +171,4 @@ if __name__ == "__main__":
     print(resultado)  # Debería ser 2
 
     resultado = verificar_tortugas(tablero_2x2_sol)
-    print(resultado)  # Debería ser 0
+    print(resultado)  # Debería ser 0"""

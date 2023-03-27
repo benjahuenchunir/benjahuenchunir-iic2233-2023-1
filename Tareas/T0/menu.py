@@ -26,8 +26,7 @@ def mostrar_menu_acciones(nombre_archivo):
               "[2] Validar tablero\n[3] Revisar solución\n"
               "[4] Solucionar tablero\n[5] Salir del programa\n")
         seleccion = input("Indique su opción (1, 2, 3, 4, o 5):\n")
-        manejar_seleccion(seleccion, nombre_archivo) 
-    print("Cerrando el programa")
+        manejar_seleccion(seleccion, nombre_archivo)
 
 
 def manejar_seleccion(seleccion: str, nombre_archivo):
@@ -37,11 +36,13 @@ def manejar_seleccion(seleccion: str, nombre_archivo):
     tablero = functions.cargar_tablero(nombre_archivo)
     opciones = {"1": imprimir_tablero, "2": validar_tablero,
                 "3": revisar_solucion}
-    if seleccion == "4":
+    if seleccion == "5":
+        print("Cerrando el programa")
+    elif seleccion == "4":
         solucionar_tablero(tablero, nombre_archivo)
     elif seleccion in opciones:
         opciones[seleccion](tablero)
-    elif seleccion != "5":
+    else:
         print("El valor ingresado no corresponde a una de las opciones")
 
 
@@ -62,23 +63,21 @@ def validar_tablero(tablero: list):
         print("El tablero es invalido")
 
 
-def revisar_solucion(tablero: list):  # TODO por como esta definida la funcion alcance no es necesario pasarle las bombas
+def revisar_solucion(tablero: list):
     """
     Verifica las reglas 1, 2, 3 y 4
     """
-    if (functions.es_valido(tablero)):
-        if functions.es_solucion(tablero):
-            print("El tablero esta resuelto")
-        else:
-            print("El tablero no esta resuelto")
+    if functions.es_solucion(tablero):
+        print("El tablero esta resuelto")
     else:
-        print("El tablero no esta resuelto y es invalido")
+        print("El tablero no esta resuelto")
 
 
 def solucionar_tablero(tablero: list, nombre_archivo: str):
     """
     Intenta solucionar el tablero y lo guarda
     """
+    print("Solucionando el tablero...")
     solucion = functions.solucionar_tablero(tablero)
     if solucion is None:
         print("El tablero no se pudo solucionar")
