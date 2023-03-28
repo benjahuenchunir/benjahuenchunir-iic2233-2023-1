@@ -1,8 +1,10 @@
-import tablero as funciones_tablero
 import os
 
 
 def cargar_tablero(nombre_archivo: str) -> list:
+    """
+    Convierte un archivo a un tablero
+    """
     path = "Archivos/" + nombre_archivo
     with open(path, "rt") as archivo_tablero:
         tablero_desordenado = archivo_tablero.readline().strip().split(',')
@@ -17,6 +19,9 @@ def cargar_tablero(nombre_archivo: str) -> list:
 
 
 def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
+    """
+    Guarda el tablero a un archivo
+    """
     nombre, extension = os.path.splitext(os.path.basename(nombre_archivo))
     nuevo_nombre = (nombre + "_sol" + extension)
     path = ("Archivos/" + nuevo_nombre)
@@ -27,28 +32,16 @@ def guardar_tablero(nombre_archivo: str, tablero: list) -> None:
 
 
 def verificar_valor_bombas(tablero: list) -> int:
+    """
+    Verifica regla 2
+    """
     tamaño_maximo = 2 * len(tablero[0]) - 1
     bombas_invalidas = 0
-    # [col for fila in tablero for col in fila if col.isdecimal() and (int(col) > tamaño_maximo or int(col) < 2)]
     for fil in tablero:
         for col in fil:
             if col.isdecimal() and (int(col) > tamaño_maximo or int(col) < 2):
                 bombas_invalidas += 1
     return bombas_invalidas
-
-
-def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
-    if not tablero[coordenada[0]][coordenada[1]].isdecimal():
-        return 0
-    rango_explosion = 1
-    direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-    for dx, dy in direcciones:
-        y, x = coordenada
-        y, x = y + dy, x + dx
-        while posicion_valida(tablero, (x, y)):
-            rango_explosion += 1
-            y, x = y + dy, x + dx
-    return rango_explosion
 
 
 def posicion_valida(tablero, posicion):
@@ -65,7 +58,27 @@ def posicion_valida(tablero, posicion):
     return True
 
 
+def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
+    """
+    Verifica que la bomba tenga el alcance correcto
+    """
+    if not tablero[coordenada[0]][coordenada[1]].isdecimal():
+        return 0
+    rango_explosion = 1
+    direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+    for dx, dy in direcciones:
+        y, x = coordenada
+        y, x = y + dy, x + dx
+        while posicion_valida(tablero, (x, y)):
+            rango_explosion += 1
+            y, x = y + dy, x + dx
+    return rango_explosion
+
+
 def verificar_tortugas(tablero: list) -> int:
+    """
+    Verifica regla 4
+    """
     seguidas = set()
     for y in range(len(tablero)):
         for x in range(len(tablero)):
@@ -114,17 +127,20 @@ def solucionar_tablero(tablero: list):
 
 def solucionar_tablero_recursiva(tablero: list, pos: tuple = (0, 0)) -> list:
     estado = es_solucion(tablero)
-    # Caso base: Es solucion o se invalida
+    # Caso base: Es solución o se invalida
     if estado is True or estado is None:
         return estado
-    x0, y0 = pos
-    if y0 != len(tablero):  # No ha llegado al final del tablero
-        x = (x0 + 1) if x0 < len(tablero) - 1 else 0
-        y = y0 + 1 if x == 0 and y0 < len(tablero) else y0
-        if tablero[y0][x0] != "-":
+    x_0, y_0 = pos
+    # Verificar si llegó al final del tablero
+    if y_0 != len(tablero):
+        x = (x_0 + 1) if x_0 < len(tablero) - 1 else 0
+        y = y_0 + 1 if x == 0 and y_0 < len(tablero) else y_0
+        # Saltarse las posiciones que no sean "-"
+        if tablero[y_0][x_0] != "-":
             return solucionar_tablero_recursiva(tablero, (x, y))
+        # Prueba la posición con y sin tortuga
         for opcion in ["T", "-"]:
-            tablero[y0][x0] = opcion
+            tablero[y_0][x_0] = opcion
             resultado = solucionar_tablero_recursiva(tablero, (x, y))
             if resultado:
                 return tablero
