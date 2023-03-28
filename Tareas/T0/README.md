@@ -2,7 +2,7 @@
 
 ## Consideraciones generales :octocat:
 
-La tarea esta completa, es decir, implemente todas las funciones requeridas y cumplí con el bonus de Funciones atómicas. Las funciones se encuentran comentadas para explicar su función.
+La tarea esta completa, es decir, implemente todas las funciones requeridas y cumplí con el bonus de Funciones atómicas. Las funciones se encuentran comentadas para explicar su función. Para la implementacion de la funcion verificar_alcance_bomba use las coordenadas como se indican (fil, col). Sin embargo, para el resto de las implementaciones use (col, fil) por comodidad.
 
 ### Cosas implementadas y no implementadas :white_check_mark: :x:
 

@@ -66,12 +66,12 @@ def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
         return 0
     rango_explosion = 1
     direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-    for dx, dy in direcciones:
+    for direccion_x, direccion_y in direcciones:
         y, x = coordenada
-        y, x = y + dy, x + dx
+        y, x = y + direccion_y, x + direccion_x
         while posicion_valida(tablero, (x, y)):
             rango_explosion += 1
-            y, x = y + dy, x + dx
+            y, x = y + direccion_y, x + direccion_x
     return rango_explosion
 
 
