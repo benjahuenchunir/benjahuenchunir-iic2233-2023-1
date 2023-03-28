@@ -82,6 +82,7 @@ def solucionar_tablero(tablero: list, nombre_archivo: str):
     if solucion is None:
         print("El tablero no se pudo solucionar")
     else:
+        print("El tablero se pudo solucionar")
         funciones_tablero.imprimir_tablero(solucion)
         functions.guardar_tablero(nombre_archivo, tablero)
 
