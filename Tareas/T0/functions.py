@@ -93,12 +93,11 @@ def es_valido(tablero: list):
     return True
 
 
-# TODO por como esta definida la funcion alcance no es necesario pasarle las bombas
 def es_solucion(tablero: list):
     """
     Verifica que el tablero este solucionado (cumpla 1, 2, 3 y 4)
     """
-    if not es_valido:
+    if not es_valido(tablero):
         return None
     bombas = ((y, x) for y, fila in enumerate(tablero)
               for x, col in enumerate(fila) if col.isdecimal())
@@ -110,10 +109,10 @@ def es_solucion(tablero: list):
 
 
 def solucionar_tablero(tablero: list) -> list:
-    if not es_valido(tablero):
-        return None
-    if es_solucion(tablero): # Hace el es valido 2 veces
-        return tablero
+    estado = es_solucion(tablero)
+    # Es invalido o es solucion
+    if estado is None or estado is True:
+        return estado
     # Probara reemplazar cada guion por una tortuga
     for y in range(len(tablero)):
         for x in range(len(tablero)):
@@ -123,14 +122,75 @@ def solucionar_tablero(tablero: list) -> list:
                 # Deshacer el cambio porque no es valido
                 if solucion is None:
                     tablero[y][x] = "-"
-                else:
+                elif solucion:
                     return tablero  # Los cambios son validos
+                
+def solucionar_tablero2(tablero: list, pos) -> list:
+    estado = es_solucion(tablero)
+    funciones_tablero.imprimir_tablero(tablero)
+    # Es invalido o es solucion
+    if estado is None or estado is True:
+        print("Es invalido")
+        return estado
+    x0, y0 = pos
+    # Probara reemplazar cada guion por una tortuga
+    for y in range(x0, len(tablero)):
+        for x in range(y0, len(tablero)):
+            if tablero[y][x] == "-":
+                tablero[y][x] = "T"
+                print(f"Cambiando {y},{x}")
+                solucion = solucionar_tablero2(tablero, (x, y))
+                # Deshacer el cambio porque no es valido
+                if solucion is None:
+                    tablero[y][x] = "-"
+                elif solucion:
+                    return tablero  # Los cambios son validos
+
+def posicion_validaa(tablero, pos):
+    x, y = pos
+    if tablero[y][x] != "-":
+        return False
+    if y >= len(tablero):
+        return False
+    if x >= len(tablero):
+        return (y + 1, 0)
+
+def solucionar_tablero3(tablero: list, pos: tuple = (0, 0)) -> list:
+    print(pos)
+    funciones_tablero.imprimir_tablero(tablero)
+    col0, fil0 = pos
+    col = (col0 + 1) if col0 < len(tablero) - 1 else 0
+    fil = fil0 + 1 if col == 0 and fil0 < len(tablero) else fil0
+    
+    print(fil)
+    estado = es_solucion(tablero)
+    if estado is None or estado is True:
+        print("Devolvi 1")
+        return estado
+
+    if fil0 == len(tablero):
+        print("Devolvi 2")
+        return False
+    
+    if tablero[fil0][col0] != "-":
+        print(f"Saltando {tablero[fil0][col0]}")
+        return solucionar_tablero3(tablero, (col, fil))
+    
+    for opcion in ["T", "-"]:
+        tablero[fil0][col0] = opcion
+        resultado = solucionar_tablero3(tablero, (col, fil))
+        if resultado:
+            print(f"Solution found:\n{tablero}")
+            return tablero
+        tablero[fil0][col0] = "-"
+    return None
 
 
 tablero = cargar_tablero("5x5.txt")
+funciones_tablero.imprimir_tablero(tablero)
 t0 = time.monotonic_ns()
-# print(verificar_tortugas(tablero))
-print(solucionar_tablero(tablero))
+funciones_tablero.imprimir_tablero(solucionar_tablero3(tablero, (0, 0)))
+funciones_tablero.imprimir_tablero(cargar_tablero("5x5_sol.txt"))
 t1 = time.monotonic_ns()
 print(f'{(t1-t0)/1_000_000_000:.10f}')
 
