@@ -122,7 +122,10 @@ def solucionar_tablero(tablero: list):
     Llama a solucionar el tablero
     (antes se resolvia de forma recursiva aca, pero se demoraba mucho)
     """
-    return solucionar_tablero_recursiva(tablero)
+    if es_solucion(tablero):
+        return tablero
+    else:
+        return solucionar_tablero_recursiva(tablero)
 
 
 def solucionar_tablero_recursiva(tablero: list, pos: tuple = (0, 0)) -> list:
