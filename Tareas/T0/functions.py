@@ -1,7 +1,5 @@
-# Agregar los imports que estimen necesarios
 import tablero as funciones_tablero
 import os
-import time
 
 
 def cargar_tablero(nombre_archivo: str) -> list:
@@ -53,12 +51,10 @@ def verificar_alcance_bomba(tablero: list, coordenada: tuple) -> int:
     return rango_explosion
 
 
-def verificar_islas(tablero: list) -> bool:
-    pass
-
-
-# Permite validar si moverse en cierta direccion es un movimiento valido
 def posicion_valida(tablero, posicion):
+    """
+    Valida si moverse en cierta direccion es un movimiento valido
+    """
     x, y = posicion
     if x < 0 or x >= len(tablero):
         return False
@@ -108,94 +104,33 @@ def es_solucion(tablero: list):
         return True
 
 
-def solucionar_tablero(tablero: list) -> list:
+def solucionar_tablero(tablero: list):
+    """
+    Llama a solucionar el tablero
+    (antes se resolvia de forma recursiva aca, pero se demoraba mucho)
+    """
+    return solucionar_tablero_recursiva(tablero)
+
+
+def solucionar_tablero_recursiva(tablero: list, pos: tuple = (0, 0)) -> list:
     estado = es_solucion(tablero)
-    # Es invalido o es solucion
-    if estado is None or estado is True:
-        return estado
-    # Probara reemplazar cada guion por una tortuga
-    for y in range(len(tablero)):
-        for x in range(len(tablero)):
-            if tablero[y][x] == "-":
-                tablero[y][x] = "T"
-                solucion = solucionar_tablero(tablero)
-                # Deshacer el cambio porque no es valido
-                if solucion is None:
-                    tablero[y][x] = "-"
-                elif solucion:
-                    return tablero  # Los cambios son validos
-                
-def solucionar_tablero2(tablero: list, pos) -> list:
-    estado = es_solucion(tablero)
-    funciones_tablero.imprimir_tablero(tablero)
-    # Es invalido o es solucion
-    if estado is None or estado is True:
-        print("Es invalido")
+    # Caso base: Es solucion o se invalida
+    if estado is True or estado is None:
         return estado
     x0, y0 = pos
-    # Probara reemplazar cada guion por una tortuga
-    for y in range(x0, len(tablero)):
-        for x in range(y0, len(tablero)):
-            if tablero[y][x] == "-":
-                tablero[y][x] = "T"
-                print(f"Cambiando {y},{x}")
-                solucion = solucionar_tablero2(tablero, (x, y))
-                # Deshacer el cambio porque no es valido
-                if solucion is None:
-                    tablero[y][x] = "-"
-                elif solucion:
-                    return tablero  # Los cambios son validos
-
-def posicion_validaa(tablero, pos):
-    x, y = pos
-    if tablero[y][x] != "-":
-        return False
-    if y >= len(tablero):
-        return False
-    if x >= len(tablero):
-        return (y + 1, 0)
-
-def solucionar_tablero3(tablero: list, pos: tuple = (0, 0)) -> list:
-    print(pos)
-    funciones_tablero.imprimir_tablero(tablero)
-    col0, fil0 = pos
-    col = (col0 + 1) if col0 < len(tablero) - 1 else 0
-    fil = fil0 + 1 if col == 0 and fil0 < len(tablero) else fil0
-    
-    print(fil)
-    estado = es_solucion(tablero)
-    if estado is None or estado is True:
-        print("Devolvi 1")
-        return estado
-
-    if fil0 == len(tablero):
-        print("Devolvi 2")
-        return False
-    
-    if tablero[fil0][col0] != "-":
-        print(f"Saltando {tablero[fil0][col0]}")
-        return solucionar_tablero3(tablero, (col, fil))
-    
-    for opcion in ["T", "-"]:
-        tablero[fil0][col0] = opcion
-        resultado = solucionar_tablero3(tablero, (col, fil))
-        if resultado:
-            print(f"Solution found:\n{tablero}")
-            return tablero
-        tablero[fil0][col0] = "-"
-    return None
+    if y0 != len(tablero):  # No ha llegado al final del tablero
+        x = (x0 + 1) if x0 < len(tablero) - 1 else 0
+        y = y0 + 1 if x == 0 and y0 < len(tablero) else y0
+        if tablero[y0][x0] != "-":
+            return solucionar_tablero_recursiva(tablero, (x, y))
+        for opcion in ["T", "-"]:
+            tablero[y0][x0] = opcion
+            resultado = solucionar_tablero_recursiva(tablero, (x, y))
+            if resultado:
+                return tablero
 
 
-tablero = cargar_tablero("5x5.txt")
-funciones_tablero.imprimir_tablero(tablero)
-t0 = time.monotonic_ns()
-funciones_tablero.imprimir_tablero(solucionar_tablero3(tablero, (0, 0)))
-funciones_tablero.imprimir_tablero(cargar_tablero("5x5_sol.txt"))
-t1 = time.monotonic_ns()
-print(f'{(t1-t0)/1_000_000_000:.10f}')
-
-
-"""if __name__ == "__main__":
+if __name__ == "__main__":
     tablero_2x2 = [
         ['-', 2],
         ['-', '-']
@@ -218,4 +153,4 @@ print(f'{(t1-t0)/1_000_000_000:.10f}')
     print(resultado)  # Debería ser 2
 
     resultado = verificar_tortugas(tablero_2x2_sol)
-    print(resultado)  # Debería ser 0"""
+    print(resultado)  # Debería ser 0
