@@ -58,4 +58,4 @@ Los supuestos que realicé durante la tarea son los siguientes:
 ## Referencias de código externo :book:
 
 Para realizar mi tarea saqué código de:
-1. \<https://github.com/IIC2233/Syllabus/blob/main/Tareas/T0/Sala%20Ayuda/laberinto.py>: este resuelve un laberinto de forma recursiva y está implementado en el archivo functions.py en las líneas 47-58 y verifica que el moverse a una posicion sea valida para la funcion verificar_alcance_bomba, es decir, este dentro del tablero y no sea una tortuga. También esta en las lineas 128-146, donde seguí una estructura similar para resolver el tablero recursivamente.
+1. \<https://github.com/IIC2233/Syllabus/blob/main/Tareas/T0/Sala%20Ayuda/laberinto.py>: este resuelve un laberinto de forma recursiva y está implementado en el archivo functions.py en las líneas 47-58 y 61-75 donde se verifica que el moverse a una posicion sea valida para la funcion verificar_alcance_bomba, es decir, este dentro del tablero y no sea una tortuga y se cuenta el alcance de la bomba. También esta en las lineas 128-146, donde seguí una estructura similar para resolver el tablero recursivamente.
