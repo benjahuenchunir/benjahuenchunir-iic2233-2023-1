@@ -18,7 +18,6 @@ class Animal(ABC):
 
     @energia.setter
     def energia(self, value):
-        print("Valor", value)
         self.__energia = max(0, value)
 
     @abstractmethod
@@ -72,13 +71,12 @@ class Pez(Acuatico):
 class Ornitorrinco(Terrestre, Acuatico):
 
     def desplazarse(self) -> str:
+        energia = self.energia
+        output = Terrestre.desplazarse(self) + Acuatico.desplazarse(self)
         terrestre = Terrestre.energia_gastada_por_desplazamiento(self)
         acuatico = Acuatico.energia_gastada_por_desplazamiento(self)
-        print(f"T: {terrestre} A: {acuatico} Self: {self.energia}")
-        self.energia += 2 * terrestre
-        self.energia -= int((terrestre + acuatico) / 2)
-        print(f"T: {terrestre} A: {acuatico} Self: {self.energia}")
-        return Terrestre.desplazarse(self) + Acuatico.desplazarse(self)
+        self.energia = energia - int((terrestre + acuatico) / 2)
+        return output
 
 
 if __name__ == '__main__':
@@ -86,12 +84,12 @@ if __name__ == '__main__':
     pez = Pez(nombre='Nemo', color='rojo', peso=1)
     ornitorrinco = Ornitorrinco(nombre='Perry', peso=2, cantidad_patas=6)
 
-    print("Perro", perro.energia)
-    print(perro.desplazarse())
-    print(perro.energia)
-    print("Pez", pez.energia)
-    print(pez.desplazarse())
-    print(pez.energia)
-    print("Ornitorrinco", ornitorrinco.energia) # T: 2*5, A:2*2 /2
-    print(ornitorrinco.desplazarse())
-    print(ornitorrinco.energia)
+    "Perro", perro.energia
+    perro.desplazarse()
+    perro.energia
+    "Pez", pez.energia
+    pez.desplazarse()
+    pez.energia
+    "Ornitorrinco", ornitorrinco.energia
+    ornitorrinco.desplazarse()
+    ornitorrinco.energia
