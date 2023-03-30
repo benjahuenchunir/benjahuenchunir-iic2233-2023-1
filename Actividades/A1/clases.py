@@ -75,7 +75,7 @@ class Ornitorrinco(Terrestre, Acuatico):
         output = Terrestre.desplazarse(self) + Acuatico.desplazarse(self)
         terrestre = Terrestre.energia_gastada_por_desplazamiento(self)
         acuatico = Acuatico.energia_gastada_por_desplazamiento(self)
-        self.energia = energia - int((terrestre + acuatico) / 2)
+        self.energia = energia - round((terrestre + acuatico) / 2)
         return output
 
 
