@@ -84,12 +84,6 @@ if __name__ == '__main__':
     pez = Pez(nombre='Nemo', color='rojo', peso=1)
     ornitorrinco = Ornitorrinco(nombre='Perry', peso=2, cantidad_patas=6)
 
-    "Perro", perro.energia
     perro.desplazarse()
-    perro.energia
-    "Pez", pez.energia
     pez.desplazarse()
-    pez.energia
-    "Ornitorrinco", ornitorrinco.energia
     ornitorrinco.desplazarse()
-    ornitorrinco.energia
