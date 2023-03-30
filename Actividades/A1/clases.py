@@ -2,12 +2,15 @@ from abc import ABC, abstractmethod
 
 
 class Animal(ABC):
+    identificador = 0
+
     def __init__(self, peso, nombre, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.peso = peso
         self.nombre = nombre
         self.__energia = 100
-        self.identificador = 0  # TODO REVISAR
+        self.identificador = Animal.identificador
+        Animal.identificador += 1
 
     @property
     def energia(self):
@@ -15,6 +18,7 @@ class Animal(ABC):
 
     @energia.setter
     def energia(self, value):
+        print("Valor", value)
         self.__energia = max(0, value)
 
     @abstractmethod
@@ -70,8 +74,11 @@ class Ornitorrinco(Terrestre, Acuatico):
     def desplazarse(self) -> str:
         terrestre = Terrestre.energia_gastada_por_desplazamiento(self)
         acuatico = Acuatico.energia_gastada_por_desplazamiento(self)
-        self.energia -= ((terrestre + acuatico) / 2) # TODO falta redondear
-        return "caminando..." + "nadando..."
+        print(f"T: {terrestre} A: {acuatico} Self: {self.energia}")
+        self.energia += 2 * terrestre
+        self.energia -= int((terrestre + acuatico) / 2)
+        print(f"T: {terrestre} A: {acuatico} Self: {self.energia}")
+        return Terrestre.desplazarse(self) + Acuatico.desplazarse(self)
 
 
 if __name__ == '__main__':
