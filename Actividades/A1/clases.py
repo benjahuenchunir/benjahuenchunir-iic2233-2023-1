@@ -13,7 +13,7 @@ class Animal(ABC):
         Animal.identificador += 1
 
     @property
-    def energia(self):
+    def energia(self) -> int:
         return self.__energia
 
     @energia.setter
@@ -26,20 +26,20 @@ class Animal(ABC):
 
 
 class Terrestre(Animal):
-    def __init__(self, cantidad_patas, *args, **kwargs):
+    def __init__(self, cantidad_patas, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.cantidad_patas = cantidad_patas
 
-    def energia_gastada_por_desplazamiento(self):
+    def energia_gastada_por_desplazamiento(self) -> int:
         return self.peso * 5
 
-    def desplazarse(self):
+    def desplazarse(self) -> str:
         self.energia -= self.energia_gastada_por_desplazamiento()
         return "caminando..."
 
 
 class Acuatico(Animal):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def energia_gastada_por_desplazamiento(self) -> int:
@@ -68,7 +68,7 @@ class Pez(Acuatico):
         return "moviendo aleta"
 
 
-class Ornitorrinco(Terrestre, Acuatico):
+class Ornitorrinco(Acuatico, Terrestre):
 
     def desplazarse(self) -> str:
         energia = self.energia
