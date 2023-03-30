@@ -68,18 +68,23 @@ class Pez(Acuatico):
 class Ornitorrinco(Terrestre, Acuatico):
 
     def desplazarse(self) -> str:
-        terrestre = Terrestre.energia_gastada_por_desplazamiento()
-        acuatico = Acuatico.energia_gastada_por_desplazamiento()
+        terrestre = Terrestre.energia_gastada_por_desplazamiento(self)
+        acuatico = Acuatico.energia_gastada_por_desplazamiento(self)
         self.energia -= ((terrestre + acuatico) / 2) # TODO falta redondear
-        return Terrestre.desplazarse() + Acuatico.desplazarse()
-    #  No se si eso afecta la energia
+        return "caminando..." + "nadando..."
 
 
 if __name__ == '__main__':
     perro = Perro(nombre='Pongo', raza='Dalmata', peso=3)
     pez = Pez(nombre='Nemo', color='rojo', peso=1)
-    ornitorrinco = Ornitorrinco(nombre='Perry', peso=2)
+    ornitorrinco = Ornitorrinco(nombre='Perry', peso=2, cantidad_patas=6)
 
-    perro.desplazarse()
-    pez.desplazarse()
-    ornitorrinco.desplazarse()
+    print("Perro", perro.energia)
+    print(perro.desplazarse())
+    print(perro.energia)
+    print("Pez", pez.energia)
+    print(pez.desplazarse())
+    print(pez.energia)
+    print("Ornitorrinco", ornitorrinco.energia) # T: 2*5, A:2*2 /2
+    print(ornitorrinco.desplazarse())
+    print(ornitorrinco.energia)
