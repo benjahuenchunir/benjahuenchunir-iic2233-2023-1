@@ -135,11 +135,10 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-
     def consumir(self):
         ExcavadorTareo.consumir()
-        
+
     def cavar(self):
         energia_inicial = self.energia
         ExcavadorDocencio.cavar()
-        # reducir energia en la mitad
+        # TODO reducir energia en la mitad
