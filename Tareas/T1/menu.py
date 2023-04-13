@@ -17,6 +17,9 @@ def mostrar_menu_inicio():
 
 
 def manejar_seleccion_menu_inicio(seleccion: str):
+    """
+    Maneja el input del usuario del menu de inicio
+    """
     if seleccion == "1":
         with (open('arenas.csv', 'rt') as info_arenas,
               open('excavadores.csv', 'rt') as info_excavadores):

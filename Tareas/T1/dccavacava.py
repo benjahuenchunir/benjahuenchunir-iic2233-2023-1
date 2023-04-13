@@ -106,3 +106,40 @@ class Excavador:
 
     def consumir(self):
         pass
+
+
+class ExcavadorDocencio(Excavador):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def cavar(self):
+        super().cavar()
+        self.felicidad += parametros.FELICIDAD_ADICIONAL_DOCENCIO
+        self.fuerza += parametros.FUERZA_ADICIONAL_DOCENCIO
+        self.energia -= parametros.ENERGIA_PERDIDA_DOCENCIO
+
+
+class ExcavadorTareo(Excavador):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def consumir(self):
+        super().consumir()
+        self.energia += parametros.ENERGIA_ADICIONAL_TAREO
+        self.suerte += parametros.SUERTE_ADICIONAL_TAREO
+        self.edad += parametros.EDAD_ADICIONAL_TAREO
+        self.felicidad -= parametros.FELICIDAD_PERDIDA_TAREO
+
+
+class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+
+    def consumir(self):
+        ExcavadorTareo.consumir()
+        
+    def cavar(self):
+        energia_inicial = self.energia
+        ExcavadorDocencio.cavar()
+        # reducir energia en la mitad
