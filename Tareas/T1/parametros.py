@@ -1,18 +1,24 @@
-import random
+import random  # TODO: Cambiar a constantes
+
+# Mis parametros
+VOLVER = '5'
+SALIR = 'X'
 
 DIAS_TOTALES_TORNEO = 0
 ARENA_INICIAL = random.choice(['normal', 'mojada', 'rocosa', 'magnetica'])
-CANTIDAD_EXCAVADORES_INICIALES = random.randint(1, 8)  # TODO: Cambia el numero de excavadores?
+CANTIDAD_EXCAVADORES_INICIALES = random.randint(1, 8)
 METROS_META = 0
 DIAS_TORNEO = 0
-PROB_ENCONTRAR_TESORO = 0
-PROB_ENCONTRAR_CONSUMIBLE = 0
-PROB_INICIAR_EVENTO = 0
+PROB_INICIAR_EVENTO = 0.4
 
 # Arena
 POND_ARENA_NORMAL = 0.8
 
 # Excavadores
+PROB_ENCONTRAR_ITEM = 0.2
+PROB_ENCONTRAR_TESORO = 0.4
+PROB_ENCONTRAR_CONSUMIBLE = 0.6
+
 FELICIDAD_ADICIONAL_DOCENCIO = 1
 FUERZA_ADICIONAL_DOCENCIO = 1
 ENERGIA_PERDIDA_DOCENCIO = 1

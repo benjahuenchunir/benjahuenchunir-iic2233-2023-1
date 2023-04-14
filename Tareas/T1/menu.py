@@ -46,7 +46,6 @@ def cargar_partida():
     if os.path.exists(archivo):
         with open(archivo, "rt") as partida:
             # TODO leer archivo
-            random.randint()
             pass
         mostrar_menu_principal()
     else:
@@ -70,4 +69,5 @@ def manejar_seleccion_menu_principal(seleccion: str):
     pass
 
 
-mostrar_menu_inicio()
+if __name__ == "__main__":
+    mostrar_menu_inicio()
