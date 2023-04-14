@@ -27,9 +27,9 @@ SINO QUE SE DEBERÁ EXPLICAR QUÉ SE REALIZO DETALLADAMENTE EN CADA ITEM.
 ⚠️⚠️
 
 #### Programación Orientada a Objetos: 42 pts (35%)
-##### ❌✅🟠  Diagrama
-##### ❌✅🟠 Definición de clases, atributos, métodos y properties
-##### ❌✅🟠 Relaciones entre clases
+##### ✅  Diagrama
+##### ✅ Definición de clases, atributos, métodos y properties
+##### ✅ Relaciones entre clases
 #### Preparación programa: 11 pts (9%)
 ##### ❌✅🟠 Creación de partidas
 #### Entidades: 22 pts (18%)
@@ -60,7 +60,7 @@ El módulo principal de la tarea a ejecutar es  ```meny.py```.
 La lista de librerías externas que utilicé fue la siguiente:
 
 1. ```os```: ```path```
-2. ```random```: ```choice, sample```
+2. ```random```: ```choice, choices, sample```
 
 ### Librerías propias
 Por otro lado, los módulos que fueron creados fueron los siguientes:

@@ -8,4 +8,4 @@ La clase ```Arena``` contiene el comportamiento comun entre los distintos tipos 
 
 La clase ```Excavador``` contiene los atributos y metodos comunes para todos los excavadores. De esta hereda el ```ExcavadorDocencio``` y el ```ExcavadorTareo``` donde cada uno de estos sobreescribe el funcionamiento de uno de los metodos. Por último, ```ExcavadorHibrido``` hereda de ambos y modifica un poco los metodos de estos.
 
-Los eventos no serán clases, sino que se manejaran dentro de los metodos de la clase Torneo.
+Los eventos no serán clases, sino que se manejaran dentro de los metodos de la clase ```Torneo```.
