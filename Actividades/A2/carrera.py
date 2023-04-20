@@ -48,8 +48,8 @@ class Corredor(Thread):
 
     def avanzar(self) -> None:
         self.posicion += randint(
-            self.PORCENTAJE_MIN * self.velocidad / 100,
-            self.PORCENTAJE_MAX * self.velocidad / 100)
+            self.PORCENTAJE_MIN * self.velocidad,
+            self.PORCENTAJE_MAX * self.velocidad) / 100
         # Luego de avanzar impime su posición y duerme
         print(f'{self.name}: Avancé a {self.posicion:.2f}')
         sleep(self.TIEMPO_ESPERA)
@@ -70,8 +70,8 @@ class Corredor(Thread):
 
     def robar_tortuga(self) -> bool:
         # PROBABILIDAD_ROBAR de robar la tortuga
-        if random() < self.PROBABILIDAD_ROBAR:  # TODO revisar si falta algo
-            self.notificar_robo()  # TODO esto deberia resivir un rival
+        if random() < self.PROBABILIDAD_ROBAR:
+            self.notificar_robo()
             self.lock_tortuga.acquire()
             self.tiene_tortuga = True
             print(f'{self.name}: ¡Robé la tortuga!')
@@ -85,16 +85,17 @@ class Corredor(Thread):
 
     def correr_segunda_mitad(self) -> bool:
         while self.__correr:
-            with self.lock_verificar_tortuga:
-                if self.senal_fin.is_set():
-                    return False
-                elif self.posicion >= 100 and self.tiene_tortuga:
-                    self.senal_fin.set()
-                    self.lock_tortuga.release()
-                    return True
-                elif not self.tiene_tortuga:
-                    self.robar_tortuga()  # TODO esto no va entonces (porque dice que solo intenta robar una vez)
-                self.avanzar()
+            self.lock_verificar_tortuga.acquire(blocking=True)
+            if self.senal_fin.is_set():
+                return False
+            elif self.posicion >= 100 and self.tiene_tortuga:
+                self.senal_fin.set()
+                self.lock_tortuga.release()
+                return True
+            elif not self.tiene_tortuga:
+                self.robar_tortuga()
+            self.lock_verificar_tortuga.release()
+            self.avanzar()
 
     def run(self) -> None:
         self.senal_inicio.wait()
@@ -119,11 +120,17 @@ class Carrera:
         self.daemon = False
 
     def empezar(self) -> str:
-        pass
+        self.run()
+        if self.corredor_1.tiene_tortuga:
+            return self.corredor_1.name
+        else:
+            return self.corredor_2.name
 
-    # Completar
     def run(self) -> None:
-        pass
+        self.corredor_1.start()
+        self.corredor_2.start()
+        self.senal_inicio.set()
+        self.senal_fin.wait()
 
 
 if __name__ == '__main__':
@@ -140,6 +147,5 @@ if __name__ == '__main__':
 
     # Inicia la carrera y pausa el main thread hasta que termine
     ganador = carrera.empezar()
-    
-    print(f'{ganador} ha ganado la carrera!!')
 
+    print(f'{ganador} ha ganado la carrera!!')
