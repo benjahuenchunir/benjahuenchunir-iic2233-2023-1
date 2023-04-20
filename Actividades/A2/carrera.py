@@ -50,12 +50,11 @@ class Corredor(Thread):
         self.posicion += randint(
             self.PORCENTAJE_MIN * self.velocidad,
             self.PORCENTAJE_MAX * self.velocidad) / 100
-        # Luego de avanzar impime su posición y duerme
+        # Luego de avanzar imprime su posición y duerme
         print(f'{self.name}: Avancé a {self.posicion:.2f}')
         sleep(self.TIEMPO_ESPERA)
 
     def intentar_capturar_tortuga(self) -> None:
-        # Completar
         if self.lock_tortuga.acquire(blocking=False):
             self.tiene_tortuga = True
 
@@ -72,7 +71,7 @@ class Corredor(Thread):
         # PROBABILIDAD_ROBAR de robar la tortuga
         if random() < self.PROBABILIDAD_ROBAR:
             self.notificar_robo()
-            self.lock_tortuga.acquire()
+            self.lock_tortuga.acquire(blocking=True)
             self.tiene_tortuga = True
             print(f'{self.name}: ¡Robé la tortuga!')
             return True
