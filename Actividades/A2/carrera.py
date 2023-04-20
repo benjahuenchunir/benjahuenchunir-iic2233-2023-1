@@ -15,7 +15,6 @@ class Corredor(Thread):
                  lock_verificar_tortuga: Lock) -> None:
         super().__init__(name=nombre)
         # Referencias al lock de la tortuga y las señales propias de la carrera
-        self.name = nombre
         self.lock_tortuga = tortuga
         self.senal_inicio = senal_inicio
         self.senal_fin = senal_fin
