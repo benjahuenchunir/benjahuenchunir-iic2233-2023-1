@@ -84,11 +84,11 @@ class Arena:
         self.dureza = dureza
         self.estatica = estatica
         self.items = []
-        self.dificultad = 0
+        self.dificultad = self.calcular_dificultad()
 
     def calcular_dificultad(self) -> int:
         pass
-
+    
     def terremoto(self):
         pass
 
@@ -190,8 +190,11 @@ class ExcavadorDocencio(Excavador):
         metros_cavados = super().cavar(dificultad)
         self.felicidad += parametros.FELICIDAD_ADICIONAL_DOCENCIO
         self.fuerza += parametros.FUERZA_ADICIONAL_DOCENCIO
-        self.energia -= parametros.ENERGIA_PERDIDA_DOCENCIO
         return metros_cavados
+
+    def gastar_energia(self):
+        super().gastar_energia()
+        self.energia -= parametros.ENERGIA_PERDIDA_DOCENCIO
 
 
 class ExcavadorTareo(Excavador):
@@ -214,10 +217,13 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         self.__energia = max(20, min(100, nueva_energia))
 
     def cavar(self, dificultad):
-        energia_inicial = self.energia
         ExcavadorDocencio.cavar(self, dificultad)
-        self.energia = energia_inicial - parametros.ENERGIA_PERDIDA_DOCENCIO / 2
-        # TODO la energia al momento de cavar es solo la de Docencio o la de formula gastar energia?
 
     def consumir(self, consumible: Consumible):
         ExcavadorTareo.consumir(self, consumible)
+        
+    def gastar_energia(self):
+        energia_inicial = self.energia
+        gasto = ExcavadorDocencio.gastar_energia(self)
+        self.energia = energia_inicial - gasto
+        # TODO no retorna el gasto energetico
