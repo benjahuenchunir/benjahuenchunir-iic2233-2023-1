@@ -85,16 +85,15 @@ class Corredor(Thread):
 
     def correr_segunda_mitad(self) -> bool:
         while self.__correr:
-            self.lock_verificar_tortuga.acquire(blocking=True)
-            if self.senal_fin.is_set():
-                return False
-            elif self.posicion >= 100 and self.tiene_tortuga:
-                self.senal_fin.set()
-                self.lock_tortuga.release()
-                return True
-            elif not self.tiene_tortuga:
-                self.robar_tortuga()
-            self.lock_verificar_tortuga.release()
+            with self.lock_verificar_tortuga:
+                if self.senal_fin.is_set():
+                    return False
+                elif self.posicion >= 100 and self.tiene_tortuga:
+                    self.senal_fin.set()
+                    self.lock_tortuga.release()
+                    return True
+                elif not self.tiene_tortuga:
+                    self.robar_tortuga()
             self.avanzar()
 
     def run(self) -> None:
@@ -104,7 +103,7 @@ class Corredor(Thread):
         self.correr_segunda_mitad()
 
 
-class Carrera:
+class Carrera(Thread):
     def __init__(self, corredor_1: Corredor, corredor_2: Corredor, 
                  senal_inicio: Event, senal_fin: Event) -> None:
         super().__init__()
@@ -120,7 +119,8 @@ class Carrera:
         self.daemon = False
 
     def empezar(self) -> str:
-        self.run()
+        self.start()
+        self.join()
         if self.corredor_1.tiene_tortuga:
             return self.corredor_1.name
         else:
