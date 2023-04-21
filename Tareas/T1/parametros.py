@@ -3,6 +3,8 @@ import random  # TODO: Cambiar a constantes
 # Mis parametros
 VOLVER = '5'
 SALIR = 'X'
+TESORO = "tesoro"
+CONSUMIBLE = "consumible"
 
 DIAS_TOTALES_TORNEO = 0
 ARENA_INICIAL = random.choice(['normal', 'mojada', 'rocosa', 'magnetica'])

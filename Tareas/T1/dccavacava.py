@@ -1,6 +1,7 @@
 import parametros
 import random
 from abc import ABC, abstractmethod  # TODO esto esta bien?
+import menu
 
 
 class Torneo:
@@ -16,27 +17,45 @@ class Torneo:
         self.dias_totales = parametros.DIAS_TOTALES_TORNEO
 
     def simular_dia(self):
-        pass
+        for excavador in self.equipo:
+            # TODO verificar si tienen energia
+            self.metros_cavados += excavador.cavar()
+            encontrado = excavador.encontrar_items()
+            if encontrado == parametros.TESORO:
+                tesoro = random.choice([item for item in self.arena.items
+                                        if item is Tesoro])
+                self.mochila.append(tesoro)
+                # TODO hacer algo con el tesoro
+            elif encontrado == parametros.CONSUMIBLE:
+                consumible = random.choice([item for item in self.arena.items
+                                            if item is Consumible])
+                self.mochila.append(consumible)    
 
     def mostrar_estado_torneo(self):  # TODO hacer bien y bonito
-        print("                  *** Estado Torneo ***"
-              "-------------------------------------------------------------"
-              f"Día actual: {self.dias_transcurridos}"
-              "Tipo de arena: Mojada"
-              f"Metros excavados: {self.metros_cavados} / {self.dias_totales}"
-              "-------------------------------------------------------------"
-              "                       Excavadores"
-              "-------------------------------------------------------------"
-              "    Nombre | Tipo | Energía | Fuerza | Suerte | Felicidad"
-              "-------------------------------------------------------------"
-              "Lily614 | Docencio | 24 | 20 | 10 | 30"
-              "Mpia_vf | Docencio | 55 | 35 | 15 | 25"
-              "Beyoncé | Hibrido | 81 | 35 | 20 | 40")
+        separador = "-" * 61
+        print(f'\n{"*** Estado Torneo ***":^61}')
+        print(separador)
+        print(f"Día actual: {self.dias_transcurridos}")
+        print(f"Tipo de arena: {self.arena.tipo}")
+        print(f"Metros excavados: {self.metros_cavados} / {self.dias_totales}")
+        print(separador)
+        print(f'{"Excavadores":^61}')
+        print(separador)
+        f_titulo_excavador = "{:^8} | {:^8} | {:^7} | {:^7} | {:^7} | {:^7}"
+        titulo_excavador = ["Nombre", "Tipo", "Energía",
+                            "Fuerza", "Suerte", "Felicidad"]
+        print(f_titulo_excavador.format(*titulo_excavador))
+        print(separador)
+        f_excavador = "{:8.8s} | {:<8.8s} | {:^7} | {:^7} | {:^7} | {:^9}"
         for excavador in self.equipo:
-            print(f"excavador")
-
+            print(f_excavador.format(
+                excavador.nombre, "probandooooo", excavador.energia,
+                excavador.fuerza, excavador.suerte, excavador.felicidad))
+        # TODO falta el tipo del excavador
+            
     def ver_mochila(self):
-        pass
+        for i, item in enumerate(self.mochila, 1):
+            print(f'{f"[{i}] {item.nombre}":^18.18s}|{item.tipo:^12.12s}|{item.descripcion:^49.49s}')
 
     def usar_consumible(self):
         pass
@@ -155,10 +174,13 @@ class Excavador():
 
     def cavar(self, dificultad):
         """
-        Calcula los metros cavados
+        Calcula los metros cavados y los retorna
         """
-        return round((30 / self.edad + (self.felicidad + 2 * self.fuerza)
-                      / 10) * 1 / (10 * dificultad), 2)
+        metros_cavados = round(
+            (30 / self.edad + (self.felicidad + 2 * self.fuerza)
+             / 10) * 1 / (10 * dificultad), 2)
+        self.gastar_energia()
+        return metros_cavados
 
     def descanasar(self):
         """
@@ -167,33 +189,42 @@ class Excavador():
         return int(self.edad / 20)
 
     def encontrar_items(self):
+        """
+        Determina si encuentra un item, retorna None si no lo encuentra
+        y el tipo de item en caso contrario
+        """
         if random.random() < parametros.PROB_ENCONTRAR_ITEM:
-            eventos = ["tesoro", "consumible"]
+            eventos = [parametros.TESORO, parametros.CONSUMIBLE]
             pesos = [parametros.PROB_ENCONTRAR_TESORO,
                      parametros.PROB_ENCONTRAR_CONSUMIBLE]
-            item_encontrado = random.choices(eventos, weights=pesos, k=1)
-            # TODO Encontrar tesoro o consumible
-            return item_encontrado
+            encontrado = random.choices(eventos, weights=pesos, k=1)
+            return encontrado
 
     def gastar_energia(self):
+        """
+        Gasta energía despues de cavar
+        """
         self.energia -= int(10 / self.fuerza + self.edad / 6)
 
     def consumir(self, cosumible: Consumible):
+        """
+        Consume un consumible
+        """
         self.energia += cosumible.energia
         self.fuerza += cosumible.fuerza
         self.suerte += cosumible.suerte
         self.felicidad += cosumible.felicidad
 
 
-class ExcavadorDocencio(Excavador):
+class ExcavadorDocencio(Excavador):  # TODO revisar implementacion
     def cavar(self, dificultad):
-        metros_cavados = super().cavar(dificultad)
+        metros_cavados = super().cavar(dificultad)  # TODO esto toma en cuenta la formula del padre o del hijo
         self.felicidad += parametros.FELICIDAD_ADICIONAL_DOCENCIO
         self.fuerza += parametros.FUERZA_ADICIONAL_DOCENCIO
+        self.gastar_energia()
         return metros_cavados
 
     def gastar_energia(self):
-        super().gastar_energia()
         self.energia -= parametros.ENERGIA_PERDIDA_DOCENCIO
 
 
@@ -224,6 +255,9 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         
     def gastar_energia(self):
         energia_inicial = self.energia
-        gasto = ExcavadorDocencio.gastar_energia(self)
+        gasto = ExcavadorDocencio.gastar_energia(self) + ExcavadorTareo.gastar_energia(self)
         self.energia = energia_inicial - gasto
         # TODO no retorna el gasto energetico
+
+if __name__ == "__main__":
+    menu.nueva_partida()
