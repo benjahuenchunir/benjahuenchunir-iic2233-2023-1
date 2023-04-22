@@ -10,8 +10,9 @@ def mostrar_menu_inicio():
     """
     seleccion = None
     while seleccion != parametros.SALIR:
-        print("\n*** Menú de Inicio ***\n----------------------\n"
-              "[1] Nueva partida\n[2] Cargar Partida\n[X] Salir\n")
+        print("\n*** Menú de Inicio ***")
+        print("-"*22)
+        print("[1] Nueva partida\n[2] Cargar Partida\n[X] Salir\n")
         seleccion = input("Indique su opción (1, 2, o X):\n")
         if seleccion == "1":
             seleccion = nueva_partida()

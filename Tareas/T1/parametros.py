@@ -6,17 +6,28 @@ SALIR = 'X'
 TESORO = "tesoro"
 CONSUMIBLE = "consumible"
 
+# Parametros torneo
 DIAS_TOTALES_TORNEO = 0
 ARENA_INICIAL = random.choice(['normal', 'mojada', 'rocosa', 'magnetica'])
 CANTIDAD_EXCAVADORES_INICIALES = random.randint(1, 8)
 METROS_META = 0
 DIAS_TORNEO = 0
+
+# Eventos
+LLUVIA = "Lluvia"
+TERREMOTO = "Terremoto"
+DERRUMBE = "Derrumbe"
 PROB_INICIAR_EVENTO = 0.4
+PROB_LLUVIA = 0.5
+PROB_TERREMOTO = 0.2
+PROB_DERRUMBE = 0.3
 
 # Arena
 POND_ARENA_NORMAL = 0.8
 
 # Excavadores
+FELICIDAD_PERDIDA = 5
+
 PROB_ENCONTRAR_ITEM = 0.2
 PROB_ENCONTRAR_TESORO = 0.4
 PROB_ENCONTRAR_CONSUMIBLE = 0.6

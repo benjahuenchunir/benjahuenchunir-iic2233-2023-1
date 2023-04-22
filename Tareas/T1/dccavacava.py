@@ -2,6 +2,7 @@ import parametros
 import random
 from abc import ABC, abstractmethod  # TODO esto esta bien?
 import menu
+from collections import defaultdict
 
 
 class Torneo:
@@ -17,19 +18,64 @@ class Torneo:
         self.dias_totales = parametros.DIAS_TOTALES_TORNEO
 
     def simular_dia(self):
-        for excavador in self.equipo:
-            # TODO verificar si tienen energia
-            self.metros_cavados += excavador.cavar()
-            encontrado = excavador.encontrar_items()
-            if encontrado == parametros.TESORO:
-                tesoro = random.choice([item for item in self.arena.items
-                                        if type(item) is Tesoro])
-                self.mochila.append(tesoro)
-                # TODO hacer algo con el tesoro
-            elif encontrado == parametros.CONSUMIBLE:
-                consumible = random.choice([item for item in self.arena.items
-                                            if type(item) is Consumible])
-                self.mochila.append(consumible)
+        print(f"\n{f'Día {self.dias_transcurridos}':^53s}")
+        print("-"*53)
+        trabajadores = [excavador for excavador in self.equipo if not excavador.descansando]
+        # TODO implementar descansando
+        self.cavar(trabajadores)
+        self.encontrar_items(trabajadores)
+        self.iniciar_evento(trabajadores)
+        for excavador in (excavador for excavador in self.equipo if excavador.descansando):
+            print(f"{excavador.nombre} decidió descansar...")
+
+    def cavar(self, trabajadores):
+        print("Metros Cavados:")
+        metros_cavados_dia = 0
+        for excavador in trabajadores:
+            nuevos_metros_cavados = excavador.cavar()
+            metros_cavados_dia += nuevos_metros_cavados
+            self.metros_cavados += nuevos_metros_cavados
+            print(f"{excavador.nombre} ha cavado {nuevos_metros_cavados} metros.")
+        print(f"El equipo ha cavado {metros_cavados_dia} metros.")
+
+    def encontrar_items(self, trabajadores):
+        print("\nItems Encontrados:")
+        items_encontrados = defaultdict(int)
+        for excavador in trabajadores:
+            encontro = excavador.encontrar_items()
+            if encontro:
+                if encontro == parametros.TESORO:
+                    item = random.choice([item for item in self.arena.items
+                                          if type(item) is Tesoro])
+                    items_encontrados[parametros.CONSUMIBLE] += 1
+                elif encontro == parametros.TESORO:
+                    item = random.choice([item for item in self.arena.items
+                                          if type(item) is Consumible])
+                    items_encontrados[parametros.CONSUMIBLE] += 1
+                self.mochila.append(item)
+                print(f"{excavador.nombre} consiguió {item.nombre} de tipo {encontro}.")
+            else:
+                print(f"{excavador.nombre} no consiguió nada.")
+            print(f"Se han encontrado {sum(items_encontrados.values())} ítems:")
+            print(f"- {items_encontrados[parametros.CONSUMIBLE]} consumibles")
+            print(f"- {items_encontrados[parametros.TESORO]} tesoros")
+
+    def iniciar_evento(self, trabajadores):
+        if random.random() < parametros.PROB_INICIAR_EVENTO:
+            eventos = [parametros.LLUVIA, parametros.TERREMOTO, parametros.DERRUMBE]
+            pesos = [parametros.PROB_LLUVIA,
+                     parametros.PROB_TERREMOTO, parametros.PROB_DERRUMBE]
+            evento = random.choices(eventos, weights=pesos, k=1)
+            nuevo_tipo = self.arena.reaccionar_evento(evento)
+            if nuevo_tipo:
+                pass # TODO implementar reaccionar evento
+            for excavador in trabajadores:
+                excavador.reaccionar_evento()
+            print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!")
+            print(f"La arena final es de tipo {self.arena.tipo}")
+            print(f"Tu equipo ha perdido {parametros.FELICIDAD_PERDIDA} de felicidad")
+        else:
+            print("\nNo ocurrió un evento!")
 
     def mostrar_estado_torneo(self):  # TODO hacer bien y bonito
         separador = "-" * 61
@@ -65,9 +111,6 @@ class Torneo:
         tesoro = self.mochila.pop(posicion)
         # TODO usar tesoro
 
-    def iniciar_evento(self):
-        pass
-
 
 class Item():
     def __init__(self, nombre, tipo, descripcion, *args, **kwargs) -> None:
@@ -94,7 +137,7 @@ class Tesoro(Item):
         self.cambio = cambio
 
 
-class Arena:
+class Arena(ABC):
     def __init__(self, nombre, tipo, rareza,
                  humedad, dureza, estatica, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -116,11 +159,18 @@ class Arena:
     def lluvia(self):
         pass
 
+    @abstractmethod
+    def reaccionar_evento(self, evento: str):
+        pass
+
 
 class ArenaNormal(Arena):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.dureza = 2*super().dureza
+        
+    def reaccionar_evento(self):
+        if evento == 
 
 
 class Excavador():
@@ -217,6 +267,9 @@ class Excavador():
         self.fuerza += cosumible.fuerza
         self.suerte += cosumible.suerte
         self.felicidad += cosumible.felicidad
+
+    def reaccionar_evento(self):
+        self.felicidad -= parametros.FELICIDAD_PERDIDA
 
 
 class ExcavadorDocencio(Excavador):  # TODO revisar implementacion
