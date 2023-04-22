@@ -12,10 +12,18 @@ class Torneo:
         self.equipo = equipo
         self.eventos = ["Terremoto", "Lluvia", "Derrumbe"]
         self.mochila = []
-        self.metros_cavados = 0
+        self.__metros_cavados = 0
         self.meta = parametros.METROS_META
         self.dias_transcurridos = 0
         self.dias_totales = parametros.DIAS_TOTALES_TORNEO
+
+    @property
+    def metros_cavados(self):
+        return self.__metros_cavados
+
+    @metros_cavados.setter
+    def metros_cavados(self, value):
+        self.__metros_cavados = max(0, value)
 
     def simular_dia(self):
         print(f"\n{f'Día {self.dias_transcurridos}':^53s}")
@@ -73,6 +81,9 @@ class Torneo:
                 excavador.reaccionar_evento()
             print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!")
             print(f"La arena final es de tipo {self.arena.tipo}")
+            if evento == parametros.DERRUMBE:
+                self.metros_cavados -= parametros.METROS_PERDIDOS_DERRUMBE
+                print(f"Se han perdido {parametros.METROS_PERDIDOS_DERRUMBE} metros de progreso.")
             print(f"Tu equipo ha perdido {parametros.FELICIDAD_PERDIDA} de felicidad")
         else:
             print("\nNo ocurrió un evento!")
@@ -168,9 +179,46 @@ class ArenaNormal(Arena):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.dureza = 2*super().dureza
-        
-    def reaccionar_evento(self):
-        if evento == 
+
+    def reaccionar_evento(self, evento: str):
+        if evento == parametros.LLUVIA:
+            return parametros.ARENA_MOJADA
+        elif evento == parametros.TERREMOTO:
+            return parametros.ARENA_ROCOSA
+
+
+class ArenaRocosa(Arena):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # TODO implementar propio de rocosa
+
+    def reaccionar_evento(self, evento: str):
+        if evento == parametros.LLUVIA:
+            return parametros.ARENA_MAGNETICA
+        elif evento == parametros.DERRUMBE:
+            return parametros.ARENA_NORMAL
+
+
+class ArenaMojada(Arena):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # TODO implementar propio de mojada
+
+    def reaccionar_evento(self, evento: str):
+        if evento == parametros.TERREMOTO:
+            return parametros.ARENA_MAGNETICA
+        elif evento == parametros.DERRUMBE:
+            return parametros.ARENA_NORMAL
+
+
+class ArenaMagnetica(ArenaRocosa, ArenaMojada):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # TODO implementar propio de magnetica
+
+    def reaccionar_evento(self, evento: str):
+        if evento == parametros.DERRUMBE:
+            return parametros.ARENA_NORMAL
 
 
 class Excavador():
@@ -308,12 +356,13 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
 
     def consumir(self, consumible: Consumible):
         ExcavadorTareo.consumir(self, consumible)
-        
+
     def gastar_energia(self):
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self) + ExcavadorTareo.gastar_energia(self)
         self.energia = energia_inicial - gasto
         # TODO no retorna el gasto energetico
+
 
 if __name__ == "__main__":
     menu.nueva_partida()
