@@ -31,7 +31,7 @@ def nueva_partida():
                   if arena[1] == parametros.ARENA_INICIAL]
         arena_juego = random.choice(arenas)
         total_excavadores = [dccavacava.Excavador(
-            excavador[0], excavador[2], excavador[3],
+            excavador[0], excavador[1], excavador[2], excavador[3],
             excavador[4], excavador[5], excavador[6])
                              for excavador in (
                                  linea.strip().split(',')
@@ -88,7 +88,6 @@ def mostrar_menu_items(torneo):
     seleccion = None
     separador = "-" * 81
     while seleccion != parametros.SALIR:
-        # TODO no implementado
         print(f'\n{"*** Menú Items ***":^81s}')
         print(separador)
         print(f'{"Nombre":^18s}|{"Tipo":^12s}|{"Descripción":^49s}')
@@ -104,6 +103,13 @@ def mostrar_menu_items(torneo):
         seleccion = input(opciones)
         if seleccion == str(indice_siguiente):
             return parametros.VOLVER
+        elif seleccion.isdecimal() and int(seleccion) <= len(torneo.mochila):
+            item = torneo.mochila[int(seleccion) - 1]
+            if type(item) is dccavacava.Consumible:
+                torneo.usar_consumible(int(seleccion) - 1)
+            else:
+                torneo.usar_tesoro(int(seleccion) - 1)
+        # TODO falta que al usar algo retorne al menu pero actualizado
     return seleccion
 
 

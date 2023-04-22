@@ -23,13 +23,13 @@ class Torneo:
             encontrado = excavador.encontrar_items()
             if encontrado == parametros.TESORO:
                 tesoro = random.choice([item for item in self.arena.items
-                                        if item is Tesoro])
+                                        if type(item) is Tesoro])
                 self.mochila.append(tesoro)
                 # TODO hacer algo con el tesoro
             elif encontrado == parametros.CONSUMIBLE:
                 consumible = random.choice([item for item in self.arena.items
-                                            if item is Consumible])
-                self.mochila.append(consumible)    
+                                            if type(item) is Consumible])
+                self.mochila.append(consumible)
 
     def mostrar_estado_torneo(self):  # TODO hacer bien y bonito
         separador = "-" * 61
@@ -49,19 +49,21 @@ class Torneo:
         f_excavador = "{:8.8s} | {:<8.8s} | {:^7} | {:^7} | {:^7} | {:^9}"
         for excavador in self.equipo:
             print(f_excavador.format(
-                excavador.nombre, "probandooooo", excavador.energia,
+                excavador.nombre, excavador.tipo, excavador.energia,
                 excavador.fuerza, excavador.suerte, excavador.felicidad))
-        # TODO falta el tipo del excavador
-            
+
     def ver_mochila(self):
         for i, item in enumerate(self.mochila, 1):
             print(f'{f"[{i}] {item.nombre}":^18.18s}|{item.tipo:^12.12s}|{item.descripcion:^49.49s}')
 
-    def usar_consumible(self):
-        pass
+    def usar_consumible(self, posicion: int):
+        consumible = self.mochila.pop(posicion)
+        for excavador in self.equipo:
+            excavador.usar_consumible(consumible)
 
-    def abrir_tesoro(self):
-        pass
+    def abrir_tesoro(self, posicion: int):
+        tesoro = self.mochila.pop(posicion)
+        # TODO usar tesoro
 
     def iniciar_evento(self):
         pass
@@ -107,7 +109,7 @@ class Arena:
 
     def calcular_dificultad(self) -> int:
         pass
-    
+
     def terremoto(self):
         pass
 
@@ -122,10 +124,11 @@ class ArenaNormal(Arena):
 
 
 class Excavador():
-    def __init__(self, nombre, edad, energia,
+    def __init__(self, nombre, tipo, edad, energia,
                  fuerza, suerte, felicidad, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.nombre = nombre
+        self.tipo = tipo
         self.__edad = edad
         self.__energia = energia
         self.__fuerza = fuerza
