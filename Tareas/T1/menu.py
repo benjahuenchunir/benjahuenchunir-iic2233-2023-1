@@ -2,6 +2,7 @@ import os
 import parametros
 import random
 import dccavacava
+import archivos
 
 
 def mostrar_menu_inicio():
@@ -21,96 +22,11 @@ def mostrar_menu_inicio():
 
 
 def nueva_partida():
-    arena = seleccionar_arena(parametros.ARENA_INICIAL)
-    añadir_items(arena)
-    equipo = seleccionar_equipo()
+    arena = archivos.seleccionar_arena(parametros.ARENA_INICIAL)
+    archivos.añadir_items(arena)
+    equipo = archivos.seleccionar_equipo()
     torneo = dccavacava.Torneo(arena, equipo)
     return mostrar_menu_principal(torneo)
-
-
-def seleccionar_arena(tipo: str):
-    """
-    Selecciona la arena de juego
-    """
-    with open(parametros.PATH_ARENAS, 'rt') as info_arenas:
-        arenas = [crear_arena_juego(
-            arena[0], arena[1], int(arena[2]),
-            int(arena[3]), int(arena[4]), int(arena[5]))
-                  for arena in (
-                      linea.strip().split(',')
-                      for linea in info_arenas.readlines()[1:])
-                  if arena[1] == tipo]
-        return random.choice(arenas)
-
-
-def crear_arena_juego(nombre: str, tipo: str, rareza: int,
-                      humedad: int, dureza: int, estatica: int):
-    """
-    Decide el tipo de arena que debe crear
-    """
-    if tipo == parametros.ARENA_NORMAL:
-        return dccavacava.ArenaNormal(nombre, tipo, rareza,
-                                      humedad, dureza, estatica)
-    elif tipo == parametros.ARENA_ROCOSA:
-        return dccavacava.ArenaRocosa(nombre, tipo, rareza,
-                                      humedad, dureza, estatica)
-    elif tipo == parametros.ARENA_MOJADA:
-        return dccavacava.ArenaMojada(nombre, tipo, rareza,
-                                      humedad, dureza, estatica)
-    else:
-        return dccavacava.ArenaMagnetica(nombre, tipo, rareza,
-                                         humedad, dureza, estatica)
-
-
-def añadir_items(arena):
-    with (open(parametros.PATH_CONSUMIBLES, 'rt') as info_consumibles,
-          open(parametros.PATH_TESOROS, 'rt') as info_tesoros):
-        consumibles = [dccavacava.Consumible(
-            int(consumible[2]), int(consumible[3]), int(consumible[4]),
-            int(consumible[5]), consumible[0], parametros.CONSUMIBLE,
-            consumible[1])
-                       for consumible in
-                       (linea.strip().split(',')
-                        for linea in info_consumibles.readlines()[1:])]
-        tesoros = [dccavacava.Tesoro(
-            int(consumible[2]), consumible[3],
-            consumible[0], parametros.TESORO, consumible[1])
-                   for consumible in (
-                       linea.strip().split(',')
-                       for linea in info_tesoros.readlines()[1:])]
-        arena.items.extend(consumibles + tesoros)
-
-
-def seleccionar_equipo():
-    """
-    Selecciona el equipo de excavadores
-    """
-    with open(parametros.PATH_EXCAVADORES, 'rt') as info_excavadores:
-        total_excavadores = [crear_excavador(
-            excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
-            int(excavador[4]), int(excavador[5]), int(excavador[6]))
-                             for excavador in (
-                                 linea.strip().split(',')
-                                 for linea in
-                                 info_excavadores.readlines()[1:])]
-        return random.sample(
-            total_excavadores, k=parametros.CANTIDAD_EXCAVADORES_INICIALES)
-
-
-def crear_excavador(nombre: str, tipo: str, edad: int,
-                    energia: int, fuerza: int, suerte: int, felicidad: int):
-    """
-    Decide el tipo de excavador que debe crear
-    """
-    if tipo == parametros.EXCAVADOR_DOCENCIO:
-        return dccavacava.ExcavadorDocencio(nombre, tipo, edad, energia,
-                                            fuerza, suerte, felicidad)
-    elif tipo == parametros.EXCAVADDOR_TAREO:
-        return dccavacava.ExcavadorTareo(nombre, tipo, edad, energia,
-                                         fuerza, suerte, felicidad)
-    else:
-        return dccavacava.ExcavadorHibrido(nombre, tipo, edad, energia,
-                                           fuerza, suerte, felicidad)
 
 
 def cargar_partida():
@@ -126,18 +42,21 @@ def cargar_partida():
     return mostrar_menu_principal(arena_juego, equipo)
 
 
-def mostrar_menu_principal(torneo):
+def mostrar_menu_principal(torneo: type[dccavacava.Torneo]):
     """
     Imprime el menu principal
     """
     seleccion = None
     while seleccion != parametros.SALIR:
-        print("\n   *** Menú Principal ***\n---------------------------\n"
-              "[1] Simular día torneo\n[2] Ver estado torneo\n[3] Ver ítems\n"
+        print("\n   *** Menú Principal ***\n---------------------------\n")
+        print(f"Día torneo DCCavaCava: {torneo.dias_transcurridos} / {torneo.dias_totales}")
+        print(f"Tipo de arena: {torneo.arena.tipo}")
+        print("[1] Simular día torneo\n[2] Ver estado torneo\n[3] Ver ítems\n"
               "[4] Guardar partida\n[5] Volver\n[X] Salir del programa")
         seleccion = input("Indique su opción (1, 2, 3, 4 5 o X):\n")
         if seleccion == "1":
-            torneo.simular_dia()
+            if not torneo.simular_dia():
+                return terminar_juego(torneo)
         elif seleccion == "2":
             torneo.mostrar_estado_torneo()
         elif seleccion == "3":
@@ -149,6 +68,17 @@ def mostrar_menu_principal(torneo):
         elif seleccion == "5":
             return parametros.VOLVER
     return seleccion
+
+
+def terminar_juego(torneo):
+    print(f'\n{"El juego ha terminado":^48s}')
+    print("-"*48)
+    print(f"Metros excavados: {torneo.metros_cavados} / {parametros.METROS_META}")
+    if torneo.metros_cavados >= parametros.METROS_META:
+        print("Felicidades, ganaste!!!\n")
+    else:
+        print("Perdiste :(, vuelve a intentarlo\n")
+    return parametros.VOLVER
 
 
 def mostrar_menu_items(torneo):
@@ -178,8 +108,8 @@ def mostrar_menu_items(torneo):
             if type(item) is dccavacava.Consumible:
                 torneo.usar_consumible(int(seleccion) - 1)
             else:
-                torneo.usar_tesoro(int(seleccion) - 1)
-        # TODO falta que al usar algo retorne al menu pero actualizado
+                torneo.abrir_tesoro(int(seleccion) - 1)
+            return mostrar_menu_items(torneo)
     return seleccion
 
 

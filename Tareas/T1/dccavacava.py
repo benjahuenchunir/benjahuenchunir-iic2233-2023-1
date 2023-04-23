@@ -1,8 +1,8 @@
 import parametros
 import random
 from abc import ABC, abstractmethod  # TODO esto esta bien?
-import menu
 from collections import defaultdict
+import archivos
 
 
 class Torneo:
@@ -10,11 +10,11 @@ class Torneo:
         super().__init__(*args, **kwargs)
         self.arena = arena
         self.equipo = equipo
-        self.eventos = ["Terremoto", "Lluvia", "Derrumbe"]
+        self.eventos = [parametros.LLUVIA, parametros.TERREMOTO, parametros.DERRUMBE]
         self.mochila = []
         self.__metros_cavados = 0
         self.meta = parametros.METROS_META
-        self.dias_transcurridos = 0
+        self.dias_transcurridos = 1
         self.dias_totales = parametros.DIAS_TOTALES_TORNEO
 
     @property
@@ -37,9 +37,11 @@ class Torneo:
         self.iniciar_evento()
         self.editar_energia(trabajadores, descansando)
         self.dias_transcurridos += 1
+        if self.dias_transcurridos <= self.dias_totales:
+            return True
 
     def cavar(self, trabajadores):
-        print("Metros Cavados:")
+        print(f"Metros Cavados: {self.metros_cavados}")
         metros_cavados_dia = 0
         for excavador in trabajadores:
             nuevos_metros_cavados = excavador.cavar(self.arena.dificultad)
@@ -53,22 +55,14 @@ class Torneo:
         items_encontrados = defaultdict(int)
         for excavador in trabajadores:
             encontro = excavador.encontrar_items()
-            print(encontro)
             if encontro:
-                if encontro == parametros.TESORO:
+                if encontro == parametros.CONSUMIBLE:
                     items_encontrados[parametros.CONSUMIBLE] += 1
                 elif encontro == parametros.TESORO:
-                    items_encontrados[parametros.CONSUMIBLE] += 1
-                print([
-                        item for item in self.arena.items
-                        if item.tipo == encontro])
+                    items_encontrados[parametros.TESORO] += 1
                 item = random.choice([
                         item for item in self.arena.items
                         if item.tipo == encontro])
-                print(self.arena.items)
-                print([item for item in self.arena.items
-                      if item.tipo == encontro])
-                print(item)
                 self.mochila.append(item)
                 print(f"{excavador.nombre} consiguió {item.nombre} de tipo {item.tipo}.")
             else:
@@ -79,14 +73,13 @@ class Torneo:
 
     def iniciar_evento(self):
         if random.random() < parametros.PROB_INICIAR_EVENTO:
-            eventos = [parametros.LLUVIA, parametros.TERREMOTO, parametros.DERRUMBE]
             pesos = [parametros.PROB_LLUVIA,
                      parametros.PROB_TERREMOTO, parametros.PROB_DERRUMBE]
-            evento = random.choices(eventos, weights=pesos, k=1)[0]
+            evento = random.choices(self.eventos, weights=pesos, k=1)[0]
             nuevo_tipo = self.arena.reaccionar_evento(evento)
             if nuevo_tipo:
-                self.arena = menu.seleccionar_arena(nuevo_tipo)
-                menu.añadir_items(self.arena)
+                self.arena = archivos.seleccionar_arena(nuevo_tipo)
+                archivos.añadir_items(self.arena)
             for excavador in self.equipo:
                 excavador.reaccionar_evento()
             print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!")
@@ -133,7 +126,9 @@ class Torneo:
     def usar_consumible(self, posicion: int):
         consumible = self.mochila.pop(posicion)
         for excavador in self.equipo:
-            excavador.usar_consumible(consumible)
+            excavador.consumir(consumible)
+        print(f"\nSe consumió {consumible.nombre} entregando los siguientes efectos:")
+        print(f"{consumible.descripcion}")
 
     def abrir_tesoro(self, posicion: int):
         tesoro = self.mochila.pop(posicion)
@@ -378,11 +373,7 @@ class ExcavadorTareo(Excavador):
 
 class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
 
-    @property
-    def energia(self):
-        return self._Excavador__energia
-
-    @energia.setter
+    @ExcavadorDocencio.energia.setter
     def energia(self, nueva_energia):
         self.__energia = max(20, min(100, nueva_energia))
 
@@ -396,7 +387,3 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self)
         self.energia = energia_inicial - int(gasto / 2)
-
-
-if __name__ == "__main__":
-    menu.nueva_partida()
