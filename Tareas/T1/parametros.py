@@ -1,6 +1,11 @@
 import random  # TODO: Cambiar a constantes
 
 # Mis parametros
+PATH_ARENAS = 'arenas.csv'
+PATH_EXCAVADORES = 'excavadores.csv'
+PATH_CONSUMIBLES = 'consumibles.csv'
+PATH_TESOROS = 'tesoros.csv'
+
 VOLVER = '5'
 SALIR = 'X'
 TESORO = "tesoro"
@@ -10,6 +15,10 @@ ARENA_NORMAL = "normal"
 ARENA_MOJADA = "mojada"
 ARENA_ROCOSA = "rocosa"
 ARENA_MAGNETICA = "magnetica"
+
+EXCAVADOR_DOCENCIO = "docencio"
+EXCAVADDOR_TAREO = "tareo"
+EXCAVADOR_HIBRIDO = "hibrido"
 
 LLUVIA = "Lluvia"
 TERREMOTO = "Terremoto"
@@ -30,7 +39,7 @@ PROB_DERRUMBE = 0.3
 METROS_PERDIDOS_DERRUMBE = 10
 
 # Arena
-POND_ARENA_NORMAL = 0.8
+POND_ARENA_NORMAL = 0.7
 
 # Excavadores
 FELICIDAD_PERDIDA = 5
