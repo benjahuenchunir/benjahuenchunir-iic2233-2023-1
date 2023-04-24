@@ -56,10 +56,13 @@ class Torneo:
         print("\nItems Encontrados:")
         items_encontrados = defaultdict(int)
         for excavador in trabajadores:
-            if self.arena.tipo in [parametros.ARENA_MOJADA, parametros.ARENA_MAGNETICA]:
-                encontro = excavador.encontrar_items(parametros.PROB_ENCONTRAR_ITEM_MOJADA)
+            if self.arena.tipo in [parametros.ARENA_MOJADA, 
+                                   parametros.ARENA_MAGNETICA]:
+                encontro = excavador.encontrar_items(
+                    parametros.PROB_ENCONTRAR_ITEM_MOJADA)
             else:
-                encontro = excavador.encontrar_items(parametros.PROB_ENCONTRAR_ITEM)
+                encontro = excavador.encontrar_items(
+                    parametros.PROB_ENCONTRAR_ITEM)
             if encontro:
                 if encontro == parametros.CONSUMIBLE:
                     items_encontrados[parametros.CONSUMIBLE] += 1

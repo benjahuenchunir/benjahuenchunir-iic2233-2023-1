@@ -63,10 +63,21 @@ def mostrar_menu_principal(torneo):
             if seleccion == parametros.SALIR:
                 return seleccion
         elif seleccion == "4":
-            pass  # TODO no implementado
+            guardar_partida(torneo)
+            # TODO que pasa, sale del menu?
         elif seleccion == "5":
             return parametros.VOLVER
     return seleccion
+
+
+def guardar_partida(torneo):
+    # TODO no implementado
+    # arena: Arena
+    # equipo: list[Excavadores]
+    # mochila: list[Items]
+    # metros_excavados: int
+    # dias_transcurridos: int
+    pass
 
 
 def terminar_juego(torneo):
