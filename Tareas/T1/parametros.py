@@ -5,6 +5,7 @@ PATH_ARENAS = 'arenas.csv'
 PATH_EXCAVADORES = 'excavadores.csv'
 PATH_CONSUMIBLES = 'consumibles.csv'
 PATH_TESOROS = 'tesoros.csv'
+PATH_DCCAVACAVA = "DCCavaCava.txt"
 
 VOLVER = '5'
 SALIR = 'X'

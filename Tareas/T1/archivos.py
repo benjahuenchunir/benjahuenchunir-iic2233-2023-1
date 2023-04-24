@@ -108,3 +108,39 @@ def crear_excavador(nombre: str, tipo: str, edad: int,
     else:
         return dccavacava.ExcavadorHibrido(nombre, tipo, edad, energia,
                                            fuerza, suerte, felicidad)
+
+
+def guardar_partida(torneo):
+    with open(parametros.PATH_DCCAVACAVA, "wt", encoding="utf-8") as f:
+        f.write((f"{torneo.metros_cavados},"
+                 f"{torneo.dias_transcurridos}\n"))
+        arena = (f"{torneo.arena.nombre},{torneo.arena.tipo},"
+                 f"{torneo.arena.rareza},{torneo.arena.humedad},"
+                 f"{torneo.arena.dureza},{torneo.arena.estatica}\n")
+        f.write(arena)
+        for item in torneo.mochila:
+            if item.tipo == parametros.CONSUMIBLE:
+                linea = (f"{item.nombre},{item.tipo},{item.descripcion},"
+                         f"{item.energia},{item.fuerza},"
+                         f"{item.suerte},{item.felicidad}\n")
+            else:
+                linea = (f"{item.nombre},{item.tipo},{item.descripcion},"
+                         f"{item.calidad},{item.cambio}\n")
+            f.write(linea)
+        for excavador in torneo.equipo:
+            linea = (f"{excavador.nombre},{excavador.tipo},"
+                     f"{excavador.edad},{excavador.energia},"
+                     f"{excavador.fuerza},{excavador.suerte},"
+                     f"{excavador.felicidad},{excavador.descansando}\n")
+            f.write(linea)
+
+def cargar_partida():
+    return "X"  # TODO no implementado
+    archivo = "DCCavaCava.txt"
+    if os.path.exists(archivo):
+        with open(archivo, "rt") as partida:
+            pass
+        mostrar_menu_principal()
+    else:
+        print("No existe una partida guardada")
+    mostrar_menu_principal(arena_juego, equipo)

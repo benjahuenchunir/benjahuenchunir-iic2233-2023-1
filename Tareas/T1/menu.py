@@ -28,18 +28,6 @@ def nueva_partida():
     return mostrar_menu_principal(torneo)
 
 
-def cargar_partida():
-    return "X"  # TODO no implementado
-    archivo = "DCCavaCava.txt"
-    if os.path.exists(archivo):
-        with open(archivo, "rt") as partida:
-            pass
-        mostrar_menu_principal()
-    else:
-        print("No existe una partida guardada")
-    mostrar_menu_principal(arena_juego, equipo)
-
-
 def mostrar_menu_principal(torneo):
     """
     Imprime el menu principal
@@ -63,21 +51,11 @@ def mostrar_menu_principal(torneo):
             if seleccion == parametros.SALIR:
                 return seleccion
         elif seleccion == "4":
-            guardar_partida(torneo)
-            # TODO que pasa, sale del menu?
+            archivos.guardar_partida(torneo)
+            print("La partida ha sido guardada exitosamente")
         elif seleccion == "5":
             return parametros.VOLVER
     return seleccion
-
-
-def guardar_partida(torneo):
-    # TODO no implementado
-    # arena: Arena
-    # equipo: list[Excavadores]
-    # mochila: list[Items]
-    # metros_excavados: int
-    # dias_transcurridos: int
-    pass
 
 
 def terminar_juego(torneo):

@@ -1,0 +1,5 @@
+7.960000000000001,4
+Arena blanca,normal,2,1,1,2
+Tortuga Dorada,tesoro,Añade a tu equipo un excavador de tipo Tareo.,1,tareo
+Comida vibracional,consumible,Otorga +100 energía / +10 fuerza / +10 suerte / +10 felicidad.,100,10,10,10
+Mpia_vf,docencio,21,74,10,5,7,0
