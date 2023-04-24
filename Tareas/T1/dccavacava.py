@@ -234,9 +234,6 @@ class ArenaRocosa(Arena):
 
 
 class ArenaMagnetica(ArenaRocosa, ArenaMojada):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
     def reaccionar_evento(self, evento: str):
         if evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
@@ -383,9 +380,6 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
     @ExcavadorDocencio.energia.setter
     def energia(self, nueva_energia):
         self.__energia = max(20, min(100, nueva_energia))
-
-    def cavar(self, dificultad):
-        return ExcavadorDocencio.cavar(self, dificultad)
 
     def consumir(self, consumible: Consumible):
         ExcavadorTareo.consumir(self, consumible)

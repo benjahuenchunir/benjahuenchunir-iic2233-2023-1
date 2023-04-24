@@ -33,7 +33,6 @@ def cargar_partida():
     archivo = "DCCavaCava.txt"
     if os.path.exists(archivo):
         with open(archivo, "rt") as partida:
-            # TODO leer archivo
             pass
         mostrar_menu_principal()
     else:

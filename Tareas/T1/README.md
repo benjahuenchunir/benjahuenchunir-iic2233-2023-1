@@ -76,6 +76,7 @@ Los supuestos que realicé durante la tarea son los siguientes:
 2. Los tesoros cambian la arena. Este cambio se refleja buscando de manera aleatoria en el archivo de arenas al igual que los eventos (https://github.com/IIC2233/Syllabus/issues/171)
 3. En el excavadorHibrido se asumio que al perder energia se trunca la division del valor que perdia ExcavadorDocencio en 2. (https://github.com/IIC2233/Syllabus/issues/137)
 4. Un derrumbe afecta a todas las arenas y por tanto la arena normal es reelegida despues de un derrumbe (https://github.com/IIC2233/Syllabus/issues/171)
+5. El tesoro que agrega excavadores permite repeticion para no limitar el flujo del juego (https://github.com/IIC2233/Syllabus/issues/134)
 
 PD: <una última consideración (de ser necesaria) o comentario hecho anteriormente que se quiera **recalcar**>
 
