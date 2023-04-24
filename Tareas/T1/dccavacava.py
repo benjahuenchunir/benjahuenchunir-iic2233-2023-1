@@ -56,7 +56,10 @@ class Torneo:
         print("\nItems Encontrados:")
         items_encontrados = defaultdict(int)
         for excavador in trabajadores:
-            encontro = excavador.encontrar_items()
+            if self.arena.tipo in [parametros.ARENA_MOJADA, parametros.ARENA_MAGNETICA]:
+                encontro = excavador.encontrar_items(parametros.PROB_ENCONTRAR_ITEM_MOJADA)
+            else:
+                encontro = excavador.encontrar_items(parametros.PROB_ENCONTRAR_ITEM)
             if encontro:
                 if encontro == parametros.CONSUMIBLE:
                     items_encontrados[parametros.CONSUMIBLE] += 1
@@ -97,9 +100,11 @@ class Torneo:
 
     def editar_energia(self, trabajadores: list, descansando: list):
         for excavador in trabajadores:
-            excavador.descansar()
+            excavador.gastar_energia()
+            if excavador.energia == 0:
+                excavador.descansar()
         for excavador in descansando:
-            excavador.descansando -= 1
+            excavador.descansar()
             print(f"{excavador.nombre} decidió descansar...")
 
     def mostrar_estado_torneo(self):
@@ -210,7 +215,6 @@ class ArenaNormal(Arena):
 class ArenaMojada(Arena):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        # TODO implementar propio de mojada
 
     def reaccionar_evento(self, evento: str):
         if evento == parametros.TERREMOTO:
@@ -312,20 +316,26 @@ class Excavador():
         """
         Verifica si debe descansar o no
         """
-        if self.energia == 0:
+        if self.descansando > 0:
+            self.descansando -= 1
+            print(f"{self.nombre} esta descansando y le quedan {self.descansando} dias")
+            if self.descansando == 0:
+                self.energia = 100
+                print(f"{self.nombre} termino de descansar ({self.descansando} dias)")
+        elif self.energia == 0:
             self.descansando = int(self.edad / 20)
-            # TODO por ahora un excavador descansa indefinidamente porque resetea siempre los dias de descanso
+            print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
-    def encontrar_items(self):
+    def encontrar_items(self, probabilidad):
         """
         Determina si encuentra un item, retorna None si no lo encuentra
         y el tipo de item en caso contrario
         """
-        if random.random() < parametros.PROB_ENCONTRAR_ITEM:
-            eventos = [parametros.TESORO, parametros.CONSUMIBLE]
+        if random.random() < probabilidad:
+            items = [parametros.TESORO, parametros.CONSUMIBLE]
             pesos = [parametros.PROB_ENCONTRAR_TESORO,
                      parametros.PROB_ENCONTRAR_CONSUMIBLE]
-            encontrado = random.choices(eventos, weights=pesos, k=1)[0]
+            encontrado = random.choices(items, weights=pesos, k=1)[0]
             return encontrado
 
     def gastar_energia(self) -> int:
@@ -379,12 +389,17 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
 
     @ExcavadorDocencio.energia.setter
     def energia(self, nueva_energia):
-        self.__energia = max(20, min(100, nueva_energia))
+        print(f"{self.nombre} tiene {self.energia} energía")
+        self._Excavador__energia = max(20, min(100, nueva_energia))
+        print(f"{self.nombre} ahora tiene {self.energia} energía")
 
     def consumir(self, consumible: Consumible):
         ExcavadorTareo.consumir(self, consumible)
 
     def gastar_energia(self):
+        print(f"{self.nombre} tiene {self.energia} energía")
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self)
+        print(f"{self.nombre} gasto {int(gasto / 2)} energía")
         self.energia = energia_inicial - int(gasto / 2)
+        print(f"{self.nombre} ahora tiene {self.energia} energía")

@@ -37,7 +37,7 @@ def cargar_partida():
         mostrar_menu_principal()
     else:
         print("No existe una partida guardada")
-    return mostrar_menu_principal(arena_juego, equipo)
+    mostrar_menu_principal(arena_juego, equipo)
 
 
 def mostrar_menu_principal(torneo):
