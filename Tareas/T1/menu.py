@@ -1,6 +1,4 @@
-import os
 import parametros
-import random
 import dccavacava
 import archivos
 
@@ -18,7 +16,9 @@ def mostrar_menu_inicio():
         if seleccion == "1":
             seleccion = nueva_partida()
         elif seleccion == "2":
-            seleccion = cargar_partida()
+            torneo = archivos.cargar_partida()
+            if torneo:
+                seleccion = mostrar_menu_principal(torneo)
 
 
 def nueva_partida():

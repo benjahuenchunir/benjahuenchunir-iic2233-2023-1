@@ -1,6 +1,7 @@
 import random
 import dccavacava
 import parametros
+import os
 
 
 def seleccionar_arena(tipo: str):
@@ -102,7 +103,7 @@ def crear_excavador(nombre: str, tipo: str, edad: int,
     if tipo == parametros.EXCAVADOR_DOCENCIO:
         return dccavacava.ExcavadorDocencio(nombre, tipo, edad, energia,
                                             fuerza, suerte, felicidad)
-    elif tipo == parametros.EXCAVADDOR_TAREO:
+    elif tipo == parametros.EXCAVADOR_TAREO:
         return dccavacava.ExcavadorTareo(nombre, tipo, edad, energia,
                                          fuerza, suerte, felicidad)
     else:
@@ -134,13 +135,49 @@ def guardar_partida(torneo):
                      f"{excavador.felicidad},{excavador.descansando}\n")
             f.write(linea)
 
+
 def cargar_partida():
-    return "X"  # TODO no implementado
-    archivo = "DCCavaCava.txt"
+    archivo = parametros.PATH_DCCAVACAVA
     if os.path.exists(archivo):
-        with open(archivo, "rt") as partida:
-            pass
-        mostrar_menu_principal()
+        with open(archivo, "rt", encoding="utf-8") as partida:
+            metros_cavados, dias_transcurridos = (
+                partida.readline().strip().split(","))
+            metros_cavados, dias_transcurridos = (float(metros_cavados),
+                                                  int(dias_transcurridos))
+            equipo = []
+            mochila = []
+            for linea in partida.readlines():
+                elemento = linea.strip().split(",")
+                print("Elemento: ", elemento[1])
+                if elemento[1] in parametros.LISTA_ARENAS:
+                    arena = crear_arena_juego(
+                        elemento[0], elemento[1], int(elemento[2]),
+                        int(elemento[3]), int(elemento[4]), int(elemento[5]))
+                elif elemento[1] in parametros.LISTA_EXCAVADORES:
+                    excavador = crear_excavador(
+                        elemento[0], elemento[1], int(elemento[2]),
+                        int(elemento[3]), int(elemento[4]), int(elemento[5]),
+                        int(elemento[6]))
+                    excavador.descansando = int(elemento[7])
+                    print("Excavador: ", excavador)
+                    equipo.append(excavador)
+                else:
+                    if elemento[1] == parametros.CONSUMIBLE:
+                        item = dccavacava.Consumible(
+                            int(elemento[3]), int(elemento[4]),
+                            int(elemento[5]), int(elemento[6]),
+                            elemento[0], elemento[1], elemento[2])
+                    else:
+                        item = dccavacava.Tesoro(int(
+                            elemento[3]), elemento[4], elemento[0],
+                            elemento[1], elemento[2])
+                    mochila.append(item)
+                torneo = dccavacava.Torneo(arena, equipo)
+                torneo.metros_cavados = metros_cavados
+                torneo.dias_transcurridos = dias_transcurridos
+                torneo.equipo = equipo
+                print(equipo)
+                torneo.mochila = mochila
+            return torneo
     else:
         print("No existe una partida guardada")
-    mostrar_menu_principal(arena_juego, equipo)
