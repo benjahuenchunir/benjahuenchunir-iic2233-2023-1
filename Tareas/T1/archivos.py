@@ -148,7 +148,6 @@ def cargar_partida():
             mochila = []
             for linea in partida.readlines():
                 elemento = linea.strip().split(",")
-                print("Elemento: ", elemento[1])
                 if elemento[1] in parametros.LISTA_ARENAS:
                     arena = crear_arena_juego(
                         elemento[0], elemento[1], int(elemento[2]),
@@ -159,7 +158,6 @@ def cargar_partida():
                         int(elemento[3]), int(elemento[4]), int(elemento[5]),
                         int(elemento[6]))
                     excavador.descansando = int(elemento[7])
-                    print("Excavador: ", excavador)
                     equipo.append(excavador)
                 else:
                     if elemento[1] == parametros.CONSUMIBLE:
@@ -176,7 +174,6 @@ def cargar_partida():
                 torneo.metros_cavados = metros_cavados
                 torneo.dias_transcurridos = dias_transcurridos
                 torneo.equipo = equipo
-                print(equipo)
                 torneo.mochila = mochila
             return torneo
     else:

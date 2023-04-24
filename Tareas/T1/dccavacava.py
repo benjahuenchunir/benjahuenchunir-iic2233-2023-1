@@ -56,13 +56,8 @@ class Torneo:
         print("\nItems Encontrados:")
         items_encontrados = defaultdict(int)
         for excavador in trabajadores:
-            if self.arena.tipo in [parametros.ARENA_MOJADA, 
-                                   parametros.ARENA_MAGNETICA]:
-                encontro = excavador.encontrar_items(
-                    parametros.PROB_ENCONTRAR_ITEM_MOJADA)
-            else:
-                encontro = excavador.encontrar_items(
-                    parametros.PROB_ENCONTRAR_ITEM)
+            encontro = excavador.encontrar_items(
+                *self.arena.probabilidad_encontrar_item())
             if encontro:
                 if encontro == parametros.CONSUMIBLE:
                     items_encontrados[parametros.CONSUMIBLE] += 1
@@ -199,6 +194,11 @@ class Arena(ABC):
     def reaccionar_evento(self, evento: str):
         pass
 
+    def probabilidad_encontrar_item(self):
+        return (parametros.PROB_ENCONTRAR_ITEM,
+                parametros.PROB_ENCONTRAR_TESORO,
+                parametros.PROB_ENCONTRAR_CONSUMIBLE)
+
 
 class ArenaNormal(Arena):
     def __init__(self, *args, **kwargs) -> None:
@@ -224,6 +224,11 @@ class ArenaMojada(Arena):
             return parametros.ARENA_MAGNETICA
         elif evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
+
+    def probabilidad_encontrar_item(self):
+        return (parametros.PROB_ENCONTRAR_ITEM_MOJADA,
+                parametros.PROB_CONSUMIBLE_TESORO_MOJADA,
+                parametros.PROB_CONSUMIBLE_TESORO_MOJADA)
 
 
 class ArenaRocosa(Arena):
@@ -329,15 +334,15 @@ class Excavador():
             self.descansando = int(self.edad / 20)
             print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
-    def encontrar_items(self, probabilidad):
+    def encontrar_items(self, probabilidad, p_tesoro, p_consumible):
         """
         Determina si encuentra un item, retorna None si no lo encuentra
         y el tipo de item en caso contrario
         """
         if random.random() < probabilidad:
             items = [parametros.TESORO, parametros.CONSUMIBLE]
-            pesos = [parametros.PROB_ENCONTRAR_TESORO,
-                     parametros.PROB_ENCONTRAR_CONSUMIBLE]
+            pesos = [p_tesoro,
+                     p_consumible]
             encontrado = random.choices(items, weights=pesos, k=1)[0]
             return encontrado
 
