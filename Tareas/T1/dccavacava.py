@@ -195,9 +195,9 @@ class Arena(ABC):
         pass
 
     def probabilidad_encontrar_item(self):
-        return (parametros.PROB_ENCONTRAR_ITEM,
-                parametros.PROB_ENCONTRAR_TESORO,
-                parametros.PROB_ENCONTRAR_CONSUMIBLE)
+        return (parametros.PROB_ENCONTRAR_ITEM, (
+            parametros.PROB_ENCONTRAR_TESORO,
+            parametros.PROB_ENCONTRAR_CONSUMIBLE))
 
 
 class ArenaNormal(Arena):
@@ -226,9 +226,9 @@ class ArenaMojada(Arena):
             return parametros.ARENA_NORMAL
 
     def probabilidad_encontrar_item(self):
-        return (parametros.PROB_ENCONTRAR_ITEM_MOJADA,
-                parametros.PROB_CONSUMIBLE_TESORO_MOJADA,
-                parametros.PROB_CONSUMIBLE_TESORO_MOJADA)
+        return (parametros.PROB_ENCONTRAR_ITEM_MOJADA, (
+            parametros.PROB_CONSUMIBLE_TESORO_MOJADA,
+            parametros.PROB_CONSUMIBLE_TESORO_MOJADA))
 
 
 class ArenaRocosa(Arena):
@@ -334,17 +334,15 @@ class Excavador():
             self.descansando = int(self.edad / 20)
             print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
-    def encontrar_items(self, probabilidad, p_tesoro, p_consumible):
+    def encontrar_items(self, probabilidad_encontrar, prob_items):
         """
         Determina si encuentra un item, retorna None si no lo encuentra
         y el tipo de item en caso contrario
         """
-        if random.random() < probabilidad:
-            items = [parametros.TESORO, parametros.CONSUMIBLE]
-            pesos = [p_tesoro,
-                     p_consumible]
-            encontrado = random.choices(items, weights=pesos, k=1)[0]
-            return encontrado
+        if random.random() < probabilidad_encontrar:
+            tipo_item = random.choices(
+                parametros.LISTA_ITEMS, weights=prob_items, k=1)[0]
+            return tipo_item
 
     def gastar_energia(self) -> int:
         """
@@ -400,9 +398,6 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         print(f"{self.nombre} tiene {self.energia} energía")
         self._Excavador__energia = max(20, min(100, nueva_energia))
         print(f"{self.nombre} ahora tiene {self.energia} energía")
-
-    def consumir(self, consumible: Consumible):
-        ExcavadorTareo.consumir(self, consumible)
 
     def gastar_energia(self):
         print(f"{self.nombre} tiene {self.energia} energía")

@@ -8,7 +8,8 @@ def seleccionar_arena(tipo: str):
     """
     Selecciona la arena de juego
     """
-    with open(parametros.PATH_ARENAS, 'rt', encoding="utf-8") as info_arenas:
+    with open(parametros.PATH_ARENAS, 'rt',
+              encoding=parametros.ENCODING) as info_arenas:
         arenas = [crear_arena_juego(
             arena[0], arena[1], int(arena[2]),
             int(arena[3]), int(arena[4]), int(arena[5]))
@@ -23,9 +24,9 @@ def seleccionar_arena(tipo: str):
 
 def anadir_items(arena):
     with (open(parametros.PATH_CONSUMIBLES,
-               'rt', encoding="utf-8") as info_consumibles,
+               'rt', encoding=parametros.ENCODING) as info_consumibles,
           open(parametros.PATH_TESOROS,
-               'rt', encoding="utf-8") as info_tesoros):
+               'rt', encoding=parametros.ENCODING) as info_tesoros):
         consumibles = [dccavacava.Consumible(
             int(consumible[2]), int(consumible[3]), int(consumible[4]),
             int(consumible[5]), consumible[0], parametros.CONSUMIBLE,
@@ -66,7 +67,7 @@ def seleccionar_equipo():
     Selecciona el equipo de excavadores
     """
     with open(parametros.PATH_EXCAVADORES,
-              'rt', encoding="utf-8") as info_excavadores:
+              'rt', encoding=parametros.ENCODING) as info_excavadores:
         total_excavadores = [crear_excavador(
             excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
             int(excavador[4]), int(excavador[5]), int(excavador[6]))
@@ -83,7 +84,7 @@ def agregar_excavador(tipo: str):
     Selecciona un excavador de un tipo especifico
     """
     with open(parametros.PATH_EXCAVADORES,
-              'rt', encoding="utf-8") as info_excavadores:
+              'rt', encoding=parametros.ENCODING) as info_excavadores:
         total_excavadores = [crear_excavador(
             excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
             int(excavador[4]), int(excavador[5]), int(excavador[6]))
@@ -112,7 +113,8 @@ def crear_excavador(nombre: str, tipo: str, edad: int,
 
 
 def guardar_partida(torneo):
-    with open(parametros.PATH_DCCAVACAVA, "wt", encoding="utf-8") as f:
+    with open(parametros.PATH_DCCAVACAVA, "wt",
+              encoding=parametros.ENCODING) as f:
         f.write((f"{torneo.metros_cavados},"
                  f"{torneo.dias_transcurridos}\n"))
         arena = (f"{torneo.arena.nombre},{torneo.arena.tipo},"
@@ -139,7 +141,7 @@ def guardar_partida(torneo):
 def cargar_partida():
     archivo = parametros.PATH_DCCAVACAVA
     if os.path.exists(archivo):
-        with open(archivo, "rt", encoding="utf-8") as partida:
+        with open(archivo, "rt", encoding=parametros.ENCODING) as partida:
             metros_cavados, dias_transcurridos = (
                 partida.readline().strip().split(","))
             metros_cavados, dias_transcurridos = (float(metros_cavados),
@@ -152,14 +154,7 @@ def cargar_partida():
                     arena = crear_arena_juego(
                         elemento[0], elemento[1], int(elemento[2]),
                         int(elemento[3]), int(elemento[4]), int(elemento[5]))
-                elif elemento[1] in parametros.LISTA_EXCAVADORES:
-                    excavador = crear_excavador(
-                        elemento[0], elemento[1], int(elemento[2]),
-                        int(elemento[3]), int(elemento[4]), int(elemento[5]),
-                        int(elemento[6]))
-                    excavador.descansando = int(elemento[7])
-                    equipo.append(excavador)
-                else:
+                elif elemento[1] in parametros.LISTA_ITEMS:
                     if elemento[1] == parametros.CONSUMIBLE:
                         item = dccavacava.Consumible(
                             int(elemento[3]), int(elemento[4]),
@@ -170,6 +165,14 @@ def cargar_partida():
                             elemento[3]), elemento[4], elemento[0],
                             elemento[1], elemento[2])
                     mochila.append(item)
+                else:
+                    excavador = crear_excavador(
+                        elemento[0], elemento[1], int(elemento[2]),
+                        int(elemento[3]), int(elemento[4]), int(elemento[5]),
+                        int(elemento[6]))
+                    excavador.descansando = int(elemento[7])
+                    equipo.append(excavador)
+                anadir_items(arena)
                 torneo = dccavacava.Torneo(arena, equipo)
                 torneo.metros_cavados = metros_cavados
                 torneo.dias_transcurridos = dias_transcurridos
