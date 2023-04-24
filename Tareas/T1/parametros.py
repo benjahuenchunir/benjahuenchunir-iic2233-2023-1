@@ -8,8 +8,11 @@ PATH_TESOROS = 'tesoros.csv'
 
 VOLVER = '5'
 SALIR = 'X'
-TESORO = "tesoro"
+
+
 CONSUMIBLE = "consumible"
+TESORO = "tesoro"
+CALIDAD_EQUIPO = 1
 
 ARENA_NORMAL = "normal"
 ARENA_MOJADA = "mojada"

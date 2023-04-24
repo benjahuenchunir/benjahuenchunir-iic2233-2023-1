@@ -10,7 +10,8 @@ class Torneo:
         super().__init__(*args, **kwargs)
         self.arena = arena
         self.equipo = equipo
-        self.eventos = [parametros.LLUVIA, parametros.TERREMOTO, parametros.DERRUMBE]
+        self.eventos = [parametros.LLUVIA, parametros.TERREMOTO,
+                        parametros.DERRUMBE]
         self.mochila = []
         self.__metros_cavados = 0
         self.meta = parametros.METROS_META
@@ -47,7 +48,8 @@ class Torneo:
             nuevos_metros_cavados = excavador.cavar(self.arena.dificultad)
             metros_cavados_dia += nuevos_metros_cavados
             self.metros_cavados += nuevos_metros_cavados
-            print(f"{excavador.nombre} ha cavado {nuevos_metros_cavados} metros.")
+            print(f"{excavador.nombre} ha cavado"
+                  f" {nuevos_metros_cavados} metros.")
         print(f"El equipo ha cavado {metros_cavados_dia} metros.")
 
     def encontrar_items(self, trabajadores):
@@ -64,7 +66,8 @@ class Torneo:
                         item for item in self.arena.items
                         if item.tipo == encontro])
                 self.mochila.append(item)
-                print(f"{excavador.nombre} consiguió {item.nombre} de tipo {item.tipo}.")
+                print(f"{excavador.nombre} consiguió {item.nombre}"
+                      f" de tipo {item.tipo}.")
             else:
                 print(f"{excavador.nombre} no consiguió nada.")
         print(f"Se han encontrado {sum(items_encontrados.values())} ítems:")
@@ -79,17 +82,18 @@ class Torneo:
             nuevo_tipo = self.arena.reaccionar_evento(evento)
             if nuevo_tipo:
                 self.arena = archivos.seleccionar_arena(nuevo_tipo)
-                archivos.añadir_items(self.arena)
             for excavador in self.equipo:
                 excavador.reaccionar_evento()
-            print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!")
+            print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!!")
             print(f"La arena final es de tipo {self.arena.tipo}")
             if evento == parametros.DERRUMBE:
                 self.metros_cavados -= parametros.METROS_PERDIDOS_DERRUMBE
-                print(f"Se han perdido {parametros.METROS_PERDIDOS_DERRUMBE} metros de progreso.")
-            print(f"Tu equipo ha perdido {parametros.FELICIDAD_PERDIDA} de felicidad")
+                print(f"Se han perdido {parametros.METROS_PERDIDOS_DERRUMBE}"
+                      " metros de progreso.")
+            print(f"Tu equipo ha perdido {parametros.FELICIDAD_PERDIDA}"
+                  " de felicidad")
         else:
-            print("\nNo ocurrió un evento!")
+            print("\nNo ocurrió ningun evento!")
 
     def editar_energia(self, trabajadores: list, descansando: list):
         for excavador in trabajadores:
@@ -104,7 +108,7 @@ class Torneo:
         print(separador)
         print(f"Día actual: {self.dias_transcurridos}")
         print(f"Tipo de arena: {self.arena.tipo}")
-        print(f"Metros excavados: {self.metros_cavados} / {self.dias_totales}")
+        print(f"Metros excavados: {self.metros_cavados} / {self.meta}")
         print(separador)
         print(f'{"Excavadores":^61}')
         print(separador)
@@ -121,18 +125,27 @@ class Torneo:
 
     def ver_mochila(self):
         for i, item in enumerate(self.mochila, 1):
-            print(f'{f"[{i}] {item.nombre}":^18.18s}|{item.tipo:^12.12s}|{item.descripcion:^49.49s}')
+            print(f'{f"[{i}] {item.nombre}":18.18s}|{item.tipo:^12.12s}'
+                  f'|{item.descripcion:^49.49s}')
 
     def usar_consumible(self, posicion: int):
         consumible = self.mochila.pop(posicion)
         for excavador in self.equipo:
             excavador.consumir(consumible)
-        print(f"\nSe consumió {consumible.nombre} entregando los siguientes efectos:")
+        print(f"\nSe consumió {consumible.nombre}"
+              " entregando los siguientes efectos:")
         print(f"{consumible.descripcion}")
 
     def abrir_tesoro(self, posicion: int):
         tesoro = self.mochila.pop(posicion)
-        # TODO usar tesoro
+        if tesoro.calidad == parametros.CALIDAD_EQUIPO:
+            self.equipo.append(archivos.agregar_excavador(tesoro.cambio))
+            print(f"\nEl tesoro {tesoro.nombre}"
+                  f" agrego un excavador de tipo {tesoro.cambio}.")
+        else:
+            self.arena = archivos.seleccionar_arena(tesoro.cambio)
+            print(f"\nEl tesoro {tesoro.nombre} cambio el"
+                  f" tipo de arena a {tesoro.cambio}.")
 
 
 class Item():
@@ -152,18 +165,12 @@ class Consumible(Item):
         self.suerte = suerte
         self.felicidad = felicidad
 
-    def __repr__(self) -> str:
-        return f"{self.nombre} de tipo {self.tipo} con energía {self.energia} y fuerza {self.fuerza} y suerte {self.suerte} y felicidad {self.felicidad}"
-
 
 class Tesoro(Item):
     def __init__(self, calidad, cambio, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.calidad = calidad
         self.cambio = cambio
-
-    def __repr__(self) -> str:
-        return f"{self.nombre} de tipo {self.tipo} con calidad {self.calidad} y cambio {self.cambio}"
 
 
 class Arena(ABC):

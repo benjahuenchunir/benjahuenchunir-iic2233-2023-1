@@ -23,7 +23,6 @@ def mostrar_menu_inicio():
 
 def nueva_partida():
     arena = archivos.seleccionar_arena(parametros.ARENA_INICIAL)
-    archivos.añadir_items(arena)
     equipo = archivos.seleccionar_equipo()
     torneo = dccavacava.Torneo(arena, equipo)
     return mostrar_menu_principal(torneo)
@@ -42,14 +41,15 @@ def cargar_partida():
     return mostrar_menu_principal(arena_juego, equipo)
 
 
-def mostrar_menu_principal(torneo: type[dccavacava.Torneo]):
+def mostrar_menu_principal(torneo):
     """
     Imprime el menu principal
     """
     seleccion = None
     while seleccion != parametros.SALIR:
         print("\n   *** Menú Principal ***\n---------------------------\n")
-        print(f"Día torneo DCCavaCava: {torneo.dias_transcurridos} / {torneo.dias_totales}")
+        print(f"Día torneo DCCavaCava: {torneo.dias_transcurridos}"
+              f" / {torneo.dias_totales}")
         print(f"Tipo de arena: {torneo.arena.tipo}")
         print("[1] Simular día torneo\n[2] Ver estado torneo\n[3] Ver ítems\n"
               "[4] Guardar partida\n[5] Volver\n[X] Salir del programa")
@@ -73,11 +73,11 @@ def mostrar_menu_principal(torneo: type[dccavacava.Torneo]):
 def terminar_juego(torneo):
     print(f'\n{"El juego ha terminado":^48s}')
     print("-"*48)
-    print(f"Metros excavados: {torneo.metros_cavados} / {parametros.METROS_META}")
-    if torneo.metros_cavados >= parametros.METROS_META:
+    print(f"Metros excavados: {torneo.metros_cavados} / {torneo.meta}")
+    if torneo.metros_cavados >= torneo.meta:
         print("Felicidades, ganaste!!!\n")
     else:
-        print("Perdiste :(, vuelve a intentarlo\n")
+        print("Perdiste :(\nVuelve a intentarlo!!\n")
     return parametros.VOLVER
 
 

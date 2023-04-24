@@ -15,12 +15,16 @@ def seleccionar_arena(tipo: str):
                       linea.strip().split(',')
                       for linea in info_arenas.readlines()[1:])
                   if arena[1] == tipo]
-        return random.choice(arenas)
+        arena = random.choice(arenas)
+        anadir_items(arena)
+        return arena
 
 
-def añadir_items(arena):
-    with (open(parametros.PATH_CONSUMIBLES, 'rt', encoding="utf-8") as info_consumibles,
-          open(parametros.PATH_TESOROS, 'rt', encoding="utf-8") as info_tesoros):
+def anadir_items(arena):
+    with (open(parametros.PATH_CONSUMIBLES,
+               'rt', encoding="utf-8") as info_consumibles,
+          open(parametros.PATH_TESOROS,
+               'rt', encoding="utf-8") as info_tesoros):
         consumibles = [dccavacava.Consumible(
             int(consumible[2]), int(consumible[3]), int(consumible[4]),
             int(consumible[5]), consumible[0], parametros.CONSUMIBLE,
@@ -35,22 +39,6 @@ def añadir_items(arena):
                        linea.strip().split(',')
                        for linea in info_tesoros.readlines()[1:])]
         arena.items.extend(consumibles + tesoros)
-
-
-def seleccionar_equipo():
-    """
-    Selecciona el equipo de excavadores
-    """
-    with open(parametros.PATH_EXCAVADORES, 'rt', encoding="utf-8") as info_excavadores:
-        total_excavadores = [crear_excavador(
-            excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
-            int(excavador[4]), int(excavador[5]), int(excavador[6]))
-                             for excavador in (
-                                 linea.strip().split(',')
-                                 for linea in
-                                 info_excavadores.readlines()[1:])]
-        return random.sample(
-            total_excavadores, k=parametros.CANTIDAD_EXCAVADORES_INICIALES)
 
 
 def crear_arena_juego(nombre: str, tipo: str, rareza: int,
@@ -70,6 +58,40 @@ def crear_arena_juego(nombre: str, tipo: str, rareza: int,
     else:
         return dccavacava.ArenaMagnetica(nombre, tipo, rareza,
                                          humedad, dureza, estatica)
+
+
+def seleccionar_equipo():
+    """
+    Selecciona el equipo de excavadores
+    """
+    with open(parametros.PATH_EXCAVADORES,
+              'rt', encoding="utf-8") as info_excavadores:
+        total_excavadores = [crear_excavador(
+            excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
+            int(excavador[4]), int(excavador[5]), int(excavador[6]))
+                             for excavador in (
+                                 linea.strip().split(',')
+                                 for linea in
+                                 info_excavadores.readlines()[1:])]
+        return random.sample(
+            total_excavadores, k=parametros.CANTIDAD_EXCAVADORES_INICIALES)
+
+
+def agregar_excavador(tipo: str):
+    """
+    Selecciona un excavador de un tipo especifico
+    """
+    with open(parametros.PATH_EXCAVADORES,
+              'rt', encoding="utf-8") as info_excavadores:
+        total_excavadores = [crear_excavador(
+            excavador[0], excavador[1], int(excavador[2]), int(excavador[3]),
+            int(excavador[4]), int(excavador[5]), int(excavador[6]))
+                             for excavador in (
+                                 linea.strip().split(',')
+                                 for linea in
+                                 info_excavadores.readlines()[1:])
+                             if excavador[1] == tipo]
+        return random.choice(total_excavadores)
 
 
 def crear_excavador(nombre: str, tipo: str, edad: int,
