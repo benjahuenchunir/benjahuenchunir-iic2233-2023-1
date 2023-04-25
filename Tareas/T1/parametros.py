@@ -5,8 +5,8 @@ PATH_ARENAS = 'arenas.csv'
 PATH_EXCAVADORES = 'excavadores.csv'
 PATH_CONSUMIBLES = 'consumibles.csv'
 PATH_TESOROS = 'tesoros.csv'
-PATH_DCCAVACAVA = "DCCavaCava.txt"
 PATH_PARTIDAS = "Partidas"
+EXTENSION_PARTIDAS = ".txt"
 ENCODING = "utf-8"
 
 VOLVER = '5'

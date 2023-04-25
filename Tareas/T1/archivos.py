@@ -112,8 +112,8 @@ def crear_excavador(nombre: str, tipo: str, edad: int,
                                            fuerza, suerte, felicidad)
 
 
-def guardar_partida(torneo):
-    with open(parametros.PATH_DCCAVACAVA, "wt",
+def guardar_partida(torneo, path):
+    with open(path, "wt",
               encoding=parametros.ENCODING) as f:
         f.write((f"{torneo.metros_cavados},"
                  f"{torneo.dias_transcurridos}\n"))

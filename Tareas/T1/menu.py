@@ -52,7 +52,11 @@ def mostrar_menu_principal(torneo):
             if seleccion == parametros.SALIR:
                 return seleccion
         elif seleccion == "4":
-            archivos.guardar_partida(torneo)
+            nombre_archivo = input("Ingrese el nombre de la partida:\n")
+            path = os.path.join(parametros.PATH_PARTIDAS, nombre_archivo +
+                                parametros.EXTENSION_PARTIDAS)
+            archivos.guardar_partida(torneo, path)
+            # TODO como verifico que un nombre sea valido
             print("La partida ha sido guardada exitosamente")
         elif seleccion == "5":
             return parametros.VOLVER
