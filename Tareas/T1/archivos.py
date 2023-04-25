@@ -138,46 +138,42 @@ def guardar_partida(torneo):
             f.write(linea)
 
 
-def cargar_partida():
-    archivo = parametros.PATH_DCCAVACAVA
-    if os.path.exists(archivo):
-        with open(archivo, "rt", encoding=parametros.ENCODING) as partida:
-            metros_cavados, dias_transcurridos = (
-                partida.readline().strip().split(","))
-            metros_cavados, dias_transcurridos = (float(metros_cavados),
-                                                  int(dias_transcurridos))
-            equipo = []
-            mochila = []
-            for linea in partida.readlines():
-                elemento = linea.strip().split(",")
-                if elemento[1] in parametros.LISTA_ARENAS:
-                    arena = crear_arena_juego(
-                        elemento[0], elemento[1], int(elemento[2]),
-                        int(elemento[3]), int(elemento[4]), int(elemento[5]))
-                elif elemento[1] in parametros.LISTA_ITEMS:
-                    if elemento[1] == parametros.CONSUMIBLE:
-                        item = dccavacava.Consumible(
-                            int(elemento[3]), int(elemento[4]),
-                            int(elemento[5]), int(elemento[6]),
-                            elemento[0], elemento[1], elemento[2])
-                    else:
-                        item = dccavacava.Tesoro(int(
-                            elemento[3]), elemento[4], elemento[0],
-                            elemento[1], elemento[2])
-                    mochila.append(item)
+def cargar_partida(archivo):
+    with open(archivo, "rt", encoding=parametros.ENCODING) as partida:
+        metros_cavados, dias_transcurridos = (
+            partida.readline().strip().split(","))
+        metros_cavados, dias_transcurridos = (float(metros_cavados),
+                                            int(dias_transcurridos))
+        equipo = []
+        mochila = []
+        for linea in partida.readlines():
+            elemento = linea.strip().split(",")
+            if elemento[1] in parametros.LISTA_ARENAS:
+                arena = crear_arena_juego(
+                    elemento[0], elemento[1], int(elemento[2]),
+                    int(elemento[3]), int(elemento[4]), int(elemento[5]))
+            elif elemento[1] in parametros.LISTA_ITEMS:
+                if elemento[1] == parametros.CONSUMIBLE:
+                    item = dccavacava.Consumible(
+                        int(elemento[3]), int(elemento[4]),
+                        int(elemento[5]), int(elemento[6]),
+                        elemento[0], elemento[1], elemento[2])
                 else:
-                    excavador = crear_excavador(
-                        elemento[0], elemento[1], int(elemento[2]),
-                        int(elemento[3]), int(elemento[4]), int(elemento[5]),
-                        int(elemento[6]))
-                    excavador.descansando = int(elemento[7])
-                    equipo.append(excavador)
-                anadir_items(arena)
-                torneo = dccavacava.Torneo(arena, equipo)
-                torneo.metros_cavados = metros_cavados
-                torneo.dias_transcurridos = dias_transcurridos
-                torneo.equipo = equipo
-                torneo.mochila = mochila
-            return torneo
-    else:
-        print("No existe una partida guardada")
+                    item = dccavacava.Tesoro(int(
+                        elemento[3]), elemento[4], elemento[0],
+                        elemento[1], elemento[2])
+                mochila.append(item)
+            else:
+                excavador = crear_excavador(
+                    elemento[0], elemento[1], int(elemento[2]),
+                    int(elemento[3]), int(elemento[4]), int(elemento[5]),
+                    int(elemento[6]))
+                excavador.descansando = int(elemento[7])
+                equipo.append(excavador)
+            anadir_items(arena)
+            torneo = dccavacava.Torneo(arena, equipo)
+            torneo.metros_cavados = metros_cavados
+            torneo.dias_transcurridos = dias_transcurridos
+            torneo.equipo = equipo
+            torneo.mochila = mochila
+        return torneo

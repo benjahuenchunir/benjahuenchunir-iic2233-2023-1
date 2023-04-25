@@ -6,6 +6,7 @@ PATH_EXCAVADORES = 'excavadores.csv'
 PATH_CONSUMIBLES = 'consumibles.csv'
 PATH_TESOROS = 'tesoros.csv'
 PATH_DCCAVACAVA = "DCCavaCava.txt"
+PATH_PARTIDAS = "Partidas"
 ENCODING = "utf-8"
 
 VOLVER = '5'

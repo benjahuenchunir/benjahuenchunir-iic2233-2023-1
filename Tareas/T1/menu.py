@@ -1,6 +1,7 @@
 import parametros
 import dccavacava
 import archivos
+import os
 
 
 def mostrar_menu_inicio():
@@ -11,14 +12,13 @@ def mostrar_menu_inicio():
     while seleccion != parametros.SALIR:
         print("\n*** Menú de Inicio ***")
         print("-"*22)
-        print("[1] Nueva partida\n[2] Cargar Partida\n[X] Salir\n")
+        print("[1] Nueva partida\n[2] Cargar Partida\n"
+              f"[{parametros.SALIR}] Salir\n")
         seleccion = input("Indique su opción (1, 2, o X):\n")
         if seleccion == "1":
             seleccion = nueva_partida()
         elif seleccion == "2":
-            torneo = archivos.cargar_partida()
-            if torneo:
-                seleccion = mostrar_menu_principal(torneo)
+            seleccion = mostrar_menu_carga()
 
 
 def nueva_partida():
@@ -39,7 +39,8 @@ def mostrar_menu_principal(torneo):
               f" / {torneo.dias_totales}")
         print(f"Tipo de arena: {torneo.arena.tipo}")
         print("[1] Simular día torneo\n[2] Ver estado torneo\n[3] Ver ítems\n"
-              "[4] Guardar partida\n[5] Volver\n[X] Salir del programa")
+              "[4] Guardar partida\n[5] Volver\n"
+              f"[{parametros.SALIR}] Salir del programa")
         seleccion = input("Indique su opción (1, 2, 3, 4 5 o X):\n")
         if seleccion == "1":
             if not torneo.simular_dia():
@@ -83,7 +84,8 @@ def mostrar_menu_items(torneo):
         torneo.ver_mochila()
         print(separador)
         indice_siguiente = len(torneo.mochila) + 1
-        print(f"[{indice_siguiente}] Volver\n[X] Salir del programa\n")
+        print(f"[{indice_siguiente}] Volver\n"
+              f"[{parametros.SALIR}] Salir del programa\n")
         opciones = "Indique su opción ("
         for i in range(indice_siguiente - 1):
             opciones += f"{i}, "
@@ -98,6 +100,28 @@ def mostrar_menu_items(torneo):
             else:
                 torneo.abrir_tesoro(int(seleccion) - 1)
             return mostrar_menu_items(torneo)
+    return seleccion
+
+
+def mostrar_menu_carga():
+    print(f'{"** Menú de carga ***":^22.22s}')
+    print("-"*22)
+    listado_archivos = os.listdir(parametros.PATH_PARTIDAS)
+    for i, archivo in enumerate(listado_archivos, 1):
+        print(f'[{i}] {os.fsdecode(archivo)}')
+    print(f"[{len(listado_archivos) + 1}] Volver")
+    print(f"[{parametros.SALIR}] Salir")
+    seleccion = None
+    while seleccion != parametros.SALIR:
+        seleccion = input("Indique su opción:\n")
+        if seleccion == str(len(listado_archivos) + 1):
+            return parametros.VOLVER
+        if (seleccion.isdecimal() and
+                int(seleccion) <= len(listado_archivos)):
+            torneo = archivos.cargar_partida(
+                os.path.join(parametros.PATH_PARTIDAS,
+                             listado_archivos[int(seleccion) - 1]))
+            return mostrar_menu_principal(torneo)
     return seleccion
 
 
