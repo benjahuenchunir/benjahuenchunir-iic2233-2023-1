@@ -1,7 +1,7 @@
 import parametros
-import dccavacava
-import archivos
+import torneo as f_torneo
 import os
+import entidades_torneo
 
 
 def mostrar_menu_inicio():
@@ -22,9 +22,9 @@ def mostrar_menu_inicio():
 
 
 def nueva_partida():
-    arena = archivos.seleccionar_arena(parametros.ARENA_INICIAL)
-    equipo = archivos.seleccionar_equipo()
-    torneo = dccavacava.Torneo(arena, equipo)
+    arena = f_torneo.seleccionar_arena(parametros.ARENA_INICIAL)
+    equipo = f_torneo.seleccionar_equipo()
+    torneo = f_torneo.Torneo(arena, equipo)
     return mostrar_menu_principal(torneo)
 
 
@@ -62,9 +62,7 @@ def guardar_partida(torneo) -> None:
     nombre_archivo = input("Ingrese el nombre de la partida:\n")
     while not validar_nombre_archivo(nombre_archivo):
         nombre_archivo = input("Ingrese un nombre valido para la partida:\n")
-    path = os.path.join(parametros.PATH_PARTIDAS, nombre_archivo +
-                        parametros.EXTENSION_PARTIDAS)
-    archivos.guardar_partida(torneo, path)
+    f_torneo.guardar_partida(torneo, nombre_archivo)
     print("La partida ha sido guardada exitosamente")
 
 
@@ -110,7 +108,7 @@ def mostrar_menu_items(torneo):
             return parametros.VOLVER
         elif seleccion.isdecimal() and int(seleccion) <= len(torneo.mochila):
             item = torneo.mochila[int(seleccion) - 1]
-            if type(item) is dccavacava.Consumible:
+            if type(item) is entidades_torneo.Consumible:
                 torneo.usar_consumible(int(seleccion) - 1)
             else:
                 torneo.abrir_tesoro(int(seleccion) - 1)
@@ -133,7 +131,7 @@ def mostrar_menu_carga():
             return parametros.VOLVER
         if (seleccion.isdecimal() and
                 int(seleccion) <= len(listado_archivos)):
-            torneo = archivos.cargar_partida(
+            torneo = f_torneo.cargar_partida(
                 os.path.join(parametros.PATH_PARTIDAS,
                              listado_archivos[int(seleccion) - 1]))
             return mostrar_menu_principal(torneo)

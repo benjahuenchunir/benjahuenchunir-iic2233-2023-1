@@ -27,32 +27,32 @@ SINO QUE SE DEBERÁ EXPLICAR QUÉ SE REALIZO DETALLADAMENTE EN CADA ITEM.
 ⚠️⚠️
 
 #### Programación Orientada a Objetos: 42 pts (35%)
-##### ✅  Diagrama
+##### ✅ Diagrama
 ##### ✅ Definición de clases, atributos, métodos y properties
-##### ✅ Relaciones entre clases
+## ✅ Relaciones entre clases: Se crearon clases con herencia para las arenas, excavadores y items. 
 #### Preparación programa: 11 pts (9%)
-##### ❌✅🟠 Creación de partidas
+##### ✅ Creación de partidas: Es capaz de crear una partida leyendo la informacion de los archivos csv para crear la arena con los items y el equipo para luego instanciar la clase Torneo
 #### Entidades: 22 pts (18%)
-##### ❌✅🟠 Excavador
-##### ❌✅🟠 Arena
-##### ❌✅🟠 Torneo
+##### ✅ Excavador: Se implemento la clase Excavador con todos los atributos y metodos mencionados en el enunciado. Ademas un metodo para reaccionar a un evento
+##### ✅ Arena: Se implemento la clase Arena y clases hijas para cada tipo de arena. Tienen todos los atributos y unos metodos para definir ciertas propiedades de la arena (su reaccion a un evento y la probabilidad de encotrar items)
+##### ✅ Torneo: Se implemento la clase Torneo con todos los metodos y atributos mencionados en el enunciado. Ademas unos metodos para manejar los eventos.
 #### Flujo del programa: 31 pts (26%)
-##### ❌✅🟠 Menú de Inicio
-##### ❌✅🟠 Menú Principal
-##### ❌✅🟠 Simulación día Torneo
-##### ❌✅🟠 Mostrar estado torneo
-##### ❌✅🟠 Menú Ítems
-##### ❌✅🟠 Guardar partida
-##### ❌✅🟠 Robustez
+##### ✅ Menú de Inicio: Se implementaron todas las opciones del menu de inicio (nueva partida, cargar partida y salir)
+##### ✅ Menú Principal: Se implementaron todas las opciones de el menu principal (simular día, ver estado, ver items, guardar partida, volver y salir)
+##### ✅ Simulación día Torneo: Se implemento completamente dividiendose en distintas funciones que se encargan de cavar, encontrar los items, manejar los eventos y por ultimo revisar la energia de los excavadores
+##### ✅ Mostrar estado torneo: Se imprimen el día actual, los metros cavados por cada excavador trabajando y los totales, los items encontrados por cada excavador y el total por tipo item, si ocurrio un evento y su efecto y por ultimo los excavadores que descansaron.
+##### ✅ Menú Ítems: Se imprimen todos los items en la mochila y las opciones de volver y salir. Ademas se permite seleccionar y usar un item.
+##### ✅ Guardar partida: Guarda la partida en un archivo .txt en la carpeta Partidas pidiendo el nombre al usuario y valida el nombre
+##### ✅ Robustez: Se verifica un input valido en cada menu y además se verifica que el nombre de archivo para guardar partida sea valido 
 #### Manejo de archivos: 14 pts (12%)
-##### ❌✅🟠 Archivos CSV 
-##### ❌✅🟠 Archivos TXT
-##### ❌✅🟠 parametros.py
+##### ✅ Archivos CSV Es capaz de leer todos los archivos csv y luego convertirlos en sus respectivas clases
+##### ✅ Archivos TXT Es capaz de guardar multiples partidas en formato .txt
+##### ✅ parametros.py: Incluye todos los parametros especificados en el enunciado (excepto DIAS_TORNEO que se uso DIAS_TOTALES_TORNEO) y algunos parametros creados por mi como los tipos de arena, items, excavador
 #### Bonus: 3 décimas máximo
-##### ❌✅🟠 Guardar Partida
+##### ✅ Guardar Partida: Al momento de guardar partida se pide el nombre de archivo y se valida guardandola en la carpeta Partidas. La opcion para cargar partida desplega un menu mostrando todas las partidas disponibles
 
 ## Ejecución :computer:
-El módulo principal de la tarea a ejecutar es  ```meny.py```.
+El módulo principal de la tarea a ejecutar es  ```menu.py```.
 
 
 ## Librerías :books:

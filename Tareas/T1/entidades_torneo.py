@@ -1,154 +1,6 @@
 import parametros
 import random
-from abc import ABC, abstractmethod  # TODO esto esta bien?
-from collections import defaultdict
-import archivos
-
-
-class Torneo:
-    def __init__(self, arena, equipo, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.arena = arena
-        self.equipo = equipo
-        self.eventos = [parametros.LLUVIA, parametros.TERREMOTO,
-                        parametros.DERRUMBE]
-        self.mochila = []
-        self.__metros_cavados = 0
-        self.meta = parametros.METROS_META
-        self.dias_transcurridos = 1
-        self.dias_totales = parametros.DIAS_TOTALES_TORNEO
-
-    @property
-    def metros_cavados(self):
-        return self.__metros_cavados
-
-    @metros_cavados.setter
-    def metros_cavados(self, value):
-        self.__metros_cavados = max(0, value)
-
-    def simular_dia(self):
-        print(f"\n{f'Día {self.dias_transcurridos}':^53s}")
-        print("-"*53)
-        trabajadores = [excavador for excavador in self.equipo
-                        if not excavador.descansando]
-        descansando = [excavador for excavador in self.equipo
-                       if excavador.descansando]
-        self.cavar(trabajadores)
-        self.encontrar_items(trabajadores)
-        self.iniciar_evento()
-        self.editar_energia(trabajadores, descansando)
-        self.dias_transcurridos += 1
-        if self.dias_transcurridos <= self.dias_totales:
-            return True
-
-    def cavar(self, trabajadores) -> None:
-        print(f"Metros Cavados: {self.metros_cavados}")
-        metros_cavados_dia = 0
-        for excavador in trabajadores:
-            nuevos_metros_cavados = excavador.cavar(self.arena.dificultad)
-            metros_cavados_dia += nuevos_metros_cavados
-            self.metros_cavados += nuevos_metros_cavados
-            print(f"{excavador.nombre} ha cavado"
-                  f" {nuevos_metros_cavados} metros.")
-        print(f"El equipo ha cavado {metros_cavados_dia} metros.")
-
-    def encontrar_items(self, trabajadores) -> None:
-        print("\nItems Encontrados:")
-        items_encontrados = defaultdict(int)
-        for excavador in trabajadores:
-            encontro = excavador.encontrar_items(
-                *self.arena.probabilidad_encontrar_item())
-            if encontro:
-                if encontro == parametros.CONSUMIBLE:
-                    items_encontrados[parametros.CONSUMIBLE] += 1
-                elif encontro == parametros.TESORO:
-                    items_encontrados[parametros.TESORO] += 1
-                item = random.choice([
-                        item for item in self.arena.items
-                        if item.tipo == encontro])
-                self.mochila.append(item)
-                print(f"{excavador.nombre} consiguió {item.nombre}"
-                      f" de tipo {item.tipo}.")
-            else:
-                print(f"{excavador.nombre} no consiguió nada.")
-        print(f"Se han encontrado {sum(items_encontrados.values())} ítems:")
-        print(f"- {items_encontrados[parametros.CONSUMIBLE]} consumibles")
-        print(f"- {items_encontrados[parametros.TESORO]} tesoros")
-
-    def iniciar_evento(self) -> None:
-        if random.random() < parametros.PROB_INICIAR_EVENTO:
-            pesos = [parametros.PROB_LLUVIA,
-                     parametros.PROB_TERREMOTO, parametros.PROB_DERRUMBE]
-            evento = random.choices(self.eventos, weights=pesos, k=1)[0]
-            nuevo_tipo = self.arena.reaccionar_evento(evento)
-            if nuevo_tipo:
-                self.arena = archivos.seleccionar_arena(nuevo_tipo)
-            for excavador in self.equipo:
-                excavador.reaccionar_evento()
-            print(f"\n¡¡Durante el día da trabajo ocurrió un {evento}!!")
-            print(f"La arena final es de tipo {self.arena.tipo}")
-            if evento == parametros.DERRUMBE:
-                self.metros_cavados -= parametros.METROS_PERDIDOS_DERRUMBE
-                print(f"Se han perdido {parametros.METROS_PERDIDOS_DERRUMBE}"
-                      " metros de progreso.")
-            print(f"Tu equipo ha perdido {parametros.FELICIDAD_PERDIDA}"
-                  " de felicidad")
-        else:
-            print("\nNo ocurrió ningun evento!")
-
-    def editar_energia(self, trabajadores: list, descansando: list):
-        for excavador in trabajadores:
-            excavador.gastar_energia()
-            if excavador.energia == 0:
-                excavador.descansar()
-        for excavador in descansando:
-            excavador.descansar()
-            print(f"{excavador.nombre} decidió descansar...")
-
-    def mostrar_estado_torneo(self) -> None:
-        separador = "-" * 61
-        print(f'\n{"*** Estado Torneo ***":^61}')
-        print(separador)
-        print(f"Día actual: {self.dias_transcurridos}")
-        print(f"Tipo de arena: {self.arena.tipo}")
-        print(f"Metros excavados: {self.metros_cavados} / {self.meta}")
-        print(separador)
-        print(f'{"Excavadores":^61}')
-        print(separador)
-        f_titulo_excavador = "{:^8} | {:^8} | {:^7} | {:^7} | {:^7} | {:^7}"
-        titulo_excavador = ["Nombre", "Tipo", "Energía",
-                            "Fuerza", "Suerte", "Felicidad"]
-        print(f_titulo_excavador.format(*titulo_excavador))
-        print(separador)
-        f_excavador = "{:8.8s} | {:<8.8s} | {:^7} | {:^7} | {:^7} | {:^9}"
-        for excavador in self.equipo:
-            print(f_excavador.format(
-                excavador.nombre, excavador.tipo, excavador.energia,
-                excavador.fuerza, excavador.suerte, excavador.felicidad))
-
-    def ver_mochila(self) -> None:
-        for i, item in enumerate(self.mochila, 1):
-            print(f'{f"[{i}] {item.nombre}":18.18s}|{item.tipo:^12.12s}'
-                  f'|{item.descripcion:^49.49s}')
-
-    def usar_consumible(self, posicion: int) -> None:
-        consumible = self.mochila.pop(posicion)
-        for excavador in self.equipo:
-            excavador.consumir(consumible)
-        print(f"\nSe consumió {consumible.nombre}"
-              " entregando los siguientes efectos:")
-        print(f"{consumible.descripcion}")
-
-    def abrir_tesoro(self, posicion: int) -> None:
-        tesoro = self.mochila.pop(posicion)
-        if tesoro.calidad == parametros.CALIDAD_EQUIPO:
-            self.equipo.append(archivos.agregar_excavador(tesoro.cambio))
-            print(f"\nEl tesoro {tesoro.nombre}"
-                  f" agrego un excavador de tipo {tesoro.cambio}.")
-        else:
-            self.arena = archivos.seleccionar_arena(tesoro.cambio)
-            print(f"\nEl tesoro {tesoro.nombre} cambio el"
-                  f" tipo de arena a {tesoro.cambio}.")
+from abc import ABC, abstractmethod
 
 
 class Item():
@@ -403,3 +255,38 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         print(f"{self.nombre} gasto {int(gasto / 2)} energía")
         self.energia = energia_inicial - int(gasto / 2)
         print(f"{self.nombre} ahora tiene {self.energia} energía")
+
+
+def crear_arena_juego(nombre: str, tipo: str, rareza: int,
+                      humedad: int, dureza: int, estatica: int):
+    """
+    Decide el tipo de arena que debe crear
+    """
+    if tipo == parametros.ARENA_NORMAL:
+        return ArenaNormal(nombre, tipo, rareza,
+                           humedad, dureza, estatica)
+    elif tipo == parametros.ARENA_ROCOSA:
+        return ArenaRocosa(nombre, tipo, rareza,
+                           humedad, dureza, estatica)
+    elif tipo == parametros.ARENA_MOJADA:
+        return ArenaMojada(nombre, tipo, rareza,
+                           humedad, dureza, estatica)
+    else:
+        return ArenaMagnetica(nombre, tipo, rareza,
+                              humedad, dureza, estatica)
+
+
+def crear_excavador(nombre: str, tipo: str, edad: int,
+                    energia: int, fuerza: int, suerte: int, felicidad: int):
+    """
+    Decide el tipo de excavador que debe crear
+    """
+    if tipo == parametros.EXCAVADOR_DOCENCIO:
+        return ExcavadorDocencio(nombre, tipo, edad, energia,
+                                 fuerza, suerte, felicidad)
+    elif tipo == parametros.EXCAVADOR_TAREO:
+        return ExcavadorTareo(nombre, tipo, edad, energia,
+                              fuerza, suerte, felicidad)
+    else:
+        return ExcavadorHibrido(nombre, tipo, edad, energia,
+                                fuerza, suerte, felicidad)
