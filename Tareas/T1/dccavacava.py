@@ -41,7 +41,7 @@ class Torneo:
         if self.dias_transcurridos <= self.dias_totales:
             return True
 
-    def cavar(self, trabajadores):
+    def cavar(self, trabajadores) -> None:
         print(f"Metros Cavados: {self.metros_cavados}")
         metros_cavados_dia = 0
         for excavador in trabajadores:
@@ -52,7 +52,7 @@ class Torneo:
                   f" {nuevos_metros_cavados} metros.")
         print(f"El equipo ha cavado {metros_cavados_dia} metros.")
 
-    def encontrar_items(self, trabajadores):
+    def encontrar_items(self, trabajadores) -> None:
         print("\nItems Encontrados:")
         items_encontrados = defaultdict(int)
         for excavador in trabajadores:
@@ -75,7 +75,7 @@ class Torneo:
         print(f"- {items_encontrados[parametros.CONSUMIBLE]} consumibles")
         print(f"- {items_encontrados[parametros.TESORO]} tesoros")
 
-    def iniciar_evento(self):
+    def iniciar_evento(self) -> None:
         if random.random() < parametros.PROB_INICIAR_EVENTO:
             pesos = [parametros.PROB_LLUVIA,
                      parametros.PROB_TERREMOTO, parametros.PROB_DERRUMBE]
@@ -105,7 +105,7 @@ class Torneo:
             excavador.descansar()
             print(f"{excavador.nombre} decidió descansar...")
 
-    def mostrar_estado_torneo(self):
+    def mostrar_estado_torneo(self) -> None:
         separador = "-" * 61
         print(f'\n{"*** Estado Torneo ***":^61}')
         print(separador)
@@ -126,12 +126,12 @@ class Torneo:
                 excavador.nombre, excavador.tipo, excavador.energia,
                 excavador.fuerza, excavador.suerte, excavador.felicidad))
 
-    def ver_mochila(self):
+    def ver_mochila(self) -> None:
         for i, item in enumerate(self.mochila, 1):
             print(f'{f"[{i}] {item.nombre}":18.18s}|{item.tipo:^12.12s}'
                   f'|{item.descripcion:^49.49s}')
 
-    def usar_consumible(self, posicion: int):
+    def usar_consumible(self, posicion: int) -> None:
         consumible = self.mochila.pop(posicion)
         for excavador in self.equipo:
             excavador.consumir(consumible)
@@ -139,7 +139,7 @@ class Torneo:
               " entregando los siguientes efectos:")
         print(f"{consumible.descripcion}")
 
-    def abrir_tesoro(self, posicion: int):
+    def abrir_tesoro(self, posicion: int) -> None:
         tesoro = self.mochila.pop(posicion)
         if tesoro.calidad == parametros.CALIDAD_EQUIPO:
             self.equipo.append(archivos.agregar_excavador(tesoro.cambio))
@@ -191,10 +191,10 @@ class Arena(ABC):
             (self.rareza + self.humedad + self.dureza + self.estatica) / 40, 2)
 
     @abstractmethod
-    def reaccionar_evento(self, evento: str):
+    def reaccionar_evento(self, evento: str) -> str:
         pass
 
-    def probabilidad_encontrar_item(self):
+    def probabilidad_encontrar_item(self) -> float:
         return (parametros.PROB_ENCONTRAR_ITEM, (
             parametros.PROB_ENCONTRAR_TESORO,
             parametros.PROB_ENCONTRAR_CONSUMIBLE))
@@ -206,7 +206,7 @@ class ArenaNormal(Arena):
         self.dificultad = round(
             self.dificultad * parametros.POND_ARENA_NORMAL, 2)
 
-    def reaccionar_evento(self, evento: str):
+    def reaccionar_evento(self, evento: str) -> str:
         if evento == parametros.LLUVIA:
             return parametros.ARENA_MOJADA
         elif evento == parametros.TERREMOTO:
@@ -216,16 +216,13 @@ class ArenaNormal(Arena):
 
 
 class ArenaMojada(Arena):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    def reaccionar_evento(self, evento: str):
+    def reaccionar_evento(self, evento: str) -> str:
         if evento == parametros.TERREMOTO:
             return parametros.ARENA_MAGNETICA
         elif evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
 
-    def probabilidad_encontrar_item(self):
+    def probabilidad_encontrar_item(self) -> float:
         return (parametros.PROB_ENCONTRAR_ITEM_MOJADA, (
             parametros.PROB_CONSUMIBLE_TESORO_MOJADA,
             parametros.PROB_CONSUMIBLE_TESORO_MOJADA))
@@ -238,7 +235,7 @@ class ArenaRocosa(Arena):
             (self.rareza + self.humedad +
              2 * self.dureza + self.estatica) / 50, 2)
 
-    def reaccionar_evento(self, evento: str):
+    def reaccionar_evento(self, evento: str) -> str:
         if evento == parametros.LLUVIA:
             return parametros.ARENA_MAGNETICA
         elif evento == parametros.DERRUMBE:
@@ -246,7 +243,7 @@ class ArenaRocosa(Arena):
 
 
 class ArenaMagnetica(ArenaRocosa, ArenaMojada):
-    def reaccionar_evento(self, evento: str):
+    def reaccionar_evento(self, evento: str) -> str:
         if evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
 
@@ -312,7 +309,7 @@ class Excavador():
     def descansando(self, nuevos_dias):
         self.__descansando = max(0, nuevos_dias)
 
-    def cavar(self, dificultad):
+    def cavar(self, dificultad) -> float:
         """
         Calcula los metros cavados y los retorna
         """
@@ -320,7 +317,7 @@ class Excavador():
             (30 / self.edad + (self.felicidad + 2 * self.fuerza)
              / 10) * 1 / (10 * dificultad), 2)
 
-    def descansar(self):
+    def descansar(self) -> None:
         """
         Verifica si debe descansar o no
         """
@@ -334,7 +331,7 @@ class Excavador():
             self.descansando = int(self.edad / 20)
             print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
-    def encontrar_items(self, probabilidad_encontrar, prob_items):
+    def encontrar_items(self, probabilidad_encontrar, prob_items) -> str:
         """
         Determina si encuentra un item, retorna None si no lo encuentra
         y el tipo de item en caso contrario
@@ -352,7 +349,7 @@ class Excavador():
         self.energia -= gasto
         return gasto
 
-    def consumir(self, cosumible: Consumible):
+    def consumir(self, cosumible: Consumible) -> None:
         """
         Consume un consumible
         """
@@ -361,7 +358,7 @@ class Excavador():
         self.suerte += cosumible.suerte
         self.felicidad += cosumible.felicidad
 
-    def reaccionar_evento(self):
+    def reaccionar_evento(self) -> None:
         """
         Reacciona a un evento
         """
@@ -369,7 +366,7 @@ class Excavador():
 
 
 class ExcavadorDocencio(Excavador):
-    def cavar(self, dificultad):
+    def cavar(self, dificultad) -> float:
         metros_cavados = super().cavar(dificultad)
         self.felicidad += parametros.FELICIDAD_ADICIONAL_DOCENCIO
         self.fuerza += parametros.FUERZA_ADICIONAL_DOCENCIO
@@ -383,7 +380,7 @@ class ExcavadorDocencio(Excavador):
 
 
 class ExcavadorTareo(Excavador):
-    def consumir(self, consumible: Consumible):
+    def consumir(self, consumible: Consumible) -> None:
         super().consumir(consumible)
         self.energia += parametros.ENERGIA_ADICIONAL_TAREO
         self.suerte += parametros.SUERTE_ADICIONAL_TAREO
@@ -399,7 +396,7 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         self._Excavador__energia = max(20, min(100, nueva_energia))
         print(f"{self.nombre} ahora tiene {self.energia} energía")
 
-    def gastar_energia(self):
+    def gastar_energia(self) -> int:
         print(f"{self.nombre} tiene {self.energia} energía")
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self)

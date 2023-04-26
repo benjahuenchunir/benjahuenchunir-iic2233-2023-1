@@ -52,18 +52,29 @@ def mostrar_menu_principal(torneo):
             if seleccion == parametros.SALIR:
                 return seleccion
         elif seleccion == "4":
-            nombre_archivo = input("Ingrese el nombre de la partida:\n")
-            path = os.path.join(parametros.PATH_PARTIDAS, nombre_archivo +
-                                parametros.EXTENSION_PARTIDAS)
-            archivos.guardar_partida(torneo, path)
-            # TODO como verifico que un nombre sea valido
-            print("La partida ha sido guardada exitosamente")
+            guardar_partida(torneo)
         elif seleccion == "5":
             return parametros.VOLVER
     return seleccion
 
 
-def terminar_juego(torneo):
+def guardar_partida(torneo) -> None:
+    nombre_archivo = input("Ingrese el nombre de la partida:\n")
+    while not validar_nombre_archivo(nombre_archivo):
+        nombre_archivo = input("Ingrese un nombre valido para la partida:\n")
+    path = os.path.join(parametros.PATH_PARTIDAS, nombre_archivo +
+                        parametros.EXTENSION_PARTIDAS)
+    archivos.guardar_partida(torneo, path)
+    print("La partida ha sido guardada exitosamente")
+
+
+def validar_nombre_archivo(nombre_archivo: str) -> bool:
+    if nombre_archivo and all(char not in parametros.INVALID_CHARACTERS
+                              for char in nombre_archivo):
+        return True
+
+
+def terminar_juego(torneo) -> str:
     print(f'\n{"El juego ha terminado":^48s}')
     print("-"*48)
     print(f"Metros excavados: {torneo.metros_cavados} / {torneo.meta}")

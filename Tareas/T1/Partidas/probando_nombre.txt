@@ -1,0 +1,30 @@
+25.679999999999993,4
+Arena húmeda,mojada,2,5,3,1
+Desloratadina,consumible,Otorga +8 energía / -2 fuerza / +6 felicidad.,8,-2,0,6
+Hamburguesa de lentejas,consumible,Otorga +15 energía / +5 fuerza / +5 felicidad.,15,5,0,5
+Pala de hierro,consumible,Otorga +10 energía / +5 fuerza / +1 felicidad.,10,10,0,1
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Comida fungosa,consumible,Otorga -80 energía / -7 fuerza / -5 suerte / -10 felicidad.,-80,-7,-5,-10
+Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
+Completo,consumible,Otorga +20 energía / +5 fuerza / +10 felicidad.,20,5,0,10
+Tortuga Dorada,tesoro,Añade a tu equipo un excavador de tipo Tareo.,1,tareo
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+Comida rancia,consumible,Otorga -20 energía / -10 fuerza / -10 felicidad.,-20,-10,0,-10
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+Completo mojado,consumible,Otorga +40 energía / +6 fuerza / +4 felicidad.,40,2,0,4
+DCCaboom!!,tesoro,Cambia el estado de la arena a rocosa.,2,rocosa
+Desloratadina,consumible,Otorga +8 energía / -2 fuerza / +6 felicidad.,8,-2,0,6
+Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
+Comida rancia,consumible,Otorga -20 energía / -10 fuerza / -10 felicidad.,-20,-10,0,-10
+Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
+Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
+Mpia_vf,docencio,21,74,10,5,6,0
+MatiasMasjuan,docencio,32,39,10,5,6,0
+Emolaba,hibrido,18,67,10,9,6,0
+jtvaldivia,tareo,53,20,10,0,2,0
+Mtaguero,tareo,27,62,5,1,1,0
+Beyoncé,hibrido,41,88,10,10,6,0
+Lily614,docencio,60,4,8,0,6,0

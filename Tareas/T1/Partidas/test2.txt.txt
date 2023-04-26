@@ -1,0 +1,26 @@
+0,3
+Arena blanca,normal,2,1,1,2
+Quetiapina,consumible,Otorga +50 energía / +1 suerte / +5 felicidad.,40,0,1,5
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Veneno,consumible,Otorga -100 energía / -10 fuerza / -10 suerte / -10 felicidad.,-100,-10,-10,-10
+Completo mojado,consumible,Otorga +40 energía / +6 fuerza / +4 felicidad.,40,2,0,4
+Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
+Chamito,consumible,Otorga +20 energía / +10 fuerza / +1 felicidad.,20,10,0,1
+Empanada,consumible,Otorga +30 energía / +5 fuerza / +2 felicidad.,30,5,0,2
+Completo mojado,consumible,Otorga +40 energía / +6 fuerza / +4 felicidad.,40,2,0,4
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Pala de hierro,consumible,Otorga +10 energía / +5 fuerza / +1 felicidad.,10,10,0,1
+Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
+Mojito,consumible,Otorga +10 energía / -3 fuerza / +6 suerte / +2 felicidad.,10,-3,6,2
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Mpia_vf,docencio,21,79,10,5,5,0
+MatiasMasjuan,docencio,32,46,10,5,5,0
+jtvaldivia,tareo,53,29,10,0,2,0
+Mtaguero,tareo,27,68,5,1,1,0
+Benjeh,tareo,22,40,7,3,1,0
+Beyoncé,hibrido,41,92,10,10,5,0
+Lily614,docencio,60,16,7,0,5,0
+Emolaba,hibrido,18,69,10,9,5,0
