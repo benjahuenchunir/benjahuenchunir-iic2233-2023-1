@@ -24,7 +24,7 @@ class Torneo:
 
     @metros_cavados.setter
     def metros_cavados(self, value):
-        self.__metros_cavados = max(0, value)
+        self.__metros_cavados = round(max(0, value), 2)
 
     def simular_dia(self):
         """
