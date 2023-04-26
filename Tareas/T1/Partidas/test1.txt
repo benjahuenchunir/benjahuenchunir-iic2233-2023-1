@@ -1,44 +1,27 @@
-14.82,7
+49.97000000000002,6
 Arena pesada,magnetica,8,8,10,8
-DCCaboom!!,tesoro,Cambia el estado de la arena a rocosa.,2,rocosa
-Duende mágico,consumible,Otorga +10 energía / -1 fuerza / +7 suerte / -2 felicidad.,10,-1,7,-2
+Completo mojado,consumible,Otorga +40 energía / +6 fuerza / +4 felicidad.,40,2,0,4
+Completo mojado,consumible,Otorga +40 energía / +6 fuerza / +4 felicidad.,40,2,0,4
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Pala de hierro,consumible,Otorga +10 energía / +5 fuerza / +1 felicidad.,10,10,0,1
+Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
+Mojito,consumible,Otorga +10 energía / -3 fuerza / +6 suerte / +2 felicidad.,10,-3,6,2
+PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
+CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
+Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
+Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
+Empanada,consumible,Otorga +30 energía / +5 fuerza / +2 felicidad.,30,5,0,2
 Tortuga Dorada,tesoro,Añade a tu equipo un excavador de tipo Tareo.,1,tareo
-Comida fungosa,consumible,Otorga -80 energía / -7 fuerza / -5 suerte / -10 felicidad.,-80,-7,-5,-10
-Fajitas,consumible,Otorga +20 energía / +5 fuerza / +5 felicidad.,20,5,0,5
-Pala de diamante,consumible,Otorga +30 energía / +10 fuerza.,30,10,0,0
-Desloratadina,consumible,Otorga +8 energía / -2 fuerza / +6 felicidad.,8,-2,0,6
-CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
-Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
-Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
-Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
-Jarabe,consumible,Otorga +10 energía / +6 fuerza / +1 suerte / -3 felicidad.,10,6,1,-3
-Fajitas,consumible,Otorga +20 energía / +5 fuerza / +5 felicidad.,20,5,0,5
-Set de Herramientas Hackeado,tesoro,Cambia el estado de la arena a normal.,2,normal
-Veneno,consumible,Otorga -100 energía / -10 fuerza / -10 suerte / -10 felicidad.,-100,-10,-10,-10
-Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
-Pala de hierro,consumible,Otorga +10 energía / +5 fuerza / +1 felicidad.,10,10,0,1
-Comida vibracional,consumible,Otorga +100 energía / +10 fuerza / +10 suerte / +10 felicidad.,100,10,10,10
-Hamburguesa de lentejas,consumible,Otorga +15 energía / +5 fuerza / +5 felicidad.,15,5,0,5
-Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
-Botella,consumible,Otorga +30 energía / +5 fuerza / +2 suerte / +10 felicidad.,30,5,2,10
-Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
-Apuntes del Gran Docencio,tesoro,Añade a tu equipo un excavador de tipo Docencio.,1,docencio
-Cartón de título,consumible,Otorga +10 energía / +3 fuerza / +2 suerte / +10 felicidad.,10,3,2,10
-Pala de diamante,consumible,Otorga +30 energía / +10 fuerza.,30,10,0,0
-Pala de hierro,consumible,Otorga +10 energía / +5 fuerza / +1 felicidad.,10,10,0,1
-PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
-Botella,consumible,Otorga +30 energía / +5 fuerza / +2 suerte / +10 felicidad.,30,5,2,10
-Entradas concierto,consumible,Otorga +60 energía / +3 fuerza / +3 suerte / +10 felicidad.,60,3,3,10
-PepaBot,tesoro,Cambia el estado de la arena a magnetica.,2,magnetica
-Cáliz Divino,tesoro,Cambia el estado de la arena a mojada.,2,mojada
 Completo,consumible,Otorga +20 energía / +5 fuerza / +10 felicidad.,20,5,0,10
-Jarabe,consumible,Otorga +10 energía / +6 fuerza / +1 suerte / -3 felicidad.,10,6,1,-3
-Comida rancia,consumible,Otorga -20 energía / -10 fuerza / -10 felicidad.,-20,-10,0,-10
-Pizza Pequeño César,consumible,Otorga +40 energía / +3 fuerza / +6 felicidad.,40,3,0,6
-CL4S5:IIC2233,tesoro,Añade a tu equipo un excavador de tipo Híbrido.,1,hibrido
-Benjeh,tareo,22,20,7,3,1,0
-Mpia_vf,docencio,21,59,10,5,3,0
-jtvaldivia,tareo,53,0,10,0,1,2
-Mtaguero,tareo,27,44,5,1,1,0
-MatiasMasjuan,docencio,32,18,10,5,3,0
-Emolaba,hibrido,18,61,10,9,3,0
+Pócima de energía,consumible,Otorga +100 energía.,100,0,0,0
+Mpia_vf,docencio,21,35,10,1,1,0
+MatiasMasjuan,docencio,32,29,10,1,1,0
+jtvaldivia,tareo,57,23,10,4,1,0
+Mtaguero,tareo,31,35,10,4,1,0
+Benjeh,tareo,26,38,10,4,1,0
+Beyoncé,hibrido,45,61,10,4,1,0
+Lily614,docencio,60,14,10,1,1,0
+Emolaba,hibrido,22,67,10,4,1,0
+Mpia_vf,docencio,21,85,10,5,1,0
+Emolaba,hibrido,19,88,10,10,1,0
+Emolaba,hibrido,19,88,10,10,1,0
