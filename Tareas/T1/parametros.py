@@ -8,7 +8,7 @@ PATH_TESOROS = 'tesoros.csv'
 PATH_PARTIDAS = "Partidas"
 EXTENSION_PARTIDAS = ".txt"
 ENCODING = "utf-8"
-INVALID_CHARACTERS = r'\/:*?"<>|'
+CARACTERES_INVALIDOS = '\/:*?"<>|'
 
 VOLVER = '5'
 SALIR = 'X'

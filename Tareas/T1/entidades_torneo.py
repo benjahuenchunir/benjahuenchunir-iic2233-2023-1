@@ -1,6 +1,7 @@
 import parametros
 import random
 from abc import ABC, abstractmethod
+from typing import Union
 
 
 class Item():
@@ -46,7 +47,7 @@ class Arena(ABC):
     def reaccionar_evento(self, evento: str) -> str:
         pass
 
-    def probabilidad_encontrar_item(self) -> float:
+    def probabilidad_encontrar_item(self) -> tuple:
         return (parametros.PROB_ENCONTRAR_ITEM, (
             parametros.PROB_ENCONTRAR_TESORO,
             parametros.PROB_ENCONTRAR_CONSUMIBLE))
@@ -58,7 +59,7 @@ class ArenaNormal(Arena):
         self.dificultad = round(
             self.dificultad * parametros.POND_ARENA_NORMAL, 2)
 
-    def reaccionar_evento(self, evento: str) -> str:
+    def reaccionar_evento(self, evento: str) -> Union[str, None]:
         if evento == parametros.LLUVIA:
             return parametros.ARENA_MOJADA
         elif evento == parametros.TERREMOTO:
@@ -68,13 +69,13 @@ class ArenaNormal(Arena):
 
 
 class ArenaMojada(Arena):
-    def reaccionar_evento(self, evento: str) -> str:
+    def reaccionar_evento(self, evento: str) -> Union[str, None]:
         if evento == parametros.TERREMOTO:
             return parametros.ARENA_MAGNETICA
         elif evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
 
-    def probabilidad_encontrar_item(self) -> float:
+    def probabilidad_encontrar_item(self) -> tuple:
         return (parametros.PROB_ENCONTRAR_ITEM_MOJADA, (
             parametros.PROB_CONSUMIBLE_TESORO_MOJADA,
             parametros.PROB_CONSUMIBLE_TESORO_MOJADA))
@@ -87,7 +88,7 @@ class ArenaRocosa(Arena):
             (self.rareza + self.humedad +
              2 * self.dureza + self.estatica) / 50, 2)
 
-    def reaccionar_evento(self, evento: str) -> str:
+    def reaccionar_evento(self, evento: str) -> Union[str, None]:
         if evento == parametros.LLUVIA:
             return parametros.ARENA_MAGNETICA
         elif evento == parametros.DERRUMBE:
@@ -95,7 +96,7 @@ class ArenaRocosa(Arena):
 
 
 class ArenaMagnetica(ArenaRocosa, ArenaMojada):
-    def reaccionar_evento(self, evento: str) -> str:
+    def reaccionar_evento(self, evento: str) -> Union[str, None]:
         if evento == parametros.DERRUMBE:
             return parametros.ARENA_NORMAL
 
@@ -183,7 +184,8 @@ class Excavador():
             self.descansando = int(self.edad / 20)
             print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
-    def encontrar_items(self, probabilidad_encontrar, prob_items) -> str:
+    def encontrar_items(self, probabilidad_encontrar,
+                        prob_items) -> Union[str, None]:
         """
         Determina si encuentra un item, retorna None si no lo encuentra
         y el tipo de item en caso contrario
@@ -248,7 +250,7 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
         self._Excavador__energia = max(20, min(100, nueva_energia))
         print(f"{self.nombre} ahora tiene {self.energia} energía")
 
-    def gastar_energia(self) -> int:
+    def gastar_energia(self) -> None:
         print(f"{self.nombre} tiene {self.energia} energía")
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self)

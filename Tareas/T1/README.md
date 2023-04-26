@@ -7,9 +7,9 @@ La tarea está completa, es decir, cree todas las clases y metodos para permitir
 ### Cosas implementadas y no implementadas :white_check_mark: :x:
 
 #### Programación Orientada a Objetos: 42 pts (35%)
-##### ✅ Diagrama
-##### ✅ Definición de clases, atributos, métodos y properties
-## ✅ Relaciones entre clases: Se crearon clases con herencia para las arenas, excavadores y items. 
+##### ✅ Diagrama: El diagrama incluye todas las clases, atributos, metodos y relaciones
+##### ✅ Definición de clases, atributos, métodos y properties: Se definieron clases para el Torneo, Arena, Excavadores e Items.
+##### ✅ Relaciones entre clases: Se crearon clases con herencia para las arenas, excavadores y items. Además de una clase abstracta para la arena
 #### Preparación programa: 11 pts (9%)
 ##### ✅ Creación de partidas: Es capaz de crear una partida leyendo la informacion de los archivos csv para crear la arena con los items y el equipo para luego instanciar la clase Torneo
 #### Entidades: 22 pts (18%)
@@ -23,7 +23,7 @@ La tarea está completa, es decir, cree todas las clases y metodos para permitir
 ##### ✅ Mostrar estado torneo: Se imprimen el día actual, los metros cavados por cada excavador trabajando y los totales, los items encontrados por cada excavador y el total por tipo item, si ocurrio un evento y su efecto y por ultimo los excavadores que descansaron.
 ##### ✅ Menú Ítems: Se imprimen todos los items en la mochila y las opciones de volver y salir. Ademas se permite seleccionar y usar un item.
 ##### ✅ Guardar partida: Guarda la partida en un archivo .txt en la carpeta Partidas pidiendo el nombre al usuario y valida el nombre
-##### ✅ Robustez: Se verifica un input valido en cada menu y además se verifica que el nombre de archivo para guardar partida sea valido 
+##### ✅ Robustez: Se verifica un input valido en cada menu y además se verifica que el nombre de archivo para guardar partida sea valido (en windows)
 #### Manejo de archivos: 14 pts (12%)
 ##### ✅ Archivos CSV Es capaz de leer todos los archivos csv y luego convertirlos en sus respectivas clases
 ##### ✅ Archivos TXT Es capaz de guardar multiples partidas en formato .txt
@@ -42,6 +42,7 @@ La lista de librerías externas que utilicé fue la siguiente:
 1. ```os```: ```path, listdir```
 2. ```random```: ```random, choice, choices, sample```
 3. ```collections```: ```defaultdic```
+3. ```typing```: ```Union```
 
 ### Librerías propias
 Por otro lado, los módulos que fueron creados fueron los siguientes:

@@ -2,6 +2,7 @@ import parametros
 import torneo as f_torneo
 import os
 import entidades_torneo
+from typing import Union
 
 
 def mostrar_menu_inicio():
@@ -66,13 +67,16 @@ def guardar_partida(torneo) -> None:
     print("La partida ha sido guardada exitosamente")
 
 
-def validar_nombre_archivo(nombre_archivo: str) -> bool:
-    if nombre_archivo and all(char not in parametros.INVALID_CHARACTERS
+def validar_nombre_archivo(nombre_archivo: str) -> Union[bool, None]:
+    if nombre_archivo and all(char not in parametros.CARACTERES_INVALIDOS
                               for char in nombre_archivo):
         return True
 
 
 def terminar_juego(torneo) -> str:
+    """
+    Imrime el mensaje de fin de juego (victoria o perdida)
+    """
     print(f'\n{"El juego ha terminado":^48s}')
     print("-"*48)
     print(f"Metros excavados: {torneo.metros_cavados} / {torneo.meta}")
@@ -121,7 +125,7 @@ def mostrar_menu_carga():
     print("-"*22)
     listado_archivos = os.listdir(parametros.PATH_PARTIDAS)
     for i, archivo in enumerate(listado_archivos, 1):
-        print(f'[{i}] {os.fsdecode(archivo)}')
+        print(f'[{i}] {os.path.splitext(archivo)[0]}')
     print(f"[{len(listado_archivos) + 1}] Volver")
     print(f"[{parametros.SALIR}] Salir")
     seleccion = None
