@@ -2,10 +2,7 @@
 
 ## Consideraciones generales :octocat:
 
-La tarea está completa incluyendo el bonus.
-<Descripción de lo que hace y que **_no_** hace la tarea que entregaron junto
-con detalles de último minuto y consideraciones como por ejemplo cambiar algo
-en cierta línea del código o comentar una función>
+La tarea está completa, es decir, cree todas las clases y metodos para permitir el flujo completo del juego permitiendo crear nuevas partidas y cargar partidas existentes. Tambien realice el bonus de Gardar Partida. Las funciones se encuentran comentadas para aclarar lo que hacen.
 
 ### Cosas implementadas y no implementadas :white_check_mark: :x:
 
@@ -42,8 +39,9 @@ El módulo principal de la tarea a ejecutar es  ```menu.py```.
 ### Librerías externas utilizadas
 La lista de librerías externas que utilicé fue la siguiente:
 
-1. ```os```: ```path```
-2. ```random```: ```choice, choices, sample```
+1. ```os```: ```path, listdir```
+2. ```random```: ```random, choice, choices, sample```
+3. ```collections```: ```defaultdic```
 
 ### Librerías propias
 Por otro lado, los módulos que fueron creados fueron los siguientes:
@@ -56,16 +54,14 @@ Por otro lado, los módulos que fueron creados fueron los siguientes:
 ## Supuestos y consideraciones adicionales :thinking:
 Los supuestos que realicé durante la tarea son los siguientes:
 
-1. <Descripción/consideración 1 y justificación del por qué es válido/a> 
-2. Los tesoros cambian la arena. Este cambio se refleja buscando de manera aleatoria en el archivo de arenas al igual que los eventos (https://github.com/IIC2233/Syllabus/issues/171)
-3. En el excavadorHibrido se asumio que al perder energia se trunca la division del valor que perdia ExcavadorDocencio en 2. (https://github.com/IIC2233/Syllabus/issues/137)
-4. Un derrumbe afecta a todas las arenas y por tanto la arena normal es reelegida despues de un derrumbe (https://github.com/IIC2233/Syllabus/issues/171)
-5. El tesoro que agrega excavadores permite repeticion para no limitar el flujo del juego (https://github.com/IIC2233/Syllabus/issues/134)
+1. Los tesoros cambian la arena de la misma forma que los eventos, es decir, se busca de manera aleatoria una arena nueva que cumpla con el requisito del tipo (https://github.com/IIC2233/Syllabus/issues/171)
+2. Como el ExcavadorHibrido pierde la mitad de energia hay una division por dos que puede dar decimales. El enunciado no especificaba que hacer con este valor (si redondearlo o truncarlo o ninguno). Decidi truncarlo usando int() para asi mantener la energia como un int y no float (https://github.com/IIC2233/Syllabus/issues/137)
+3. Un derrumbe afecta a todas las arenas y por tanto la arena normal tambien es reelegida despues de un derrumbe (https://github.com/IIC2233/Syllabus/issues/171)
+4. El tesoro que agrega un excavador al equipo permite repeticion (puede elegir a un excavador que ya este en el equipo) para no limitar el flujo del juego.
+5. Los items encontrados en la arena no se eliminan de la arena (pueden encontrarse varias veces) asi si eventualmente no se produce un cambio de arena en mucho tiempo se pueden seguir encontrando items.
 
 ## Referencias de código externo :book:
 
 Para realizar mi tarea saqué código de:
-1. \<link de código>: este hace \<lo que hace> y está implementado en el archivo <nombre.py> en las líneas <número de líneas> y hace <explicación breve de que hace>
-
-## Descuentos
-La guía de descuentos se encuentra [link](https://github.com/IIC2233/syllabus/blob/main/Tareas/Descuentos.md).
+1. https://github.com/IIC2233/Syllabus/blob/main/Tareas/T1/Sala%20Ayuda/Sala%20Ayuda%20-%20Menus.ipynb : este contiene codigo de ejemplo para el manejo de varios menus. Esta implementado en ```menu.py``` en los diferentes tipos de menus (se utiliza el mismo metodo para el llamado a otros menus y manejo de inputs)
+2. https://github.com/IIC2233/Syllabus/blob/main/Tareas/T1/Sala%20Ayuda/Sala%20Ayuda%20-%20Probabilidades.ipynb : este contiene codigo para el manejo de probabilidades en python. Este esta implementado en ```torneo.py``` en las lineas 91 a 94 y ```entidades_torneo.py``` en las lineas 191 a 193. Se usa para calcular si ocurre un evento y cual, si se encuentran items y de que tipo.
