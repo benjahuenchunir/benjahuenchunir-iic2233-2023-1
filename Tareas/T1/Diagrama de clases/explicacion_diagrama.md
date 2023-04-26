@@ -1,6 +1,6 @@
 # Explicación diagrama de clases:
 
-Se tiene la clase principal que es ```Torneo```. Esta contiene todos los atributos y metodos mencionados en el enunciado. Luego estan las clases ```Item```, ```Arena``` y ```Excavador``` que tienen una relación de composición con torneo (estas no tienen sentido fuera de la clase torneo). 
+Se tiene la clase principal que es ```Torneo```. Esta contiene todos los atributos y metodos mencionados en el enunciado. Luego estan las clases ```Item```, ```Arena``` y ```Excavador``` que tienen una relación de composición con torneo (estas no tienen sentido fuera de la clase torneo). La notación <get/set> que corresponde a una property que tiene getters y setters. Además, no se mencionarons los atributos privados asociados a estas properties (ej: property fuerza asociado a __fuerza). Esto para reducir el tamaño y la redundancia del diagrama de clases.
 
 La clase ```Item``` contiene atributos comunes entre la clase ```Consumible``` y ```Tesoro``` que heredan de ella. 
 
