@@ -220,7 +220,7 @@ def anadir_items(arena) -> None:
         arena.items = consumibles + tesoros
 
 
-def seleccionar_equipo() -> None:
+def seleccionar_equipo():
     """
     Selecciona el equipo de excavadores
     """

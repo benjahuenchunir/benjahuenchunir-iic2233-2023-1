@@ -176,13 +176,10 @@ class Excavador():
         """
         if self.descansando > 0:
             self.descansando -= 1
-            print(f"{self.nombre} esta descansando y le quedan {self.descansando} dias")
             if self.descansando == 0:
                 self.energia = 100
-                print(f"{self.nombre} termino de descansar ({self.descansando} dias)")
         elif self.energia == 0:
             self.descansando = int(self.edad / 20)
-            print(f"{self.nombre} tendra que descansar {self.descansando} dias")
 
     def encontrar_items(self, probabilidad_encontrar,
                         prob_items) -> Union[str, None]:
@@ -246,17 +243,12 @@ class ExcavadorHibrido(ExcavadorDocencio, ExcavadorTareo):
 
     @ExcavadorDocencio.energia.setter
     def energia(self, nueva_energia):
-        print(f"{self.nombre} tiene {self.energia} energía")
         self._Excavador__energia = max(20, min(100, nueva_energia))
-        print(f"{self.nombre} ahora tiene {self.energia} energía")
 
     def gastar_energia(self) -> None:
-        print(f"{self.nombre} tiene {self.energia} energía")
         energia_inicial = self.energia
         gasto = ExcavadorDocencio.gastar_energia(self)
-        print(f"{self.nombre} gasto {int(gasto / 2)} energía")
         self.energia = energia_inicial - int(gasto / 2)
-        print(f"{self.nombre} ahora tiene {self.energia} energía")
 
 
 def crear_arena_juego(nombre: str, tipo: str, rareza: int,
