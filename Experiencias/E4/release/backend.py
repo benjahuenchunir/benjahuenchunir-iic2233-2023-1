@@ -24,6 +24,9 @@ class Meteorito(QObject):
         # Debo crear un QTimer para moverme
         # Cada p.TIEMPO_CAIDA_METEORO se debe llamar a la función
         # mover
+        self.timer_mover = QTimer(self)
+        self.timer_mover.setInterval(p.TIEMPO_CAIDA_METEORO)
+        self.timer_mover.timeout.connect(self.mover)
 
     def mover(self) -> None:
         # COMPLETAR
@@ -31,7 +34,11 @@ class Meteorito(QObject):
         # 2. Emito la señal para mover mi label
         # 3. Si mi posición es >= a p.POSICION_Y implica que llegué al suelo
         #    Debo emitir una señal para hacer daño y parar el timer.
-        pass
+        self.y += self._distancia_a_recorrer
+        self.senal_mover.emit(self.id, self.x, self.y)
+        if self.y >= p.POSICION_Y:
+            self.senal_fin_meteorito.emit(self.id, True)
+            self.timer_mover.stop()
 
     @property
     def destruido(self) -> bool:
@@ -43,7 +50,10 @@ class Meteorito(QObject):
         # Seteo al atributo.
         # Si el nuevo valor es verdadero, emit la señal para que desaparezca
         # el meteorito sin hacer daño. Luego detengo el timer.
-        pass
+        self._destruido = new_value
+        if self._destruido :
+            self.senal_fin_meteorito.emit(self.id, False)
+            self.timer_mover.stop()
 
     @property
     def centro_x(self) -> int:
@@ -74,10 +84,10 @@ class Ciudad:
         # Emitir señal según corresponda
         if self.poblacion <= 0:
             # Avisar que no quedan ciudadanos
-            pass
+            self.senal_problacion.emit("No quedan ciudadanos :(")
         else:
             # Avisar la cantidad de población
-            pass
+            self.senal_problacion.emit(f"Quedan {self.poblacion} ciudadanos ")
 
 
 class Juego(QObject):
@@ -85,19 +95,19 @@ class Juego(QObject):
     # COMPLETAR
     # Crear señales que faltan
     # 1. Envía el ID del meteorito, la posición X e Y.
-    senal_mover_meteorito = None
+    senal_mover_meteorito = pyqtSignal(int, int, int)
 
     # 2. Envía el ID del meteorito, la posición X e Y.
-    senal_aparecer_meteorito = None
+    senal_aparecer_meteorito = pyqtSignal(int, int, int)
 
     # 3. Envía el ID del meteorito
-    senal_remover_meteorito = None
+    senal_remover_meteorito = pyqtSignal(int)
 
     # 4. Envía el ID del meteorito y un bool si hace daño o no
-    senal_fin_meteorito = None
+    senal_fin_meteorito = pyqtSignal(int, bool)
 
     # 5. Envía un texto para actulizar el label del frontend
-    senal_actualizar_poblacion = None
+    senal_actualizar_poblacion = pyqtSignal(str)
 
     def __init__(self) -> None:
         super().__init__()
@@ -109,12 +119,31 @@ class Juego(QObject):
         # Debo crear un QTimer para aparecer meteoritos
         # Cada p.DIFICULTAD["Facil"] se debe llamar a la función
         # caer_meteorito
+        self.timer_meteoritos = QTimer(self)
+        self.timer_meteoritos.timeout.connect(self.caer_meteorito)
+        self.pausa = None
+        
+    def pausar(self):
+        self.pausa = False if self.pausa else True
+        if self.pausa:
+            self.timer_meteoritos.start()
+            for meteorito in self.meteoritos:
+                meteorito.timer_mover.start()
+        else:
+            self.timer_meteoritos.stop()
+            for meteorito in self.meteoritos:
+                meteorito.timer_mover.stop()
+        
 
-    def iniciar_juego(self) -> None:
+    def iniciar_juego(self, dificultad) -> None:
+        self.timer_meteoritos.setInterval(p.DIFICULTAD[dificultad])
         self.ciudad._destruidos = 0
         self.ciudad.poblacion = p.POBLACION_MAXIMA
+        self.pausa = False
         # COMPLETAR
         # Avisar al juego que debe empezar y darle start a nuestro QTimer
+        self.senal_empezar_juego.emit()
+        self.timer_meteoritos.start()
 
     def caer_meteorito(self) -> None:
         meteorito = Meteorito(
@@ -127,13 +156,20 @@ class Juego(QObject):
         # COMPLETAR
         # 1. Avisar que debe aparecer un meteorito
         # 2. Comenzar el movimiento del meteorito
+        self.senal_aparecer_meteorito.emit(meteorito.id, meteorito.x, meteorito.y)
+        meteorito.timer_mover.start()
+        
 
     def choque_meteorito(self, id_meteorito: int, daño: bool) -> None:
         # COMPLETAR
         # 1. Eliminar visualmente el meteorito
         # 2. En caso de haber daño, reducir la población
         # 3. Si la población es <= 0, dejar de crear meteoritos
-        pass
+        self.senal_remover_meteorito.emit(id_meteorito)
+        if daño:
+            self.ciudad.poblacion -= p.AFECTADOS
+        if self.ciudad.poblacion <= 0:
+            self.timer_meteoritos.stop()
 
     def click_pantalla(self, x: int, y: int) -> None:
         for meteorito in self.meteoritos:

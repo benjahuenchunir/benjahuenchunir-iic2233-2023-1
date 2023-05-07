@@ -8,6 +8,7 @@ class VentanaJuego(QMainWindow):
     # COMPLETAR
     # Definir señal para cuando hagamos click en la pantalla
     # ¿Qué información necesitamos del click?
+    senal_click_pantalla = pyqtSignal(int, int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -15,7 +16,12 @@ class VentanaJuego(QMainWindow):
         # del mouse y que este sea invisible
         self.setMouseTracking(True)
         self.setCursor(Qt.BlankCursor)
+        
+        self.boton_pausa = QPushButton(self)
+        self.boton_pausa.setText("Pausa")
 
+        # self.boton_pausa.setAttribute(Qt.WA_TransparentForMouseEvents) Eso sirve para que no se bloquee la mira, pero impide el click del boton
+        
         # QLabel para el Background
         self.background = QLabel(self)
         self.background.setPixmap(QPixmap('./sprites/fondo.jpg'))
@@ -49,7 +55,9 @@ class VentanaJuego(QMainWindow):
         # 1. Setear tamaño del juego en 800x500
         # 2. Setear tamaño de la imagen de fondo a 800x500
         # 3. Mostrar ventana
-        pass
+        self.setGeometry(100, 100, 800, 500)
+        self.background.setGeometry(0, 0, 800, 500)
+        self.show()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.LeftButton:
@@ -129,7 +137,7 @@ class VentanaInicio(QWidget):
     def enviar_info(self) -> None:
         # COMPLETAR
         # Le avisamos al backend la dificultad mediante la señal.
-        pass
+        self.senal_difficultad.emit(self.selector_dificultad.currentText())
 
     # Detectar cuando se presiona enter para también enviar_info
     def keyPressEvent(self, event: QKeyEvent) -> None:
