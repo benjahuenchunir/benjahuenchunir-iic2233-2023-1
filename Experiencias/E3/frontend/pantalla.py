@@ -1,11 +1,12 @@
 import os
 import sys
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QProgressBar
 
 
 class VentanaPantalla(QWidget):
+
+    senal_iniciar = pyqtSignal()
 
     def __init__(self):
         super().__init__()
