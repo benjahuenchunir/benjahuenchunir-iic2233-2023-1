@@ -1,7 +1,7 @@
 import typing
-from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox)
+from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QPropertyAnimation
 import sys
 
 
@@ -11,13 +11,8 @@ class VentanaInicio(QWidget):
 
     def __init__(self):
         super().__init__()
-
-        # Definimos la geometría de la ventana.
-        # Parámetros: (x_superior_izq, y_superior_izq, ancho, alto)
         self.setGeometry(200, 100, 300, 300)
 
-        # Podemos dar nombre a la ventana (Opcional)
-        self.setWindowTitle('loginWindow')
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         self.label_username = QLabel("Usuario", self)
@@ -31,41 +26,82 @@ class VentanaInicio(QWidget):
         vbox.addWidget(self.dropdown_menu)
         vbox.addWidget(self.btn_login)
         self.setLayout(vbox)
-        self.setStyleSheet('background-image: ("sprites/Fondos/fondo_inicio.png")')
         self.btn_login.clicked.connect(self.login)
+        self.setStyleSheet("background-image: 'sprites/Fondos/fondo_inicio.png'")
 
     def login(self):
         print(self.txt_username.text())
         self.senal_iniciar_juego.emit(self.txt_username.text())
 
 
+class Character(QLabel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.images = {
+            'front': ['sprites/Personajes/luigi_front.png'],
+            'up': ['sprites/Personajes/luigi_up_1.png', 'sprites/Personajes/luigi_up_2.png', 'sprites/Personajes/luigi_up_3.png'],
+            'down': ['sprites/Personajes/luigi_down_1.png', 'sprites/Personajes/luigi_down_2.png', 'sprites/Personajes/luigi_down_3.png'],
+            'left': ['sprites/Personajes/luigi_left_1.png', 'sprites/Personajes/luigi_left_2.png', 'sprites/Personajes/luigi_left_3.png'],
+            'right': ['sprites/Personajes/luigi_rigth_1.png', 'sprites/Personajes/luigi_rigth_2.png', 'sprites/Personajes/luigi_rigth_3.png']
+        }
+        self.current_direction = 'front'
+        self.current_image = 0
+        self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
+
+    def update_image(self):
+        self.current_image = (self.current_image_index + 1) % len(self.images[self.current_direction])
+        self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
+
+
 class MainWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        self.imagen_personaje = QPixmap('sprites/Personajes/luigi_front.png')
-        self.character = QLabel("", self)
-        self.speed = 15
-        self.character.setPixmap(self.imagen_personaje)
+        self.character = Character(self)
+        self.speed = 5
         self.showMaximized()
-        
-    def keyPressEvent(self, event) -> None:
-        x = self.character.x()
-        y = self.character.y()
-        if event.key() == Qt.Key_W:
-            self.imagen_personaje = QPixmap('sprites/Personajes/luigi_up_1.png')
-            self.character.move(x, y - self.speed)
-        elif event.key() == Qt.Key_S:
-            self.imagen_personaje = QPixmap('sprites/Personajes/luigi_down_1.png')
-            self.character.move(x, y + self.speed)
-        elif event.key() == Qt.Key_D:
-            self.character.move(x + self.speed, y)
-        elif event.key() == Qt.Key_A:
-            self.character.move(x - self.speed, y)
-        self.character.setPixmap(self.imagen_personaje)
+        self.keys_pressed = set()
+
+        self.movement_timer = QTimer(self)
+        self.movement_timer.timeout.connect(self.move_character)
+        self.movement_timer.start(25)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        print(key)
+        self.keys_pressed.add(key)
+
+    def keyReleaseEvent(self, event):
+        key = event.key()
+        if key in self.keys_pressed:
+            self.keys_pressed.remove(key)
+
+    def move_character(self):
+        current_pos = self.character.pos()
+
+        if Qt.Key_W in self.keys_pressed:
+            self.character.current_direction = 'up'
+            self.character.move(current_pos.x(), current_pos.y() - self.speed)
+
+        if Qt.Key_A in self.keys_pressed:
+            self.character.current_direction = 'left'
+            self.character.move(current_pos.x() - self.speed, current_pos.y())
+
+        if Qt.Key_S in self.keys_pressed:
+            self.character.current_direction = 'down'
+            self.character.move(current_pos.x(), current_pos.y() + self.speed)
+
+        if Qt.Key_D in self.keys_pressed:
+            self.character.current_direction = 'right'
+            self.character.move(current_pos.x() + self.speed, current_pos.y())
+
+        if len(self.keys_pressed) == 0:
+            self.character.current_direction = 'front'
+
+        self.character.update_image()
 
 
 if __name__ == '__main__':
     app = QApplication([])
-    ventana = VentanaInicio()
+    ventana = MainWindow()
     ventana.show()
     sys.exit(app.exec())
