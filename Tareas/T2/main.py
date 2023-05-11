@@ -16,6 +16,11 @@ class DCCazaFantasmas():
     def iniciar(self):
         self.ventana_inicio.show()
 
+    def cargar_mapa(self):
+        with open('mapas/fantasma muere.txt', 'rt', encoding='utf-8') as f:
+            for linea in f.readlines():
+                pass
+
 
 if __name__ == '__main__':
     def hook(type_, value, traceback):

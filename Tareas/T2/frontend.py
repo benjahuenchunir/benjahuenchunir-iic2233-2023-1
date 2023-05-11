@@ -1,4 +1,5 @@
-import typing
+from PyQt5 import QtGui
+import parametros as p
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QPropertyAnimation, QPoint
@@ -34,11 +35,19 @@ class VentanaInicio(QWidget):
         self.senal_iniciar_juego.emit(self.txt_username.text())
 
 
-class Character(QLabel):
+class Fantasma():
+    pass
+
+
+class Elemento():
+    pass
+
+
+class Luigi(QLabel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.images = {
-            'front': ['sprites/Personajes/luigi_front.png'],
+            p.LUIGI_QUIETO: ['sprites/Personajes/luigi_front.png'],
             'up': ['sprites/Personajes/luigi_up_1.png', 'sprites/Personajes/luigi_up_2.png', 'sprites/Personajes/luigi_up_3.png'],
             'down': ['sprites/Personajes/luigi_down_1.png', 'sprites/Personajes/luigi_down_2.png', 'sprites/Personajes/luigi_down_3.png'],
             'left': ['sprites/Personajes/luigi_left_1.png', 'sprites/Personajes/luigi_left_2.png', 'sprites/Personajes/luigi_left_3.png'],
@@ -50,7 +59,7 @@ class Character(QLabel):
         self.timer = QTimer(self)
         self.timer.setInterval(10)
         self.timer.timeout.connect(self.update_image)
-        self.current_direction = 'front'
+        self.current_direction = p.LUIGI_QUIETO
         self.current_image = 0
         self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
 
@@ -64,7 +73,7 @@ class Character(QLabel):
         self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
 
     def parar_movimiento(self):
-        self.current_direction = 'front'
+        self.current_direction = p.LUIGI_QUIETO
         self.timer.stop()
         self.update_image()
 
@@ -72,29 +81,31 @@ class Character(QLabel):
 class MainWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        self.character = Character(self)
-        self.speed = 100
+        self.character = Luigi(self)
+        self.tamano_cuadricula = p.TAMANO_CUADRICULA
         self.showMaximized()
         self.keys_pressed = set()
 
     def keyPressEvent(self, event):
+        if event.isAutoRepeat():
+            return
         current_pos = self.character.pos()
         key = event.key()
         if Qt.Key_W == key:
             self.character.current_direction = 'up'
-            self.character.move_character((current_pos.x(), current_pos.y() - self.speed))
+            self.character.move_character((current_pos.x(), current_pos.y() - self.tamano_cuadricula))
 
         if Qt.Key_A == key:
             self.character.current_direction = 'left'
-            self.character.move_character((current_pos.x() - self.speed, current_pos.y()))
+            self.character.move_character((current_pos.x() - self.tamano_cuadricula, current_pos.y()))
 
         if Qt.Key_S == key:
             self.character.current_direction = 'down'
-            self.character.move_character((current_pos.x(), current_pos.y() + self.speed))
+            self.character.move_character((current_pos.x(), current_pos.y() + self.tamano_cuadricula))
 
         if Qt.Key_D == key:
             self.character.current_direction = 'right'
-            self.character.move_character((current_pos.x() + self.speed, current_pos.y()))
+            self.character.move_character((current_pos.x() + self.tamano_cuadricula, current_pos.y()))
 
 
 if __name__ == '__main__':

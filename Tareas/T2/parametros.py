@@ -4,3 +4,6 @@ LARGO_GRILLA = 16 # NO EDITAR
 # Complete con los demás parámetros
 MIN_CARACTERES = 5
 MAX_CARACTERES = 10
+
+LUIGI_QUIETO = 'front'
+TAMANO_CUADRICULA = 100
