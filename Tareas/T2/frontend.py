@@ -1,7 +1,7 @@
 import typing
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QPropertyAnimation
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QPropertyAnimation, QPoint
 import sys
 
 
@@ -44,60 +44,57 @@ class Character(QLabel):
             'left': ['sprites/Personajes/luigi_left_1.png', 'sprites/Personajes/luigi_left_2.png', 'sprites/Personajes/luigi_left_3.png'],
             'right': ['sprites/Personajes/luigi_rigth_1.png', 'sprites/Personajes/luigi_rigth_2.png', 'sprites/Personajes/luigi_rigth_3.png']
         }
+        self.anim = QPropertyAnimation(self, b"pos")
+        self.anim.setDuration(400)
+        self.anim.finished.connect(self.parar_movimiento)
+        self.timer = QTimer(self)
+        self.timer.setInterval(10)
+        self.timer.timeout.connect(self.update_image)
         self.current_direction = 'front'
         self.current_image = 0
         self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
 
+    def move_character(self, end_pos):
+        self.anim.setEndValue(QPoint(*end_pos))
+        self.timer.start()
+        self.anim.start()
+
     def update_image(self):
-        self.current_image = (self.current_image_index + 1) % len(self.images[self.current_direction])
+        self.current_image = (self.current_image + 1) % len(self.images[self.current_direction])
         self.setPixmap(QPixmap(self.images[self.current_direction][self.current_image]))
+
+    def parar_movimiento(self):
+        self.current_direction = 'front'
+        self.timer.stop()
+        self.update_image()
 
 
 class MainWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.character = Character(self)
-        self.speed = 5
+        self.speed = 100
         self.showMaximized()
         self.keys_pressed = set()
 
-        self.movement_timer = QTimer(self)
-        self.movement_timer.timeout.connect(self.move_character)
-        self.movement_timer.start(25)
-
     def keyPressEvent(self, event):
-        key = event.key()
-        print(key)
-        self.keys_pressed.add(key)
-
-    def keyReleaseEvent(self, event):
-        key = event.key()
-        if key in self.keys_pressed:
-            self.keys_pressed.remove(key)
-
-    def move_character(self):
         current_pos = self.character.pos()
-
-        if Qt.Key_W in self.keys_pressed:
+        key = event.key()
+        if Qt.Key_W == key:
             self.character.current_direction = 'up'
-            self.character.move(current_pos.x(), current_pos.y() - self.speed)
+            self.character.move_character((current_pos.x(), current_pos.y() - self.speed))
 
-        if Qt.Key_A in self.keys_pressed:
+        if Qt.Key_A == key:
             self.character.current_direction = 'left'
-            self.character.move(current_pos.x() - self.speed, current_pos.y())
+            self.character.move_character((current_pos.x() - self.speed, current_pos.y()))
 
-        if Qt.Key_S in self.keys_pressed:
+        if Qt.Key_S == key:
             self.character.current_direction = 'down'
-            self.character.move(current_pos.x(), current_pos.y() + self.speed)
+            self.character.move_character((current_pos.x(), current_pos.y() + self.speed))
 
-        if Qt.Key_D in self.keys_pressed:
+        if Qt.Key_D == key:
             self.character.current_direction = 'right'
-            self.character.move(current_pos.x() + self.speed, current_pos.y())
-
-        if len(self.keys_pressed) == 0:
-            self.character.current_direction = 'front'
-
-        self.character.update_image()
+            self.character.move_character((current_pos.x() + self.speed, current_pos.y()))
 
 
 if __name__ == '__main__':
