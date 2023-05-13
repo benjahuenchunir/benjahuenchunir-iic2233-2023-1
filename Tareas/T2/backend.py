@@ -8,15 +8,32 @@ import os
 
 class Fantasma():
     identificador = 0
+    senal_animar_fantasma = pyqtSignal(int)
     
     def __init__(self, tipo, x, y) -> None:
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
-        self.x = x
-        self.y = y
+        self.__x = x
+        self.__y = y
         self.direccion = random.choice(p.DIRECCIONES_FANTASMA)
         self.tipo = tipo
 
+    @property
+    def x(self):
+        return self.__x
+
+    @x.setter
+    def x(self, nuevo_x):
+        self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
+
+    @property
+    def y(self):
+        return self.__y
+
+    @y.setter
+    def y(self, nuevo_y):
+        self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
+    
     def mover(self):  # TODO verificar que no se salga
         if self.tipo == p.TIPO_HORIZONTAL:
             self.x += self.direccion
@@ -35,25 +52,44 @@ class Luigi(QObject):
     def __init__(self):
         super().__init__()
         self.vidas = p.CANTIDAD_VIDAS
+        self.__x = p.TAMANO_GRILLA
+        self.__y = p.TAMANO_GRILLA
+
+    @property
+    def x(self):
+        return self.__x
+
+    @x.setter
+    def x(self, nuevo_x):
+        self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
+
+    @property
+    def y(self):
+        return self.__y
+
+    @y.setter
+    def y(self, nuevo_y):
+        self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
 
     def move_character(self, key, x, y):
         if key == Qt.Key_W:
             direccion = 'up'
-            final_pos = (x, y - p.TAMANO_GRILLA)
+            self.y -= p.TAMANO_GRILLA
 
         if key == Qt.Key_A:
             direccion = 'left'
-            final_pos = (x - p.TAMANO_GRILLA, y)
+            self.x -= p.TAMANO_GRILLA
 
         if key == Qt.Key_S:
             direccion = 'down'
-            final_pos = (x, y + p.TAMANO_GRILLA)
+            self.y += p.TAMANO_GRILLA
 
         if key == Qt.Key_D:
             direccion = 'rigth'
-            final_pos = (x + p.TAMANO_GRILLA, y)
+            self.x += p.TAMANO_GRILLA
 
-        self.senal_animar_luigi.emit(direccion, final_pos)
+        if x != self.x or y != self.y:
+            self.senal_animar_luigi.emit(direccion, (self.x, self.y))
 
 
 class Juego(QObject):
@@ -66,7 +102,6 @@ class Juego(QObject):
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
         self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
         self.timer_mov_fantasmas = QTimer(self)
-        print(self.tiempo_movimiento_fantasmas)
         self.timer_mov_fantasmas.setInterval(self.tiempo_movimiento_fantasmas * 1000)
         self.timer_mov_fantasmas.timeout.connect(self.mover_fantasmas)
 

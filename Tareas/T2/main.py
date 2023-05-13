@@ -22,21 +22,13 @@ class DCCazaFantasmas():
             self.ventana_juego.mover_fantasmas)
 
     def iniciar(self):
-        self.backend.crear_fantasmas([(100, 100)])
-        self.ventana_juego.crear_fantasmas(self.backend.fantasmas)
+        self.backend.crear_fantasmas([(200, 200)])
         self.backend.iniciar()
-        self.ventana_juego.cargar_mapa(self.cargar_mapa())
-        self.ventana_juego.cargar_imagenes_luigi()
-        self.ventana_juego.show()
+        self.ventana_juego.iniciar(self.cargar_mapa(), self.backend.fantasmas)
 
     def cargar_mapa(self):
         with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:
-            mapa = [p.MAPA_BORDE * p.ANCHO_GRILLA]
-            for linea in f.readlines():
-                linea = p.MAPA_BORDE + linea.strip() + p.MAPA_BORDE
-                mapa.append(linea)
-            mapa.append(p.MAPA_BORDE * p.ANCHO_GRILLA)
-        return mapa
+            return f.readlines()
 
 
 if __name__ == '__main__':
