@@ -39,19 +39,19 @@ class Luigi(QObject):
     def move_character(self, key, x, y):
         if key == Qt.Key_W:
             direccion = 'up'
-            final_pos = (x, y - p.TAMANO_CUADRICULA)
+            final_pos = (x, y - p.TAMANO_GRILLA)
 
         if key == Qt.Key_A:
             direccion = 'left'
-            final_pos = (x - p.TAMANO_CUADRICULA, y)
+            final_pos = (x - p.TAMANO_GRILLA, y)
 
         if key == Qt.Key_S:
             direccion = 'down'
-            final_pos = (x, y + p.TAMANO_CUADRICULA)
+            final_pos = (x, y + p.TAMANO_GRILLA)
 
         if key == Qt.Key_D:
             direccion = 'rigth'
-            final_pos = (x + p.TAMANO_CUADRICULA, y)
+            final_pos = (x + p.TAMANO_GRILLA, y)
 
         self.senal_animar_luigi.emit(direccion, final_pos)
 
@@ -63,7 +63,6 @@ class Juego(QObject):
         super().__init__()
         self.character = Luigi()
         self.fantasmas = []
-        self.tamano_cuadricula = p.TAMANO_CUADRICULA
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
         self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
         self.timer_mov_fantasmas = QTimer(self)

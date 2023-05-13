@@ -2,6 +2,7 @@ from frontend import VentanaInicio, VentanaJuego
 from backend import Juego
 from PyQt5.QtWidgets import QApplication
 import sys
+import parametros as p
 
 
 class DCCazaFantasmas():
@@ -24,12 +25,18 @@ class DCCazaFantasmas():
         self.backend.crear_fantasmas([(100, 100)])
         self.ventana_juego.crear_fantasmas(self.backend.fantasmas)
         self.backend.iniciar()
-        self.ventana_juego.showMaximized()
+        self.ventana_juego.cargar_mapa(self.cargar_mapa())
+        self.ventana_juego.cargar_imagenes_luigi()
+        self.ventana_juego.show()
 
     def cargar_mapa(self):
-        with open('mapas/fantasma muere.txt', 'rt', encoding='utf-8') as f:
+        with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:
+            mapa = [p.MAPA_BORDE * p.ANCHO_GRILLA]
             for linea in f.readlines():
-                pass
+                linea = p.MAPA_BORDE + linea.strip() + p.MAPA_BORDE
+                mapa.append(linea)
+            mapa.append(p.MAPA_BORDE * p.ANCHO_GRILLA)
+        return mapa
 
 
 if __name__ == '__main__':

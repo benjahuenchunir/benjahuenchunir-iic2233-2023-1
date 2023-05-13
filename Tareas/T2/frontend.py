@@ -1,7 +1,7 @@
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QPalette
 import parametros as p
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox
-from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint
+from PyQt5.QtWidgets import QWidget, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
+from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt
 import sys
 from collections import defaultdict
 import os
@@ -13,8 +13,12 @@ class VentanaInicio(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setGeometry(200, 100, 300, 300)
-
+        #self.setFixedSize(p.ANCHO_GRILLA*100, p.ANCHO_GRILLA*100)
+        self.background = QLabel(self)
+        self.background.setPixmap(QPixmap("sprites/Fondos/fondo_inicio.png"))
+        self.background.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.background.setGeometry(0, 0, 1000, 800)
+        self.background.setScaledContents(True)
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         self.label_username = QLabel("Usuario", self)
@@ -34,6 +38,7 @@ class VentanaInicio(QWidget):
     def login(self):
         print(self.txt_username.text())
         self.senal_iniciar_juego.emit(self.txt_username.text())
+        
 
 
 class VentanaJuego(QWidget):
@@ -41,7 +46,13 @@ class VentanaJuego(QWidget):
 
     def __init__(self) -> None:
         super().__init__()
+        self.mapa = QGridLayout()
+        self.setLayout(self.mapa)
+        self.mapa.setSpacing(0)
+        self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
+
         self.label_luigi = QLabel(self)
+        self.pos_luigi = None
         self.images_luigi = defaultdict(list)
         self.current_direction = p.LUIGI_QUIETO
         self.current_image = 0
@@ -53,14 +64,35 @@ class VentanaJuego(QWidget):
         self.timer.timeout.connect(self.animar_luigi)
         self.fantasmas = {}
 
-        self.cargar_imagenes_luigi()
+        
+        
+        
+        
+    def cargar_mapa(self, filas):
+        for fil, fila in enumerate(filas):
+            for col, columna in enumerate(fila):
+                fondo = QLabel(self)
+                fondo.setStyleSheet(f"""
+                        background-color: #2D2C2C;
+                        border: 2px solid #242323;
+                    """)
+                fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+                self.mapa.addWidget(fondo, fil, col)
+                if columna == p.MAPA_LUIGI:
+                    self.pos_luigi = (fil, col)
+                elif columna in p.SPRITES_ELEMENTOS.keys():
+                    elemento = QLabel(self)
+                    elemento.setPixmap(QPixmap(os.path.join(p.PATH_ELEMENTOS, p.SPRITES_ELEMENTOS[columna])).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+                    self.mapa.addWidget(elemento, fil, col)
 
     def cargar_imagenes_luigi(self):
         for image in os.listdir(p.PATH_PERSONAJES):
             if p.NOMBRE_LUIGI in image:
                 self.images_luigi[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)))
         self.label_luigi.setPixmap(self.images_luigi[self.current_direction][self.current_image])
-
+        print("Añadiendo a luigi")
+        self.mapa.addWidget(self.label_luigi, *self.pos_luigi)
+        
     def crear_fantasmas(self, fantasmas):
         for fantasma in fantasmas:
             label_fantasma = QLabel(self)
@@ -97,7 +129,7 @@ class VentanaJuego(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication([])
-    ventana = VentanaJuego()
+    app = VentanaInicio()
+    ventana = VentanaInicio()
     ventana.show()
     sys.exit(app.exec())
