@@ -74,7 +74,43 @@ class VentanaTest(QWidget):
     def keyPressEvent(self, event) -> None:
         current_pos = self.label_luigi.pos()
         self.label_luigi.move(current_pos.x() + 60, current_pos.y())
+
+
+class Fantasma(QLabel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.imagenes = defaultdict(list)
+        self.current_direction = p.LUIGI_QUIETO
+        self.current_image = 0
+        self.anim = QPropertyAnimation(self, b"pos")
+        self.anim.setDuration(400)
+        self.anim.finished.connect(self.parar_movimiento)
+        self.timer = QTimer(self)
+        self.timer.setInterval(40)
+        self.timer.timeout.connect(self.animar_luigi)
+        self.cargar_imagenes_luigi()
+        self.setGeometry(0, 0, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
         
+    def cargar_imagenes_luigi(self):
+        for image in os.listdir(p.PATH_PERSONAJES):
+            if p.NOMBRE_LUIGI in image:
+                self.imagenes[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
+        self.setPixmap(self.imagenes[self.current_direction][self.current_image])
+
+    def mover(self, direccion, final_pos):
+        self.current_direction = direccion
+        self.anim.setEndValue(QPoint(*final_pos))
+        self.timer.start()
+        self.anim.start()
+
+    def animar_luigi(self):
+        self.current_image = (self.current_image + 1) % len(self.imagenes[self.current_direction])
+        self.setPixmap(self.imagenes[self.current_direction][self.current_image])
+
+    def parar_movimiento(self):
+        self.current_direction = p.LUIGI_QUIETO
+        self.timer.stop()
+        self.animar_luigi()
 
 class Luigi(QLabel):
     def __init__(self, *args, **kwargs):
@@ -114,7 +150,7 @@ class Luigi(QLabel):
 
 
 class VentanaJuego(QWidget):
-    senal_mover_personaje = pyqtSignal(int, int, int)
+    senal_mover_personaje = pyqtSignal(int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -177,7 +213,7 @@ class VentanaJuego(QWidget):
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
             current_pos = self.label_luigi.pos()
             key = event.key()
-            self.senal_mover_personaje.emit(key, current_pos.x(), current_pos.y())
+            self.senal_mover_personaje.emit(key)
 
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)

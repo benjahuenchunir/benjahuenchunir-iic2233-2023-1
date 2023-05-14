@@ -35,15 +35,14 @@ class Fantasma():
         self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
     
     def mover(self):  # TODO verificar que no se salga
+        x, y = self.x, self.y
         if self.tipo == p.TIPO_HORIZONTAL:
             self.x += self.direccion
         else:
             self.y += self.direccion
+        if self.x == x and self.y == y:
+            self.direccion = -self.direccion
         return {self.id: (self.x, self.y)}
-
-
-class Elemento():
-    pass
 
 
 class Luigi(QObject):
@@ -71,7 +70,8 @@ class Luigi(QObject):
     def y(self, nuevo_y):
         self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
 
-    def move_character(self, key, x, y):
+    def move_character(self, key):
+        x, y = self.x, self.y
         if key == Qt.Key_W:
             direccion = 'up'
             self.y -= p.TAMANO_GRILLA
@@ -94,6 +94,7 @@ class Luigi(QObject):
 
 class Juego(QObject):
     senal_mover_fantasmas = pyqtSignal(dict)
+    senal_crear_fantasmas = pyqtSignal(dict)
     
     def __init__(self):
         super().__init__()
@@ -119,8 +120,8 @@ class Juego(QObject):
             movimientos.update(fantasma.mover())
         self.senal_mover_fantasmas.emit(movimientos)
 
-    def mover_personaje(self, key, x, y):
-        self.character.move_character(key, x, y)
+    def mover_personaje(self, key):
+        self.character.move_character(key)
 
     def iniciar_juego(self, nombre_usuario: str):
         print("entre")
