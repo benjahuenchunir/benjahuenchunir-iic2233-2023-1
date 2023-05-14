@@ -13,7 +13,7 @@ class DCCazaFantasmas():
 
     def conectar(self):
         self.ventana_inicio.senal_iniciar_juego.connect(
-            self.backend.iniciar_juego)        
+            self.backend.iniciar_juego)
         self.ventana_juego.senal_mover_personaje.connect(
             self.backend.mover_personaje)
         self.backend.character.senal_animar_luigi.connect(

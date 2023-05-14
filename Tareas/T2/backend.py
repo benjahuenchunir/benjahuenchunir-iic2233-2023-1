@@ -8,15 +8,15 @@ import os
 
 class Fantasma():
     identificador = 0
-    senal_animar_fantasma = pyqtSignal(int)
     
     def __init__(self, tipo, x, y) -> None:
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
+        self.tipo = tipo
         self.__x = x
         self.__y = y
-        self.direccion = random.choice(p.DIRECCIONES_FANTASMA)
-        self.tipo = tipo
+        self.nombre_direccion = random.choice(p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
+        self.direccion = random.choice(p.DIRECCIONES_FANTASMA[self.nombre_direccion])
 
     @property
     def x(self):
@@ -33,7 +33,7 @@ class Fantasma():
     @y.setter
     def y(self, nuevo_y):
         self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
-    
+
     def mover(self):  # TODO verificar que no se salga
         x, y = self.x, self.y
         if self.tipo == p.TIPO_HORIZONTAL:
@@ -41,8 +41,13 @@ class Fantasma():
         else:
             self.y += self.direccion
         if self.x == x and self.y == y:
+            if self.tipo != p.TIPO_VERTICAL:
+                otra_direccion = p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo].copy()
+                otra_direccion.remove(self.nombre_direccion)
+                self.nombre_direccion = otra_direccion[0]
             self.direccion = -self.direccion
-        return {self.id: (self.x, self.y)}
+        else:
+            return {self.id: (self.nombre_direccion, self.x, self.y)}
 
 
 class Luigi(QObject):
@@ -94,7 +99,6 @@ class Luigi(QObject):
 
 class Juego(QObject):
     senal_mover_fantasmas = pyqtSignal(dict)
-    senal_crear_fantasmas = pyqtSignal(dict)
     
     def __init__(self):
         super().__init__()

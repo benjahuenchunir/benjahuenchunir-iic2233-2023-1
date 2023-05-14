@@ -61,6 +61,7 @@ class MapaJuego(QWidget):
                     fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
                     self.mapa.addWidget(fondo, fil, col)
 
+
 class VentanaTest(QWidget):
     def __init__(self):
         super().__init__()
@@ -77,40 +78,40 @@ class VentanaTest(QWidget):
 
 
 class Fantasma(QLabel):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tipo, direccion, x, y, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.imagenes = defaultdict(list)
-        self.current_direction = p.LUIGI_QUIETO
+        self.tipo = tipo
+        self.current_direction = direccion
         self.current_image = 0
         self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setDuration(400)
         self.anim.finished.connect(self.parar_movimiento)
         self.timer = QTimer(self)
         self.timer.setInterval(40)
-        self.timer.timeout.connect(self.animar_luigi)
-        self.cargar_imagenes_luigi()
-        self.setGeometry(0, 0, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+        self.timer.timeout.connect(self.animar)
+        self.cargar_imagenes()
+        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
         
-    def cargar_imagenes_luigi(self):
+    def cargar_imagenes(self):
         for image in os.listdir(p.PATH_PERSONAJES):
-            if p.NOMBRE_LUIGI in image:
-                self.imagenes[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
+            if self.tipo in image:
+                self.imagenes[os.path.splitext(image)[0].split('_')[2]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
         self.setPixmap(self.imagenes[self.current_direction][self.current_image])
 
-    def mover(self, direccion, final_pos):
+    def mover(self, direccion, x, y):
         self.current_direction = direccion
-        self.anim.setEndValue(QPoint(*final_pos))
+        self.anim.setEndValue(QPoint(x, y))
         self.timer.start()
         self.anim.start()
 
-    def animar_luigi(self):
+    def animar(self):
         self.current_image = (self.current_image + 1) % len(self.imagenes[self.current_direction])
         self.setPixmap(self.imagenes[self.current_direction][self.current_image])
 
     def parar_movimiento(self):
-        self.current_direction = p.LUIGI_QUIETO
         self.timer.stop()
-        self.animar_luigi()
+        self.animar()
 
 class Luigi(QLabel):
     def __init__(self, *args, **kwargs):
@@ -198,14 +199,12 @@ class VentanaJuego(QWidget):
                 
     def crear_fantasmas(self, fantasmas):
         for fantasma in fantasmas:
-            label_fantasma = QLabel(self)
-            label_fantasma.setPixmap(QPixmap('sprites\Personajes\white_ghost_left_1.png'))
-            label_fantasma.setGeometry(fantasma.x, fantasma.y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+            label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
             self.fantasmas[fantasma.id] = label_fantasma
 
     def mover_fantasmas(self, posiciones: dict):
-        for id, posicion in posiciones.items():
-            self.fantasmas[id].move(*posicion)
+        for id, info in posiciones.items():
+            self.fantasmas[id].mover(*info)
 
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
