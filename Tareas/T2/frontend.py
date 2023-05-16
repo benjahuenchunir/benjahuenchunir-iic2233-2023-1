@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag
+from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag, QMouseEvent
 import parametros as p
 from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
 from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
@@ -62,7 +62,9 @@ class MapaJuego(QWidget):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
+        self.elemento_seleccionado = None
         self.mapa.setSpacing(0)
+        self.mapa.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mapa)
         for fil in range(p.LARGO_GRILLA):
             for col in range(p.ANCHO_GRILLA):
@@ -78,6 +80,14 @@ class MapaJuego(QWidget):
                         """)
                     fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
                     self.mapa.addWidget(fondo, fil, col)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if self.elemento_seleccionado:
+            x, y = event.x(), event.y()
+            col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
+            label = QLabel(self)
+            label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][self.elemento_seleccionado]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+            self.mapa.addWidget(label, fil, col)
 
 
 class Fantasma(QLabel):
@@ -168,22 +178,6 @@ class VentanaJuego(QWidget):
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         
         self.fantasmas = {}
-        
-        self.cheat_matar_fantasmas = QShortcut(QKeySequence(Qt.Key_K +Qt.Key_I), self)
-        self.cheat_matar_fantasmas.activated.connect(self.on_open)
-        
-        shortcut = QShortcut(QKeySequence(Qt.Key_K + Qt.Key_I + Qt.Key_L), self)
-        shortcut.activated.connect(self.handleShortcut)
-        
-        self.shortcut_open = QShortcut(QKeySequence('Ctrl+O'), self)
-        self.shortcut_open.activated.connect(self.on_open)
-        
-    def on_open(self):
-        print('Ctrl O has been fired')
-        
-    def handleShortcut(self):
-        # Handle the shortcut activation
-        print("Shortcut activated: k + i + l")
 
     def iniciar(self, mapa, fantasmas):
         self.cargar_mapa(mapa)
@@ -268,13 +262,15 @@ class MenuConstructor(QWidget):
 
     def filtrar_lista(self, texto):
         self.lista_elementos.clear()
-        for i, filename in enumerate(p.FILTROS[texto].values()):
-            if p.MAPA_BORDE in p.FILTROS[texto] and filename == p.FILTROS[texto][p.MAPA_BORDE]:
+        for i, info in enumerate(p.FILTROS[texto].items()):
+            nombre_mapa, nombre_archivo = info
+            if p.MAPA_BORDE in p.FILTROS[texto] and nombre_archivo == p.FILTROS[texto][p.MAPA_BORDE]:
                 continue
             item1 = QListWidgetItem()
+            item1.setWhatsThis(nombre_mapa)
             item1.setSizeHint(QSize(100, 80))
             self.lista_elementos.addItem(item1)
-            self.lista_elementos.setItemWidget(item1, ElementoConstructor(filename, i))
+            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, i))
 
 
 class MenuJuego(QWidget):
@@ -340,7 +336,6 @@ class VentanaJuego(QWidget):
         for fil, fila in enumerate(filas, 1):
             for col, columna in enumerate(fila, 1):
                 if columna == p.MAPA_LUIGI:
-                    self.pos_player = (fil, col)
                     self.label_luigi.move(fil * p.TAMANO_GRILLA, col * p.TAMANO_GRILLA)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
                     elemento = QLabel(self)
@@ -357,6 +352,7 @@ class VentanaJuego(QWidget):
             self.fantasmas[id].mover(*info)
 
     def keyPressEvent(self, event):
+        print(event.key())
         if event.isAutoRepeat():
             return
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
@@ -370,6 +366,7 @@ class VentanaJuego(QWidget):
 class VentanaCompleta(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.move(0, 0)
         layout_principal = QHBoxLayout()
         self.setLayout(layout_principal)
 
@@ -386,6 +383,8 @@ class VentanaCompleta(QWidget):
         self.layout_mapas.addWidget(self.mapa)
         self.layout_mapas.addWidget(self.mapa_juego)
         layout_principal.addLayout(self.layout_mapas)
+        
+        self.menu_constructor.lista_elementos.itemSelectionChanged.connect(self.cambiar_seleccion_elemento)
 
     def jugar(self, mapa, fantasmas):
         self.layout_menus.setCurrentWidget(self.menu_juego)
@@ -394,7 +393,12 @@ class VentanaCompleta(QWidget):
         self.mapa_juego.iniciar(mapa, fantasmas)
 
     def keyPressEvent(self, event) -> None:
-        return self.menu_juego.keyPressEvent(event)
+        super().keyPressEvent(event)
+        self.mapa_juego.keyPressEvent(event)
+        #event.key()
+        
+    def cambiar_seleccion_elemento(self):
+        self.mapa.elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
 
 
 if __name__ == '__main__':
