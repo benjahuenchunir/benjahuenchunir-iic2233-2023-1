@@ -1,8 +1,8 @@
 from PyQt5 import QtGui
-from PyQt5.QtGui import QPixmap, QPalette
+from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag
 import parametros as p
-from PyQt5.QtWidgets import QWidget, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
-from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt
+from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
+from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
 import sys
 from collections import defaultdict
 import os
@@ -41,16 +41,34 @@ class VentanaInicio(QWidget):
         self.senal_iniciar_juego.emit(self.txt_username.text())
 
 
+class ElementoConstructor(QWidget):
+    def __init__(self, path_imagen, cantidad):
+        super().__init__()
+
+        hbox = QHBoxLayout(self)
+        self.setLayout(hbox)
+
+        self.label_elemento = QLabel(self)
+        self.label_elemento.setPixmap(QPixmap(path_imagen).scaled(64, 64, Qt.KeepAspectRatio) )
+        hbox.addWidget(self.label_elemento)
+
+        self.label_cantidad = QLabel(f'({cantidad})', self)
+        self.label_cantidad.setFont(QFont('Arial', 16))
+        hbox.addWidget(self.label_cantidad)
+
+
 class MapaJuego(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
+        self.mapa.setSpacing(0)
         self.setLayout(self.mapa)
         for fil in range(p.LARGO_GRILLA):
             for col in range(p.ANCHO_GRILLA):
                 if fil == 0 or fil == p.LARGO_GRILLA - 1 or col == 0 or col == p.ANCHO_GRILLA - 1:
                     borde = QLabel(self)
-                    borde.setPixmap(QPixmap(os.path.join(p.PATH_ELEMENTOS, p.SPRITES_ELEMENTOS[p.MAPA_BORDE])).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+                    borde.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_BORDE]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
                     self.mapa.addWidget(borde, fil, col)
                 else:
                     fondo = QLabel(self)
@@ -60,21 +78,6 @@ class MapaJuego(QWidget):
                         """)
                     fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
                     self.mapa.addWidget(fondo, fil, col)
-
-
-class VentanaTest(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.mapa = MapaJuego()
-        self.setLayout(self.mapa.mapa)
-                    
-        self.label_luigi = QLabel(self)
-        self.label_luigi.setPixmap(QPixmap("sprites/Personajes/luigi_front.png"))
-        self.show()
-    
-    def keyPressEvent(self, event) -> None:
-        current_pos = self.label_luigi.pos()
-        self.label_luigi.move(current_pos.x() + 60, current_pos.y())
 
 
 class Fantasma(QLabel):
@@ -94,9 +97,9 @@ class Fantasma(QLabel):
         self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
         
     def cargar_imagenes(self):
-        for image in os.listdir(p.PATH_PERSONAJES):
+        for image in os.listdir(p.PATH_ENTIDADES):
             if self.tipo in image:
-                self.imagenes[os.path.splitext(image)[0].split('_')[2]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
+                self.imagenes[os.path.splitext(image)[0].split('_')[2]].append(QPixmap(os.path.join(p.PATH_ENTIDADES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
         self.setPixmap(self.imagenes[self.current_direction][self.current_image])
 
     def mover(self, direccion, x, y):
@@ -112,6 +115,7 @@ class Fantasma(QLabel):
     def parar_movimiento(self):
         self.timer.stop()
         self.animar()
+
 
 class Luigi(QLabel):
     def __init__(self, *args, **kwargs):
@@ -129,9 +133,9 @@ class Luigi(QLabel):
         self.setGeometry(0, 0, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
         
     def cargar_imagenes_luigi(self):
-        for image in os.listdir(p.PATH_PERSONAJES):
+        for image in os.listdir(p.PATH_ENTIDADES):
             if p.NOMBRE_LUIGI in image:
-                self.images_luigi[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_PERSONAJES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
+                self.images_luigi[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_ENTIDADES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
         self.setPixmap(self.images_luigi[self.current_direction][self.current_image])
 
     def mover(self, direccion, final_pos):
@@ -158,11 +162,28 @@ class VentanaJuego(QWidget):
         self.mapa = QGridLayout()
         self.mapa.setSpacing(0)
         self.mapa.setContentsMargins(0, 0, 0, 0)
+        self.mapa = MapaJuego()
         self.pos_player = (0, 0)
         self.setLayout(self.mapa)
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         
         self.fantasmas = {}
+        
+        self.cheat_matar_fantasmas = QShortcut(QKeySequence(Qt.Key_K +Qt.Key_I), self)
+        self.cheat_matar_fantasmas.activated.connect(self.on_open)
+        
+        shortcut = QShortcut(QKeySequence(Qt.Key_K + Qt.Key_I + Qt.Key_L), self)
+        shortcut.activated.connect(self.handleShortcut)
+        
+        self.shortcut_open = QShortcut(QKeySequence('Ctrl+O'), self)
+        self.shortcut_open.activated.connect(self.on_open)
+        
+    def on_open(self):
+        print('Ctrl O has been fired')
+        
+    def handleShortcut(self):
+        # Handle the shortcut activation
+        print("Shortcut activated: k + i + l")
 
     def iniciar(self, mapa, fantasmas):
         self.cargar_mapa(mapa)
@@ -177,7 +198,7 @@ class VentanaJuego(QWidget):
             for col in range(p.ANCHO_GRILLA):
                 if fil == 0 or fil == p.LARGO_GRILLA - 1 or col == 0 or col == p.ANCHO_GRILLA - 1:
                     borde = QLabel(self)
-                    borde.setPixmap(QPixmap(os.path.join(p.PATH_ELEMENTOS, p.SPRITES_ELEMENTOS[p.MAPA_BORDE])).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+                    borde.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_BORDE]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
                     self.mapa.addWidget(borde, fil, col)
                 else:
                     fondo = QLabel(self)
@@ -194,9 +215,9 @@ class VentanaJuego(QWidget):
                     print(self.pos_player)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
                     elemento = QLabel(self)
-                    elemento.setPixmap(QPixmap(os.path.join(p.PATH_ELEMENTOS, p.SPRITES_ELEMENTOS[columna])).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+                    elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[columna]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
                     self.mapa.addWidget(elemento, fil, col)
-                
+    
     def crear_fantasmas(self, fantasmas):
         for fantasma in fantasmas:
             label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
@@ -210,15 +231,174 @@ class VentanaJuego(QWidget):
         if event.isAutoRepeat():
             return
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
-            current_pos = self.label_luigi.pos()
             key = event.key()
             self.senal_mover_personaje.emit(key)
 
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)
 
+
+class MenuConstructor(QWidget):
+    senal_iniciar_juego = pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        menu_constructor = QVBoxLayout()
+        self.setLayout(menu_constructor)
+
+        self.filtro_elementos = QComboBox()
+        self.filtro_elementos.addItems(p.FILTROS)
+        self.filtro_elementos.currentTextChanged.connect(self.filtrar_lista)
+        menu_constructor.addWidget(self.filtro_elementos)
+
+        self.lista_elementos = QListWidget(self)
+        self.lista_elementos.setDragEnabled(True)
+        self.lista_elementos.setDragDropMode(QAbstractItemView.DragDrop)
+        self.lista_elementos.setDefaultDropAction(Qt.ActionMask)
+        self.lista_elementos.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.filtrar_lista(self.filtro_elementos.currentText())
+        menu_constructor.addWidget(self.lista_elementos)
+
+        layout_botones = QHBoxLayout()
+        self.btn_limpiar = QPushButton("Limpiar", self)
+        self.btn_jugar = QPushButton("Jugar", self)
+        layout_botones.addWidget(self.btn_limpiar)
+        layout_botones.addWidget(self.btn_jugar)
+        menu_constructor.addLayout(layout_botones)
+
+    def filtrar_lista(self, texto):
+        self.lista_elementos.clear()
+        for i, filename in enumerate(p.FILTROS[texto].values()):
+            if p.MAPA_BORDE in p.FILTROS[texto] and filename == p.FILTROS[texto][p.MAPA_BORDE]:
+                continue
+            item1 = QListWidgetItem()
+            item1.setSizeHint(QSize(100, 80))
+            self.lista_elementos.addItem(item1)
+            self.lista_elementos.setItemWidget(item1, ElementoConstructor(filename, i))
+
+
+class MenuJuego(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        vbox = QVBoxLayout()
+        self.setLayout(vbox)
+
+        layout_timer = QHBoxLayout()
+        layout_timer.addWidget(QLabel("Tiempo", self))
+        self.tiempo_restante = p.TIEMPO_JUEGO
+        self.label_timer = QLabel(self.formatear_tiempo(self.tiempo_restante), self)
+        layout_timer.addWidget(self.label_timer)
+        vbox.addLayout(layout_timer)
+        self.timer_juego = QTimer(self)
+        self.timer_juego.setInterval(1000)
+        self.timer_juego.timeout.connect(self.actualizar_tiempo)
+
+        layout_vidas = QHBoxLayout()
+        layout_vidas.addWidget(QLabel("Vidas", self))
+        layout_vidas.addWidget(QLabel("3", self))
+        vbox.addLayout(layout_vidas)
+
+        btn_pausar = QPushButton()
+        vbox.addWidget(btn_pausar)
+
+    def actualizar_tiempo(self):
+        self.tiempo_restante -= 1
+        self.label_timer.setText(self.formatear_tiempo(self.tiempo_restante))
+
+        if self.tiempo_restante == 0:
+            self.timer_juego.stop()
+            print(self.tiempo_restante)
+            self.label_timer.setText("Game Over")
+
+    def formatear_tiempo(self, segundos):
+        minutos, segundos = divmod(segundos, 60)
+        return f"{minutos}:{segundos}"
+
+
+class VentanaJuego(QWidget):
+    senal_mover_personaje = pyqtSignal(int)
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.main_layout = QStackedLayout()
+        self.mapa = MapaJuego()
+        self.label_luigi = Luigi(self)
+        self.setLayout(self.mapa.mapa)
+        self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
+        self.fantasmas = {}
+        
+        self.main_layout.addWidget(self.mapa)
+        self.main_layout.addWidget(self.label_luigi)
+        self.main_layout.setCurrentWidget(self.label_luigi)
+
+    def iniciar(self, mapa, fantasmas):
+        self.cargar_mapa(mapa)
+        self.crear_fantasmas(fantasmas)
+        self.show()
+
+    def cargar_mapa(self, filas):
+        for fil, fila in enumerate(filas, 1):
+            for col, columna in enumerate(fila, 1):
+                if columna == p.MAPA_LUIGI:
+                    self.pos_player = (fil, col)
+                    self.label_luigi.move(fil * p.TAMANO_GRILLA, col * p.TAMANO_GRILLA)
+                elif columna in p.SPRITES_ELEMENTOS.keys():
+                    elemento = QLabel(self)
+                    elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[columna]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+                    self.mapa.mapa.addWidget(elemento, fil, col)
+
+    def crear_fantasmas(self, fantasmas):
+        for fantasma in fantasmas:
+            label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
+            self.fantasmas[fantasma.id] = label_fantasma
+
+    def mover_fantasmas(self, posiciones: dict):
+        for id, info in posiciones.items():
+            self.fantasmas[id].mover(*info)
+
+    def keyPressEvent(self, event):
+        if event.isAutoRepeat():
+            return
+        if self.label_luigi.current_direction == p.LUIGI_QUIETO:
+            key = event.key()
+            self.senal_mover_personaje.emit(key)
+
+    def mover_luigi(self, direccion, pos_final):
+        self.label_luigi.mover(direccion, pos_final)
+
+
+class VentanaCompleta(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        layout_principal = QHBoxLayout()
+        self.setLayout(layout_principal)
+
+        self.layout_menus = QStackedLayout()
+        layout_principal.addLayout(self.layout_menus)
+        self.menu_constructor = MenuConstructor(self)
+        self.layout_menus.addWidget(self.menu_constructor)
+        self.menu_juego = MenuJuego(self)
+        self.layout_menus.addWidget(self.menu_juego)
+
+        self.layout_mapas = QStackedLayout()
+        self.mapa = MapaJuego(self)
+        self.mapa_juego = VentanaJuego()
+        self.layout_mapas.addWidget(self.mapa)
+        self.layout_mapas.addWidget(self.mapa_juego)
+        layout_principal.addLayout(self.layout_mapas)
+
+    def jugar(self, mapa, fantasmas):
+        self.layout_menus.setCurrentWidget(self.menu_juego)
+        self.menu_juego.timer_juego.start()
+        self.layout_mapas.setCurrentWidget(self.mapa_juego)
+        self.mapa_juego.iniciar(mapa, fantasmas)
+
+    def keyPressEvent(self, event) -> None:
+        return self.menu_juego.keyPressEvent(event)
+
+
 if __name__ == '__main__':
     app = QApplication([])
-    ventana = VentanaJuego()
+    ventana = VentanaCompleta()
     ventana.show()
     sys.exit(app.exec())

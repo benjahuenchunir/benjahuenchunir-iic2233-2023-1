@@ -1,4 +1,4 @@
-from frontend import VentanaInicio, VentanaJuego
+from frontend import VentanaInicio, VentanaCompleta
 from backend import Juego
 from PyQt5.QtWidgets import QApplication
 import sys
@@ -9,22 +9,26 @@ class DCCazaFantasmas():
     def __init__(self):
         self.backend = Juego()
         self.ventana_inicio = VentanaInicio()
-        self.ventana_juego = VentanaJuego()
+        self.ventana_juego = VentanaCompleta()
 
     def conectar(self):
         self.ventana_inicio.senal_iniciar_juego.connect(
             self.backend.iniciar_juego)
-        self.ventana_juego.senal_mover_personaje.connect(
+        self.ventana_juego.mapa_juego.senal_mover_personaje.connect(
             self.backend.mover_personaje)
         self.backend.character.senal_animar_luigi.connect(
-            self.ventana_juego.mover_luigi)
+            self.ventana_juego.mapa_juego.mover_luigi)
         self.backend.senal_mover_fantasmas.connect(
-            self.ventana_juego.mover_fantasmas)
+            self.ventana_juego.mapa_juego.mover_fantasmas)
+        self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.jugar)
 
     def iniciar(self):
+        self.ventana_juego.show()
+    
+    def jugar(self):
         self.backend.crear_fantasmas([(200, 200)])
         self.backend.iniciar()
-        self.ventana_juego.iniciar(self.cargar_mapa(), self.backend.fantasmas)
+        self.ventana_juego.jugar(self.cargar_mapa(), self.backend.fantasmas)
 
     def cargar_mapa(self):
         with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:

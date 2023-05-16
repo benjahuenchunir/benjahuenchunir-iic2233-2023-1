@@ -5,15 +5,16 @@ LARGO_GRILLA = 16 # NO EDITAR
 TAMANO_GRILLA = 50
 ANCHO_MAPA = ANCHO_GRILLA - 2
 LARGO_MAPA = LARGO_GRILLA - 2
+TIEMPO_JUEGO = 110
 
 MIN_CARACTERES = 5
 MAX_CARACTERES = 10
 
 LUIGI_QUIETO = 'front'
 
-PATH_ELEMENTOS = 'sprites\Elementos'
 PATH_FONDOS = 'sprites\Fondos'
-PATH_PERSONAJES = 'sprites\Personajes'
+PATH_ELEMENTOS = 'sprites/Elementos/'
+PATH_ENTIDADES = 'sprites/Personajes/'
 
 NOMBRE_LUIGI = 'luigi'
 CANTIDAD_VIDAS = 3
@@ -44,9 +45,15 @@ MAPA_FANTASMA_V = 'V'
 MAPA_ESTRELLA = 'S'
 MAPA_ROCA = 'R'
 
-PATH_ELEMENTOS = 'sprites/Elementos'
-SPRITES_ELEMENTOS = {MAPA_BORDE: 'bordermap.png',
-                     MAPA_FUEGO: 'fire.png',
-                     MAPA_ESTRELLA: 'osstar.png',
-                     MAPA_ROCA: 'rock.png',
-                     MAPA_PARED: 'wall.png'}
+SPRITES_ELEMENTOS = {MAPA_BORDE: PATH_ELEMENTOS + 'bordermap.png',
+                     MAPA_FUEGO: PATH_ELEMENTOS + 'fire.png',
+                     MAPA_ESTRELLA: PATH_ELEMENTOS + 'osstar.png',
+                     MAPA_ROCA: PATH_ELEMENTOS + 'rock.png',
+                     MAPA_PARED: PATH_ELEMENTOS + 'wall.png'}
+SPRITES_ENTIDADES = {
+    MAPA_LUIGI: PATH_ENTIDADES + 'luigi_front.png',
+    MAPA_FANTASMA_H: PATH_ENTIDADES + 'white_ghost_rigth_1.png',
+    MAPA_FANTASMA_V: PATH_ENTIDADES + 'red_ghost_vertical_1.png',
+}
+
+FILTROS = {'Todos': SPRITES_ENTIDADES | SPRITES_ELEMENTOS, 'Bloques': SPRITES_ELEMENTOS, 'Entidades': SPRITES_ENTIDADES}
