@@ -63,6 +63,7 @@ class MapaJuego(QWidget):
         self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
         self.elemento_seleccionado = None
+        self.elementos_por_poner = p.MAXIMO_ELEMENTOS # TODO otra manera de manejar esto es con el label del list_wdget
         self.mapa.setSpacing(0)
         self.mapa.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mapa)
@@ -82,12 +83,13 @@ class MapaJuego(QWidget):
                     self.mapa.addWidget(fondo, fil, col)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        if self.elemento_seleccionado:
+        if self.elemento_seleccionado and self.elementos_por_poner[self.elemento_seleccionado]:
             x, y = event.x(), event.y()
             col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
             label = QLabel(self)
             label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][self.elemento_seleccionado]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
             self.mapa.addWidget(label, fil, col)
+            self.elementos_por_poner[self.elemento_seleccionado] -= 1
 
 
 class Fantasma(QLabel):
@@ -262,15 +264,14 @@ class MenuConstructor(QWidget):
 
     def filtrar_lista(self, texto):
         self.lista_elementos.clear()
-        for i, info in enumerate(p.FILTROS[texto].items()):
-            nombre_mapa, nombre_archivo = info
+        for nombre_mapa, nombre_archivo in p.FILTROS[texto].items():
             if p.MAPA_BORDE in p.FILTROS[texto] and nombre_archivo == p.FILTROS[texto][p.MAPA_BORDE]:
                 continue
             item1 = QListWidgetItem()
             item1.setWhatsThis(nombre_mapa)
             item1.setSizeHint(QSize(100, 80))
             self.lista_elementos.addItem(item1)
-            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, i))
+            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, p.MAXIMO_ELEMENTOS[nombre_mapa]))
 
 
 class MenuJuego(QWidget):
@@ -316,16 +317,12 @@ class VentanaJuego(QWidget):
 
     def __init__(self) -> None:
         super().__init__()
-        self.main_layout = QStackedLayout()
         self.mapa = MapaJuego()
         self.label_luigi = Luigi(self)
         self.setLayout(self.mapa.mapa)
+        self.label_luigi.raise_()
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         self.fantasmas = {}
-        
-        self.main_layout.addWidget(self.mapa)
-        self.main_layout.addWidget(self.label_luigi)
-        self.main_layout.setCurrentWidget(self.label_luigi)
 
     def iniciar(self, mapa, fantasmas):
         self.cargar_mapa(mapa)
@@ -346,10 +343,10 @@ class VentanaJuego(QWidget):
         for fantasma in fantasmas:
             label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
             self.fantasmas[fantasma.id] = label_fantasma
+            label_fantasma.show()
 
-    def mover_fantasmas(self, posiciones: dict):
-        for id, info in posiciones.items():
-            self.fantasmas[id].mover(*info)
+    def mover_fantasmas(self, id, *args):
+        self.fantasmas[id].mover(*args)
 
     def keyPressEvent(self, event):
         print(event.key())

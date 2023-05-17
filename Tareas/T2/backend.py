@@ -6,17 +6,22 @@ import parametros as p
 import os
 
 
-class Fantasma():
+class Fantasma(QObject):
     identificador = 0
-    
-    def __init__(self, tipo, x, y) -> None:
+
+    def __init__(self, tipo, x, y, senal_mover_fantasma, tiempo_movimiento) -> None:
+        super().__init__()
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
         self.tipo = tipo
         self.__x = x
         self.__y = y
+        self.senal_mover = senal_mover_fantasma
         self.nombre_direccion = random.choice(p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
         self.direccion = random.choice(p.DIRECCIONES_FANTASMA[self.nombre_direccion])
+        self.timer_mover = QTimer(self)
+        self.timer_mover.setInterval(tiempo_movimiento)
+        self.timer_mover.timeout.connect(self.mover)
 
     @property
     def x(self):
@@ -34,7 +39,7 @@ class Fantasma():
     def y(self, nuevo_y):
         self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
 
-    def mover(self):  # TODO verificar que no se salga
+    def mover(self):
         x, y = self.x, self.y
         if self.tipo == p.TIPO_HORIZONTAL:
             self.x += self.direccion
@@ -47,7 +52,7 @@ class Fantasma():
                 self.nombre_direccion = otra_direccion[0]
             self.direccion = -self.direccion
         else:
-            return {self.id: (self.nombre_direccion, self.x, self.y)}
+            self.senal_mover.emit(self.id, self.nombre_direccion, self.x, self.y)
 
 
 class Luigi(QObject):
@@ -98,31 +103,20 @@ class Luigi(QObject):
 
 
 class Juego(QObject):
-    senal_mover_fantasmas = pyqtSignal(dict)
-    
+    senal_mover_fantasma = pyqtSignal(int, str, int, int)
+
     def __init__(self):
         super().__init__()
         self.character = Luigi()
         self.fantasmas = []
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
         self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
-        self.timer_mov_fantasmas = QTimer(self)
-        self.timer_mov_fantasmas.setInterval(self.tiempo_movimiento_fantasmas * 1000)
-        self.timer_mov_fantasmas.timeout.connect(self.mover_fantasmas)
-
-    def iniciar(self):
-        self.timer_mov_fantasmas.start()
 
     def crear_fantasmas(self, posiciones):
         for posicion in posiciones:
-            fantasma = Fantasma(random.choice([p.TIPO_HORIZONTAL, p.TIPO_VERTICAL]), *posicion)
+            fantasma = Fantasma(random.choice([p.TIPO_HORIZONTAL, p.TIPO_VERTICAL]), *posicion, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000)
+            fantasma.timer_mover.start()
             self.fantasmas.append(fantasma)
-
-    def mover_fantasmas(self):
-        movimientos = {}
-        for fantasma in self.fantasmas:
-            movimientos.update(fantasma.mover())
-        self.senal_mover_fantasmas.emit(movimientos)
 
     def mover_personaje(self, key):
         self.character.move_character(key)

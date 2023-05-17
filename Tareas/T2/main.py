@@ -18,7 +18,7 @@ class DCCazaFantasmas():
             self.backend.mover_personaje)
         self.backend.character.senal_animar_luigi.connect(
             self.ventana_juego.mapa_juego.mover_luigi)
-        self.backend.senal_mover_fantasmas.connect(
+        self.backend.senal_mover_fantasma.connect(
             self.ventana_juego.mapa_juego.mover_fantasmas)
         self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.jugar)
 
@@ -26,8 +26,7 @@ class DCCazaFantasmas():
         self.ventana_juego.show()
     
     def jugar(self):
-        self.backend.crear_fantasmas([(200, 200)])
-        self.backend.iniciar()
+        self.backend.crear_fantasmas([(200, 200), (300, 500)])
         self.ventana_juego.jugar(self.cargar_mapa(), self.backend.fantasmas)
 
     def cargar_mapa(self):
