@@ -17,6 +17,7 @@ class Fantasma(QObject):
         self.__x = x
         self.__y = y
         self.senal_mover = senal_mover_fantasma
+        print(self.tipo)
         self.nombre_direccion = random.choice(p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
         self.direccion = random.choice(p.DIRECCIONES_FANTASMA[self.nombre_direccion])
         self.timer_mover = QTimer(self)
@@ -61,8 +62,8 @@ class Luigi(QObject):
     def __init__(self):
         super().__init__()
         self.vidas = p.CANTIDAD_VIDAS
-        self.__x = p.TAMANO_GRILLA
-        self.__y = p.TAMANO_GRILLA
+        self.__x = 0
+        self.__y = 0
 
     @property
     def x(self):
@@ -104,19 +105,40 @@ class Luigi(QObject):
 
 class Juego(QObject):
     senal_mover_fantasma = pyqtSignal(int, str, int, int)
+    senal_crear_luigi = pyqtSignal(int, int)
+    senal_crear_fantasma = pyqtSignal(int, str, str, int, int)
+    senal_crear_elemento = pyqtSignal(str, int, int)
+    senal_iniciar_juego = pyqtSignal()
 
     def __init__(self):
         super().__init__()
-        self.character = Luigi()
         self.fantasmas = []
+        self.character = Luigi()
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
         self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
+        
+    def cargar_mapa(self):
+        with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:
+            return f.readlines()
 
-    def crear_fantasmas(self, posiciones):
-        for posicion in posiciones:
-            fantasma = Fantasma(random.choice([p.TIPO_HORIZONTAL, p.TIPO_VERTICAL]), *posicion, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000)
-            fantasma.timer_mover.start()
-            self.fantasmas.append(fantasma)
+    def leer_mapa(self, filas):
+        for fil, fila in enumerate(filas):
+            for col, columna in enumerate(fila):
+                if columna == p.MAPA_LUIGI:
+                    self.character.x = col * p.TAMANO_GRILLA
+                    self.character.y = fil * p.TAMANO_GRILLA
+                    self.senal_crear_luigi.emit(self.character.x, self.character.y)
+                elif columna in p.SPRITES_ENTIDADES:
+                    self.crear_fantasma(columna, col * p.TAMANO_GRILLA, fil * p.TAMANO_GRILLA)
+                elif columna in p.SPRITES_ELEMENTOS.keys():
+                    self.senal_crear_elemento.emit(columna, col, fil)
+        self.senal_iniciar_juego.emit()
+
+    def crear_fantasma(self, tipo, x, y):
+        fantasma = Fantasma(p.FANTASMA_CONVERSION[tipo], x, y, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000)
+        fantasma.timer_mover.start()
+        self.fantasmas.append(fantasma)
+        self.senal_crear_fantasma.emit(fantasma.id, fantasma.tipo, fantasma.nombre_direccion, x, y)
 
     def mover_personaje(self, key):
         self.character.move_character(key)

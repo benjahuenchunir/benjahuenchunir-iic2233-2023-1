@@ -10,28 +10,30 @@ class DCCazaFantasmas():
         self.backend = Juego()
         self.ventana_inicio = VentanaInicio()
         self.ventana_juego = VentanaCompleta()
-
+        
+    def conectar_senales_mapa(self):
+        self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.ventana_juego.cargar_mapa)
+        self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
+        self.backend.senal_crear_luigi.connect(self.ventana_juego.mapa_juego.crear_luigi)
+        self.backend.senal_crear_fantasma.connect(self.ventana_juego.mapa_juego.crear_fantasma)
+        self.backend.senal_crear_elemento.connect(self.ventana_juego.mapa_juego.crear_elemento)
+        self.backend.senal_iniciar_juego.connect(self.ventana_juego.jugar)
+        
     def conectar(self):
-        self.ventana_inicio.senal_iniciar_juego.connect(
-            self.backend.iniciar_juego)
+        self.conectar_senales_mapa()
+        self.ventana_inicio.senal_iniciar_juego.connect(self.backend.iniciar_juego)
         self.ventana_juego.mapa_juego.senal_mover_personaje.connect(
             self.backend.mover_personaje)
-        self.backend.character.senal_animar_luigi.connect(
-            self.ventana_juego.mapa_juego.mover_luigi)
+        self.backend.character.senal_animar_luigi.connect(self.ventana_juego.mapa_juego.mover_luigi)
         self.backend.senal_mover_fantasma.connect(
             self.ventana_juego.mapa_juego.mover_fantasmas)
-        self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.jugar)
 
     def iniciar(self):
+        print('Llegue aca')
         self.ventana_juego.show()
     
     def jugar(self):
-        self.backend.crear_fantasmas([(200, 200), (300, 500)])
-        self.ventana_juego.jugar(self.cargar_mapa(), self.backend.fantasmas)
-
-    def cargar_mapa(self):
-        with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:
-            return f.readlines()
+        self.ventana_juego.jugar()
 
 
 if __name__ == '__main__':

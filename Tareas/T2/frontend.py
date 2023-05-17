@@ -62,6 +62,7 @@ class MapaJuego(QWidget):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
+        self.mapa_lista = [['-' for i in range(p.ANCHO_GRILLA)] for i in range(p.LARGO_GRILLA)]
         self.elemento_seleccionado = None
         self.elementos_por_poner = p.MAXIMO_ELEMENTOS # TODO otra manera de manejar esto es con el label del list_wdget
         self.mapa.setSpacing(0)
@@ -86,10 +87,13 @@ class MapaJuego(QWidget):
         if self.elemento_seleccionado and self.elementos_por_poner[self.elemento_seleccionado]:
             x, y = event.x(), event.y()
             col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
+            if col in (0, p.ANCHO_GRILLA - 1) or y in (0, p.LARGO_GRILLA - 1):
+                return
             label = QLabel(self)
             label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][self.elemento_seleccionado]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
             self.mapa.addWidget(label, fil, col)
             self.elementos_por_poner[self.elemento_seleccionado] -= 1
+            self.mapa_lista[fil][col] = self.elemento_seleccionado
 
 
 class Fantasma(QLabel):
@@ -107,7 +111,7 @@ class Fantasma(QLabel):
         self.timer.timeout.connect(self.animar)
         self.cargar_imagenes()
         self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-        
+
     def cargar_imagenes(self):
         for image in os.listdir(p.PATH_ENTIDADES):
             if self.tipo in image:
@@ -130,7 +134,7 @@ class Fantasma(QLabel):
 
 
 class Luigi(QLabel):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, x, y, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.images_luigi = defaultdict(list)
         self.current_direction = p.LUIGI_QUIETO
@@ -142,7 +146,7 @@ class Luigi(QLabel):
         self.timer.setInterval(40)
         self.timer.timeout.connect(self.animar_luigi)
         self.cargar_imagenes_luigi()
-        self.setGeometry(0, 0, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
         
     def cargar_imagenes_luigi(self):
         for image in os.listdir(p.PATH_ENTIDADES):
@@ -166,77 +170,7 @@ class Luigi(QLabel):
         self.animar_luigi()
 
 
-class VentanaJuego(QWidget):
-    senal_mover_personaje = pyqtSignal(int)
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.mapa = QGridLayout()
-        self.mapa.setSpacing(0)
-        self.mapa.setContentsMargins(0, 0, 0, 0)
-        self.mapa = MapaJuego()
-        self.pos_player = (0, 0)
-        self.setLayout(self.mapa)
-        self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
-        
-        self.fantasmas = {}
-
-    def iniciar(self, mapa, fantasmas):
-        self.cargar_mapa(mapa)
-        self.label_luigi = Luigi(self)
-        print(list(map(lambda x: int(x*p.TAMANO_GRILLA), self.pos_player)))
-        self.label_luigi.move(*list(map(lambda x: int(x*p.TAMANO_GRILLA), self.pos_player)))
-        self.crear_fantasmas(fantasmas)
-        self.show()
-        
-    def cargar_mapa(self, filas):
-        for fil in range(p.LARGO_GRILLA):
-            for col in range(p.ANCHO_GRILLA):
-                if fil == 0 or fil == p.LARGO_GRILLA - 1 or col == 0 or col == p.ANCHO_GRILLA - 1:
-                    borde = QLabel(self)
-                    borde.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_BORDE]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-                    self.mapa.addWidget(borde, fil, col)
-                else:
-                    fondo = QLabel(self)
-                    fondo.setStyleSheet(f"""
-                            background-color: #2D2C2C;
-                            border: 2px solid #242323;
-                        """)
-                    fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-                    self.mapa.addWidget(fondo, fil, col)
-        for fil, fila in enumerate(filas, 1):
-            for col, columna in enumerate(fila, 1):
-                if columna == p.MAPA_LUIGI:
-                    self.pos_player = (fil, col)
-                    print(self.pos_player)
-                elif columna in p.SPRITES_ELEMENTOS.keys():
-                    elemento = QLabel(self)
-                    elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[columna]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-                    self.mapa.addWidget(elemento, fil, col)
-    
-    def crear_fantasmas(self, fantasmas):
-        for fantasma in fantasmas:
-            label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
-            self.fantasmas[fantasma.id] = label_fantasma
-
-    def mover_fantasmas(self, posiciones: dict):
-        for id, info in posiciones.items():
-            self.fantasmas[id].mover(*info)
-
-    def keyPressEvent(self, event):
-        if event.isAutoRepeat():
-            return
-        if self.label_luigi.current_direction == p.LUIGI_QUIETO:
-            key = event.key()
-            self.senal_mover_personaje.emit(key)
-
-    def mover_luigi(self, direccion, pos_final):
-        self.label_luigi.mover(direccion, pos_final)
-
-
 class MenuConstructor(QWidget):
-    senal_iniciar_juego = pyqtSignal()
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         menu_constructor = QVBoxLayout()
@@ -292,7 +226,7 @@ class MenuJuego(QWidget):
 
         layout_vidas = QHBoxLayout()
         layout_vidas.addWidget(QLabel("Vidas", self))
-        layout_vidas.addWidget(QLabel("3", self))
+        layout_vidas.addWidget(QLabel(str(p.CANTIDAD_VIDAS), self))
         vbox.addLayout(layout_vidas)
 
         btn_pausar = QPushButton()
@@ -301,10 +235,8 @@ class MenuJuego(QWidget):
     def actualizar_tiempo(self):
         self.tiempo_restante -= 1
         self.label_timer.setText(self.formatear_tiempo(self.tiempo_restante))
-
         if self.tiempo_restante == 0:
             self.timer_juego.stop()
-            print(self.tiempo_restante)
             self.label_timer.setText("Game Over")
 
     def formatear_tiempo(self, segundos):
@@ -318,38 +250,32 @@ class VentanaJuego(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.mapa = MapaJuego()
-        self.label_luigi = Luigi(self)
         self.setLayout(self.mapa.mapa)
-        self.label_luigi.raise_()
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         self.fantasmas = {}
 
-    def iniciar(self, mapa, fantasmas):
-        self.cargar_mapa(mapa)
-        self.crear_fantasmas(fantasmas)
+    def iniciar(self):
         self.show()
 
-    def cargar_mapa(self, filas):
-        for fil, fila in enumerate(filas, 1):
-            for col, columna in enumerate(fila, 1):
-                if columna == p.MAPA_LUIGI:
-                    self.label_luigi.move(fil * p.TAMANO_GRILLA, col * p.TAMANO_GRILLA)
-                elif columna in p.SPRITES_ELEMENTOS.keys():
-                    elemento = QLabel(self)
-                    elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[columna]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-                    self.mapa.mapa.addWidget(elemento, fil, col)
+    def crear_luigi(self, x, y):
+        self.label_luigi = Luigi(x, y, self)
+        print(self.label_luigi.pos())
+        self.label_luigi.show()
 
-    def crear_fantasmas(self, fantasmas):
-        for fantasma in fantasmas:
-            label_fantasma = Fantasma(fantasma.tipo, fantasma.nombre_direccion, fantasma.x, fantasma.y, self)
-            self.fantasmas[fantasma.id] = label_fantasma
-            label_fantasma.show()
+    def crear_fantasma(self, id, tipo, nombre_direccion, x, y):
+        label_fantasma = Fantasma(tipo, nombre_direccion, x, y, self)
+        self.fantasmas[id] = label_fantasma
+        label_fantasma.show()
+
+    def crear_elemento(self, tipo, fil, col):
+        elemento = QLabel(self)
+        elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+        self.mapa.mapa.addWidget(elemento, fil, col)
 
     def mover_fantasmas(self, id, *args):
         self.fantasmas[id].mover(*args)
 
     def keyPressEvent(self, event):
-        print(event.key())
         if event.isAutoRepeat():
             return
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
@@ -361,6 +287,8 @@ class VentanaJuego(QWidget):
 
 
 class VentanaCompleta(QWidget):
+    senal_cargar_mapa = pyqtSignal(list)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.move(0, 0)
@@ -380,19 +308,21 @@ class VentanaCompleta(QWidget):
         self.layout_mapas.addWidget(self.mapa)
         self.layout_mapas.addWidget(self.mapa_juego)
         layout_principal.addLayout(self.layout_mapas)
-        
+
         self.menu_constructor.lista_elementos.itemSelectionChanged.connect(self.cambiar_seleccion_elemento)
 
-    def jugar(self, mapa, fantasmas):
+    def cargar_mapa(self):
+        print('Cargando mapa')
+        self.senal_cargar_mapa.emit(self.mapa.mapa_lista)
+
+    def jugar(self):
         self.layout_menus.setCurrentWidget(self.menu_juego)
         self.menu_juego.timer_juego.start()
         self.layout_mapas.setCurrentWidget(self.mapa_juego)
-        self.mapa_juego.iniciar(mapa, fantasmas)
 
     def keyPressEvent(self, event) -> None:
         super().keyPressEvent(event)
         self.mapa_juego.keyPressEvent(event)
-        #event.key()
         
     def cambiar_seleccion_elemento(self):
         self.mapa.elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
