@@ -267,7 +267,7 @@ class VentanaJuego(QWidget):
         self.fantasmas[id] = label_fantasma
         label_fantasma.show()
 
-    def crear_elemento(self, tipo, fil, col):
+    def crear_elemento(self, tipo, col, fil):
         elemento = QLabel(self)
         elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
         self.mapa.mapa.addWidget(elemento, fil, col)
@@ -312,7 +312,6 @@ class VentanaCompleta(QWidget):
         self.menu_constructor.lista_elementos.itemSelectionChanged.connect(self.cambiar_seleccion_elemento)
 
     def cargar_mapa(self):
-        print('Cargando mapa')
         self.senal_cargar_mapa.emit(self.mapa.mapa_lista)
 
     def jugar(self):
