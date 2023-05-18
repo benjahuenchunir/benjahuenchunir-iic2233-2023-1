@@ -58,17 +58,29 @@ class Equipo:
         return max(dif_velocidades, key=dif_velocidades.get)
 
     def peor_conocido(self, id_jugador: int) -> Jugador:
-        '''Retorna al amigo con la mayor diferencia de velocidad.'''
-        dif_velocidades = {}
+        visitados = []
+        queue = deque([id_jugador])
+
+        while len(queue) > 0:
+            print(queue)
+            id_conocido = queue.popleft()
+            jugador = self.jugadores[id_conocido]
+
+            if jugador in visitados:
+                continue
+
+            visitados.append(jugador)
+            print(self.dict_adyacencia)
+            for vecino in self.dict_adyacencia[id_conocido]:
+                if vecino not in visitados:
+                    queue.append(vecino)
+
         jugador = self.jugadores[id_jugador]
-        for id_conocido in self.dict_adyacencia[id_jugador]:
-            conocido = self.jugadores[id_conocido]
-            dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
-        for id_conocido, conocido in self.jugadores.items():
-            if id_jugador in self.dict_adyacencia[id_conocido]:
+        dif_velocidades = {}
+        for conocido in visitados:
+            if conocido != jugador:
                 dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
-        print('aaa', dif_velocidades)
-        print(len(dif_velocidades))
+        print(visitados)
         if len(dif_velocidades) == 0:
             return None
         return max(dif_velocidades, key=dif_velocidades.get)
@@ -102,6 +114,7 @@ class Equipo:
         queue = deque([id_jugador_2])
 
         while len(queue) > 0:
+            print(id_jugador)
             id_jugador = queue.popleft()
             nivel = distancias2[id_jugador] + 1
 
@@ -114,7 +127,9 @@ class Equipo:
                 distancias[id_vecino] = nivel
                 if id_vecino not in visitados:
                     queue.append(id_vecino)
-        
+
+        print(distancias)
+        print(distancias2)
         distancia1 = distancias.get(id_jugador_2, None)
         distancia2 = distancias2.get(id_jugador_1, None)
 
@@ -171,7 +186,10 @@ if __name__ == '__main__':
     for idj, vecinos in adyacencia.items():
         equipo.agregar_vecinos(id_jugador=idj, vecinos=vecinos)
     
-    print(equipo.distancia(0, 9))
+    #print(equipo.peor_conocido(4))
+    print(equipo.distancia(7, 7))
+    print(equipo.distancia(7, 8))
+    #print(equipo.peor_conocido(9))
     '''print(f'El mejor amigo de Alba es {equipo.mejor_amigo(1)}') 
     print(f'El peor compañero de Alonso es {equipo.peor_compañero(0)}')
     print(f'El peor amigo de Alicia es {equipo.peor_compañero(2)}')
