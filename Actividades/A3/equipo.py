@@ -14,7 +14,7 @@ class Equipo:
     def __init__(self) -> None:
         self.jugadores = dict()
         self.dict_adyacencia = defaultdict(set)
-    
+
     def agregar_jugador(self, id_jugador: int, jugador: Jugador) -> bool:
         '''Agrega un nuevo jugador al equipo.'''
         if id_jugador in self.jugadores:
@@ -62,7 +62,6 @@ class Equipo:
         queue = deque([id_jugador])
 
         while len(queue) > 0:
-            print(queue)
             id_conocido = queue.popleft()
             jugador = self.jugadores[id_conocido]
 
@@ -70,7 +69,6 @@ class Equipo:
                 continue
 
             visitados.append(jugador)
-            print(self.dict_adyacencia)
             for vecino in self.dict_adyacencia[id_conocido]:
                 if vecino not in visitados:
                     queue.append(vecino)
@@ -80,7 +78,6 @@ class Equipo:
         for conocido in visitados:
             if conocido != jugador:
                 dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
-        print(visitados)
         if len(dif_velocidades) == 0:
             return None
         return max(dif_velocidades, key=dif_velocidades.get)
@@ -114,7 +111,6 @@ class Equipo:
         queue = deque([id_jugador_2])
 
         while len(queue) > 0:
-            print(id_jugador)
             id_jugador = queue.popleft()
 
             if id_jugador in visitados:
@@ -128,8 +124,6 @@ class Equipo:
                 if id_vecino not in visitados:
                     queue.append(id_vecino)
 
-        print(distancias)
-        print(distancias2)
         distancia1 = distancias.get(id_jugador_2, None)
         distancia2 = distancias2.get(id_jugador_1, None)
 
@@ -147,30 +141,6 @@ class Equipo:
 if __name__ == '__main__':
     equipo = Equipo()
     jugadores = {
-            0: Jugador('Alan', 2),
-            1: Jugador('Alberto', 3),
-            2: Jugador('Alejandra', 5),
-            3: Jugador('Alex', 8),
-            4: Jugador('Alonso', 13),
-            5: Jugador('Alba', 21),
-            6: Jugador('Alicia', 34),
-            7: Jugador('Alfredo', 55),
-            8: Jugador('Alma', 16),
-            9: Jugador('Aldo', 89)
-    }
-    adyacencia = {
-        0: {1},
-        1: {0, 2, 3},
-        2: {1, 3},
-        3: {1},
-        4: {5},
-        5: {4, 6},
-        6: {4, 5},
-        7: {8},
-        8: {9},
-        9: set()
-    }
-    '''jugadores = {
         0: Jugador('Alonso', 1),
         1: Jugador('Alba', 3),
         2: Jugador('Alicia', 6),
@@ -180,21 +150,15 @@ if __name__ == '__main__':
         0: [1],
         1: [0, 2],
         2: [1],
-    }'''
+    }
     for idj, jugador in jugadores.items():
         equipo.agregar_jugador(id_jugador=idj, jugador=jugador)
     for idj, vecinos in adyacencia.items():
         equipo.agregar_vecinos(id_jugador=idj, vecinos=vecinos)
-    
-    #print(equipo.peor_conocido(4))
-    print(equipo.distancia(0, 3))
-    print(equipo.distancia(7, 7))
-    print(equipo.distancia(7, 8))
-    #print(equipo.peor_conocido(9))
-    '''print(f'El mejor amigo de Alba es {equipo.mejor_amigo(1)}') 
+
+    print(f'El mejor amigo de Alba es {equipo.mejor_amigo(1)}') 
     print(f'El peor compañero de Alonso es {equipo.peor_compañero(0)}')
     print(f'El peor amigo de Alicia es {equipo.peor_compañero(2)}')
     print(f'El peor conocido de Alicia es {equipo.peor_conocido(2)}')
     print(f'La distancia entre Alicia y Alonso es {equipo.distancia(2, 0)}')
-    print(f'La distancia entre Alba y Alex es {equipo.distancia(1, 3)}')'''
-    
+    print(f'La distancia entre Alba y Alex es {equipo.distancia(1, 3)}')
