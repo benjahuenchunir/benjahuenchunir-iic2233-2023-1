@@ -95,12 +95,12 @@ class Equipo:
 
         while len(queue) > 0:
             id_jugador = queue.popleft()
-            nivel = distancias[id_jugador] + 1
 
             if id_jugador in visitados:
                 continue
 
             visitados.append(id_jugador)
+            nivel = distancias[id_jugador] + 1
             id_vecinos = self.dict_adyacencia[id_jugador]
             for id_vecino in id_vecinos:
                 distancias[id_vecino] = nivel
@@ -116,15 +116,15 @@ class Equipo:
         while len(queue) > 0:
             print(id_jugador)
             id_jugador = queue.popleft()
-            nivel = distancias2[id_jugador] + 1
 
             if id_jugador in visitados:
                 continue
 
             visitados.append(id_jugador)
+            nivel = distancias2[id_jugador] + 1
             id_vecinos = self.dict_adyacencia[id_jugador]
             for id_vecino in id_vecinos:
-                distancias[id_vecino] = nivel
+                distancias2[id_vecino] = nivel
                 if id_vecino not in visitados:
                     queue.append(id_vecino)
 
@@ -187,6 +187,7 @@ if __name__ == '__main__':
         equipo.agregar_vecinos(id_jugador=idj, vecinos=vecinos)
     
     #print(equipo.peor_conocido(4))
+    print(equipo.distancia(0, 3))
     print(equipo.distancia(7, 7))
     print(equipo.distancia(7, 8))
     #print(equipo.peor_conocido(9))
