@@ -37,28 +37,110 @@ class Equipo:
 
     def mejor_amigo(self, id_jugador: int) -> Jugador:
         '''Retorna al vecino con la velocidad más similar.'''
+        if len(self.dict_adyacencia[id_jugador]) == 0:
+            return None
         jugador = self.jugadores[id_jugador]
         dif_velocidades = {}
         for id_amigo in self.dict_adyacencia[id_jugador]:
             amigo = self.jugadores[id_amigo]
             dif_velocidades[amigo] = abs(jugador.velocidad - amigo.velocidad)
-        return min(dif_velocidades, key=dif_velocidades.get())
+        print(dif_velocidades)
+        return min(dif_velocidades, key=dif_velocidades.get)
 
     def peor_compañero(self, id_jugador: int) -> Jugador:
         '''Retorna al compañero de equipo con la mayor diferencia de velocidad.'''
+        if len(self.jugadores) == 1:
+            return None
         dif_velocidades = {}
-        
+        jugador = self.jugadores[id_jugador]
+        for conocido in self.jugadores.values():
+            if conocido != jugador:
+                dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
+        print(dif_velocidades)
+        return max(dif_velocidades, key=dif_velocidades.get)
 
     def peor_conocido(self, id_jugador: int) -> Jugador:
         '''Retorna al amigo con la mayor diferencia de velocidad.'''
-        # Completar
-        return "COMPLETAR"
-    
+        dif_velocidades = {}
+        jugador = self.jugadores[id_jugador]
+        for id_conocido in self.dict_adyacencia[id_jugador]:
+            conocido = self.jugadores[id_conocido]
+            dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
+        for id_conocido, conocido in self.jugadores.items():
+            if id_jugador in self.dict_adyacencia[id_conocido]:
+                dif_velocidades[conocido] = abs(jugador.velocidad - conocido.velocidad)
+        if len(dif_velocidades) == 0:
+            return None
+        print(dif_velocidades)
+        return max(dif_velocidades, key=dif_velocidades.get)
+
     def distancia(self, id_jugador_1: int, id_jugador_2: int) -> int:
         '''Retorna el tamaño del camino más corto entre los jugadores.'''
-        # Completar
-        return "COMPLETAR"
-    
+        nivel = 0
+        distancias = {id_jugador_1: 0}
+
+        visitados = []
+        queue = deque([id_jugador_1])
+
+        while len(queue) > 0:
+            id_jugador = queue.popleft()
+            nivel = distancias[id_jugador] + 1
+            print(f'Nivel: {nivel}')
+            print('Las distancias son', distancias)
+            print(f'El id actual es: {id_jugador}')
+
+            if id_jugador in visitados:
+                continue
+
+            visitados.append(id_jugador)
+            id_vecinos = self.dict_adyacencia[id_jugador]
+            print(f'Sus vecinos son: {id_vecinos}')
+            for id_vecino in id_vecinos:
+                distancias[id_vecino] = nivel
+                if id_vecino not in visitados:
+                    queue.append(id_vecino)
+                print('aaaa', distancias)
+                
+        nivel = 0
+        distancias2 = {id_jugador_2: 0}
+
+        visitados = []
+        queue = deque([id_jugador_2])
+
+        while len(queue) > 0:
+            id_jugador = queue.popleft()
+            nivel = distancias2[id_jugador] + 1
+            print(f'Nivel: {nivel}')
+            print('Las distancias son', distancias)
+            print(f'El id actual es: {id_jugador}')
+
+            if id_jugador in visitados:
+                continue
+
+            visitados.append(id_jugador)
+            id_vecinos = self.dict_adyacencia[id_jugador]
+            print(f'Sus vecinos son: {id_vecinos}')
+            for id_vecino in id_vecinos:
+                distancias[id_vecino] = nivel
+                if id_vecino not in visitados:
+                    queue.append(id_vecino)
+                print('aaaa', distancias)
+        
+        distancia1 = distancias.get(id_jugador_2, None)
+        distancia2 = distancias.get(id_jugador_1, None)
+        print(distancia1)
+        print(distancia2)
+        
+        if distancia1 is None and distancia2 is None:
+            return -1
+        elif distancia1 is None:
+            return distancia2
+        elif distancia2 is None:
+            return distancia1
+        elif distancia1 < distancia2:
+            return distancia1
+        else:
+            return distancia2
 
 if __name__ == '__main__':
     equipo = Equipo()
@@ -81,6 +163,7 @@ if __name__ == '__main__':
     print(f'El mejor amigo de Alba es {equipo.mejor_amigo(1)}') 
     print(f'El peor compañero de Alonso es {equipo.peor_compañero(0)}')
     print(f'El peor amigo de Alicia es {equipo.peor_compañero(2)}')
+    #print(f'El peor conocido de Alicia es {equipo.peor_conocido(2)}')
     print(f'La distancia entre Alicia y Alonso es {equipo.distancia(2, 0)}')
     print(f'La distancia entre Alba y Alex es {equipo.distancia(1, 3)}')
     
