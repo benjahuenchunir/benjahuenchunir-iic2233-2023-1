@@ -76,18 +76,21 @@ class ElementoConstructor(QWidget):
         self.label_elemento.setPixmap(QPixmap(path_imagen).scaled(64, 64, Qt.KeepAspectRatio) )
         hbox.addWidget(self.label_elemento)
 
-        self.label_cantidad = QLabel(f'({cantidad})', self)
+        self.label_cantidad = QLabel(cantidad, self)
         self.label_cantidad.setFont(QFont('Arial', 16))
         hbox.addWidget(self.label_cantidad)
 
+    def actualizar_cantidad(self, cantidad):
+        self.label_cantidad.setText(cantidad)
+
 
 class MapaJuego(QWidget):
+    senal_on_click = pyqtSignal(int, int)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
-        self.mapa_lista = [['-' for i in range(p.ANCHO_GRILLA)] for i in range(p.LARGO_GRILLA)]
-        self.elemento_seleccionado = None
         self.elementos_por_poner = p.MAXIMO_ELEMENTOS # TODO otra manera de manejar esto es con el label del list_wdget
         self.mapa.setSpacing(0)
         self.mapa.setContentsMargins(0, 0, 0, 0)
@@ -108,17 +111,12 @@ class MapaJuego(QWidget):
                     self.mapa.addWidget(fondo, fil, col)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        if self.elemento_seleccionado and self.elementos_por_poner[self.elemento_seleccionado]:
-            x, y = event.x(), event.y()
-            col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
-            if col in (0, p.ANCHO_GRILLA - 1) or y in (0, p.LARGO_GRILLA - 1):
-                return
-            label = QLabel(self)
-            label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][self.elemento_seleccionado]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-            self.mapa.addWidget(label, fil, col)
-            self.elementos_por_poner[self.elemento_seleccionado] -= 1
-            self.mapa_lista[fil][col] = self.elemento_seleccionado
+        self.senal_on_click.emit(event.x(), event.y())
 
+    def colocar_elemento(self, elemento, fil, col):
+        label = QLabel(self)
+        label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][elemento]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+        self.mapa.addWidget(label, fil, col)
 
 class Fantasma(QLabel):
     def __init__(self, tipo, direccion, x, y, *args, **kwargs):
@@ -229,8 +227,13 @@ class MenuConstructor(QWidget):
             item1.setWhatsThis(nombre_mapa)
             item1.setSizeHint(QSize(100, 80))
             self.lista_elementos.addItem(item1)
-            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, p.MAXIMO_ELEMENTOS[nombre_mapa]))
+            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, str(p.MAXIMO_ELEMENTOS[nombre_mapa])))
 
+    def actualizar_cantidad_elemento(self, elemento, cantidad):
+        for i in range(self.lista_elementos.count()):
+            item = self.lista_elementos.item(i)
+            if item.whatsThis() == elemento:
+                self.lista_elementos.itemWidget(item).actualizar_cantidad(cantidad)
 
 class MenuJuego(QWidget):
     def __init__(self, *args, **kwargs):
@@ -247,7 +250,7 @@ class MenuJuego(QWidget):
         layout_vidas = QHBoxLayout()
         layout_vidas.addWidget(QLabel("Vidas", self))
         self.label_vidas = QLabel(str(p.CANTIDAD_VIDAS), self)
-        layout_vidas.addWidget()
+        layout_vidas.addWidget(self.label_vidas)
         vbox.addLayout(layout_vidas)
 
         btn_pausar = QPushButton()
@@ -301,8 +304,10 @@ class VentanaJuego(QWidget):
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)
 
+
 class VentanaCompleta(QStackedWidget):
     senal_cargar_mapa = pyqtSignal(list)
+    senal_colocar_elemento_constructor = pyqtSignal(str, int, int)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -326,20 +331,20 @@ class VentanaCompleta(QStackedWidget):
         self.widget_juego.setLayout(self.layout_juego)
         self.addWidget(self.widget_juego)
 
-        self.menu_constructor.lista_elementos.itemSelectionChanged.connect(self.cambiar_seleccion_elemento)
-
     def cargar_mapa_constructor(self):
         self.senal_cargar_mapa.emit(self.mapa.mapa_lista)
 
     def jugar(self):
+        print('Actualizand')
         self.setCurrentWidget(self.widget_juego)
 
     def keyPressEvent(self, event) -> None:
         super().keyPressEvent(event)
         self.mapa_juego.keyPressEvent(event)
 
-    def cambiar_seleccion_elemento(self):
-        self.mapa.elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
+    def emitir_colocar_elemento(self, x, y):
+        elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
+        self.senal_colocar_elemento_constructor.emit(elemento_seleccionado, x, y)
 
     def limpiar_nivel(self):
         self.mapa_juego.setParent(None)

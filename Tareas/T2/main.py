@@ -11,6 +11,7 @@ class DCCazaFantasmas():
         self.backend = Juego()
         self.ventana_inicio = VentanaInicio()
         self.ventana_juego = VentanaCompleta()
+        self.conectar()
         self.conectar_señales_ventanta_inicio()
         self.conectar_senales_ventana_constructor()
         self.conectar_senales_ventana_juego()
@@ -26,10 +27,20 @@ class DCCazaFantasmas():
         self.backend.senal_iniciar_juego.connect(self.ventana_juego.jugar)
 
     def conectar_senales_ventana_constructor(self):
-        self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.ventana_juego.cargar_mapa_constructor)
+        self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(self.backend.iniciar_juego_constructor)
+        self.backend.senal_iniciar_juego_constructor.connect(self.ventana_juego.jugar)
+        self.ventana_juego.mapa.senal_on_click.connect(self.ventana_juego.emitir_colocar_elemento)
+        self.ventana_juego.senal_colocar_elemento_constructor.connect(self.backend.colocar_elemento)
+        self.backend.senal_colocar_elemento.connect(self.ventana_juego.mapa.colocar_elemento)
+        self.backend.senal_actualizar_cantidad_elemento.connect(self.ventana_juego.menu_constructor.actualizar_cantidad_elemento)
 
     def conectar_senales_ventana_juego(self):
         self.backend.senal_actualizar_tiempo.connect(self.ventana_juego.menu_juego.actualizar_tiempo)
+        self.ventana_juego.mapa_juego.senal_mover_personaje.connect(
+            self.backend.mover_personaje)
+        self.backend.character.senal_animar_luigi.connect(self.ventana_juego.mapa_juego.mover_luigi)
+        self.backend.senal_mover_fantasma.connect(
+            self.ventana_juego.mapa_juego.mover_fantasmas)
 
     def conectar_senales_mapa(self):
         self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
@@ -39,16 +50,11 @@ class DCCazaFantasmas():
 
     def conectar(self):
         self.conectar_senales_mapa()
-        self.ventana_juego.mapa_juego.senal_mover_personaje.connect(
-            self.backend.mover_personaje)
-        self.backend.character.senal_animar_luigi.connect(self.ventana_juego.mapa_juego.mover_luigi)
-        self.backend.senal_mover_fantasma.connect(
-            self.ventana_juego.mapa_juego.mover_fantasmas)
         self.backend.senal_limpiar_nivel.connect(self.ventana_juego.limpiar_nivel)
 
     def iniciar(self):
         self.backend.iniciar_ventana_inicio()
-    
+
     def jugar(self):
         self.ventana_juego.jugar()
 
@@ -62,7 +68,6 @@ if __name__ == '__main__':
 
     app = QApplication([])
     game = DCCazaFantasmas()
-    game.conectar()
     game.iniciar()
 
     sys.exit(app.exec())

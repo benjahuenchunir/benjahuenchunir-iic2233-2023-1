@@ -9,11 +9,12 @@ import time
 class Fantasma(QObject):
     identificador = 0
 
-    def __init__(self, tipo, x, y, senal_mover_fantasma, tiempo_movimiento) -> None:
+    def __init__(self, tipo, x, y, senal_mover_fantasma, tiempo_movimiento, mapa) -> None:
         super().__init__()
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
         self.tipo = tipo
+        self.mapa = mapa
         self.__x = x
         self.__y = y
         self.senal_mover = senal_mover_fantasma
@@ -30,7 +31,9 @@ class Fantasma(QObject):
 
     @x.setter
     def x(self, nuevo_x):
-        self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
+        col, fil = nuevo_x // p.TAMANO_GRILLA, self.y // p.TAMANO_GRILLA
+        if not self.mapa[fil][col] == p.MAPA_PARED:
+            self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
 
     @property
     def y(self):
@@ -38,7 +41,9 @@ class Fantasma(QObject):
 
     @y.setter
     def y(self, nuevo_y):
-        self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
+        col, fil = self.x // p.TAMANO_GRILLA, nuevo_y // p.TAMANO_GRILLA
+        if not self.mapa[fil][col] == p.MAPA_PARED:
+            self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
 
     def mover(self):
         x, y = self.x, self.y
@@ -52,6 +57,7 @@ class Fantasma(QObject):
                 otra_direccion.remove(self.nombre_direccion)
                 self.nombre_direccion = otra_direccion[0]
             self.direccion = -self.direccion
+            self.mover()
         else:
             self.senal_mover.emit(self.id, self.nombre_direccion, self.x, self.y)
 
@@ -64,6 +70,7 @@ class Luigi(QObject):
         self.vidas = p.CANTIDAD_VIDAS
         self.__x = 0
         self.__y = 0
+        self.mapa = None
 
     @property
     def x(self):
@@ -71,7 +78,9 @@ class Luigi(QObject):
 
     @x.setter
     def x(self, nuevo_x):
-        self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
+        col, fil = nuevo_x // p.TAMANO_GRILLA, self.y // p.TAMANO_GRILLA
+        if not self.mapa[fil][col] == p.MAPA_PARED:
+            self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
 
     @property
     def y(self):
@@ -79,7 +88,9 @@ class Luigi(QObject):
 
     @y.setter
     def y(self, nuevo_y):
-        self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
+        col, fil = self.x // p.TAMANO_GRILLA, nuevo_y // p.TAMANO_GRILLA
+        if not self.mapa[fil][col] == p.MAPA_PARED:
+            self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
 
     def move_character(self, key):
         x, y = self.x, self.y
@@ -108,6 +119,10 @@ class Juego(QObject):
     senal_nombre_invalido = pyqtSignal(str)
     senal_iniciar_constructor = pyqtSignal()
     senal_iniciar_juego = pyqtSignal()
+    senal_iniciar_juego_constructor = pyqtSignal()
+
+    senal_colocar_elemento = pyqtSignal(str, int, int)
+    senal_actualizar_cantidad_elemento = pyqtSignal(str, str)
 
     senal_crear_luigi = pyqtSignal(int, int)
     senal_crear_fantasma = pyqtSignal(int, str, str, int, int)
@@ -128,12 +143,24 @@ class Juego(QObject):
         self.timer_colision_fantasmas = QTimer(self)
         self.timer_colision_fantasmas.setInterval(self.tiempo_movimiento_fantasmas)
         self.timer_colision_fantasmas.timeout.connect(self.verificar_colision)
-        self.mapa = None
+
+        self.mapa = [[p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)] for i in range(p.LARGO_GRILLA)]
+        self.cantidad_elementos = p.MAXIMO_ELEMENTOS
 
         self.tiempo_restante = p.TIEMPO_JUEGO
         self.timer_juego = QTimer(self)
         self.timer_juego.setInterval(1000)
         self.timer_juego.timeout.connect(self.actualizar_tiempo)
+
+    def colocar_elemento(self, elemento, x, y):
+        col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
+        if elemento and self.cantidad_elementos[elemento]:
+            if col in (0, p.ANCHO_GRILLA - 1) or fil in (0, p.LARGO_GRILLA - 1) or self.mapa[fil][col] != p.MAPA_VACIO:
+                return
+            self.cantidad_elementos[elemento] -= 1
+            self.mapa[fil][col] = elemento
+            self.senal_actualizar_cantidad_elemento.emit(elemento, str(self.cantidad_elementos[elemento]))
+            self.senal_colocar_elemento.emit(elemento, fil, col)
 
     def iniciar_ventana_inicio(self):
         mapas = []
@@ -155,10 +182,18 @@ class Juego(QObject):
             self.senal_iniciar_constructor.emit()
 
     def iniciar_juego(self, mapa):
+        self.mapa = mapa
         self.leer_mapa(mapa)
         self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
         self.timer_juego.start()
         self.senal_iniciar_juego.emit()
+
+    def iniciar_juego_constructor(self):
+        self.character.mapa = self.mapa
+        self.leer_mapa(self.mapa)
+        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
+        self.timer_juego.start()
+        self.senal_iniciar_juego_constructor.emit()
 
     def leer_mapa(self, filas):
         for fil, fila in enumerate(filas):
@@ -173,7 +208,7 @@ class Juego(QObject):
                     self.senal_crear_elemento.emit(columna, col, fil)
 
     def crear_fantasma(self, tipo, x, y):
-        fantasma = Fantasma(p.FANTASMA_CONVERSION[tipo], x, y, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000)
+        fantasma = Fantasma(p.FANTASMA_CONVERSION[tipo], x, y, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000, self.mapa)
         fantasma.timer_mover.start()
         self.timer_colision_fantasmas.start()
         self.fantasmas.append(fantasma)
