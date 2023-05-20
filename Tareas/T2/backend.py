@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QLabel
 import random
 import parametros as p
 import os
-
+import time
 
 class Fantasma(QObject):
     identificador = 0
@@ -104,11 +104,20 @@ class Luigi(QObject):
 
 
 class Juego(QObject):
-    senal_mover_fantasma = pyqtSignal(int, str, int, int)
+    senal_iniciar_ventana_inicio = pyqtSignal(list)
+    senal_nombre_invalido = pyqtSignal(str)
+    senal_iniciar_constructor = pyqtSignal()
+    senal_iniciar_juego = pyqtSignal()
+
     senal_crear_luigi = pyqtSignal(int, int)
     senal_crear_fantasma = pyqtSignal(int, str, str, int, int)
     senal_crear_elemento = pyqtSignal(str, int, int)
-    senal_iniciar_juego = pyqtSignal()
+
+    senal_actualizar_tiempo = pyqtSignal(str)
+    senal_mover_fantasma = pyqtSignal(int, str, int, int)
+
+    senal_perder_vida = pyqtSignal()
+    senal_limpiar_nivel = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -116,10 +125,40 @@ class Juego(QObject):
         self.character = Luigi()
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
         self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
-        
-    def cargar_mapa(self):
-        with open('mapas/mapa enunciado.txt', 'rt', encoding='utf-8') as f:
-            return f.readlines()
+        self.timer_colision_fantasmas = QTimer(self)
+        self.timer_colision_fantasmas.setInterval(self.tiempo_movimiento_fantasmas)
+        self.timer_colision_fantasmas.timeout.connect(self.verificar_colision)
+        self.mapa = None
+
+        self.tiempo_restante = p.TIEMPO_JUEGO
+        self.timer_juego = QTimer(self)
+        self.timer_juego.setInterval(1000)
+        self.timer_juego.timeout.connect(self.actualizar_tiempo)
+
+    def iniciar_ventana_inicio(self):
+        mapas = []
+        for mapa in os.listdir(p.PATH_MAPAS):
+            with open(p.PATH_MAPAS + mapa, 'rt', encoding='utf-8') as f:
+                mapas.append((mapa, f.readlines()))
+        self.senal_iniciar_ventana_inicio.emit(mapas)
+
+    def revisar_login(self, nombre_usuario, mapa):
+        if len(nombre_usuario) == 0:
+            self.senal_nombre_invalido.emit(p.NOMBRE_INVALIDO_VACIO)
+        elif not nombre_usuario.isalnum():
+            self.senal_nombre_invalido.emit(p.NOMBRE_INVALIDO_ALFANUMERICO)
+        elif not p.MIN_CARACTERES <= len(nombre_usuario) <= p.MAX_CARACTERES:
+            self.senal_nombre_invalido.emit(p.NOMBRE_INVALIDO_LARGO)
+        elif mapa is not None:
+            self.iniciar_juego(mapa)
+        else:
+            self.senal_iniciar_constructor.emit()
+
+    def iniciar_juego(self, mapa):
+        self.leer_mapa(mapa)
+        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
+        self.timer_juego.start()
+        self.senal_iniciar_juego.emit()
 
     def leer_mapa(self, filas):
         for fil, fila in enumerate(filas):
@@ -132,18 +171,35 @@ class Juego(QObject):
                     self.crear_fantasma(columna, col * p.TAMANO_GRILLA, fil * p.TAMANO_GRILLA)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
                     self.senal_crear_elemento.emit(columna, col, fil)
-        self.senal_iniciar_juego.emit()
 
     def crear_fantasma(self, tipo, x, y):
         fantasma = Fantasma(p.FANTASMA_CONVERSION[tipo], x, y, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000)
         fantasma.timer_mover.start()
+        self.timer_colision_fantasmas.start()
         self.fantasmas.append(fantasma)
         self.senal_crear_fantasma.emit(fantasma.id, fantasma.tipo, fantasma.nombre_direccion, x, y)
 
+    def actualizar_tiempo(self):
+        self.tiempo_restante -= 1
+        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
+        if self.tiempo_restante == 0:
+            self.timer_juego.stop()
+            print('Acabo juego')
+
+    def formatear_tiempo(self, segundos):
+        minutos, segundos = divmod(segundos, 60)
+        return f"{minutos}:{segundos}"
+
     def mover_personaje(self, key):
         self.character.move_character(key)
+        self.verificar_colision
 
-    def iniciar_juego(self, nombre_usuario: str):
-        print("entre")
-        if nombre_usuario.isalpha() and len(nombre_usuario):
-            return True
+    def verificar_colision(self):
+        pos_personaje = (self.character.x, self.character.y)
+        for fantasma in self.fantasmas:
+            if (fantasma.x, fantasma.y) == pos_personaje:
+                print('Colision')
+                '''self.senal_limpiar_nivel.emit()
+                time.sleep(10)
+                self.leer_mapa(self.mapa)
+                '''

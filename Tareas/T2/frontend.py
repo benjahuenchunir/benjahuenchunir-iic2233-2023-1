@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag, QMouseEvent
 import parametros as p
-from PyQt5.QtWidgets import QListWidgetItem, QAbstractItemView, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
+from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QAbstractItemView, QStackedWidget, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
 from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
 import sys
 from collections import defaultdict
@@ -10,35 +10,59 @@ import os
 
 class VentanaInicio(QWidget):
 
-    senal_iniciar_juego = pyqtSignal(str)
+    senal_login = pyqtSignal(str, object)
 
     def __init__(self):
         super().__init__()
-        #self.setFixedSize(p.ANCHO_GRILLA*100, p.ANCHO_GRILLA*100)
-        self.background = QLabel(self)
-        self.background.setPixmap(QPixmap("sprites/Fondos/fondo_inicio.png"))
-        self.background.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.background.setGeometry(0, 0, 1000, 800)
-        self.background.setScaledContents(True)
+        self.setWindowTitle("Ventana inicio")
+        self.move(0, 0)
         vbox = QVBoxLayout()
+
+        background = QLabel(self)
+        background.setPixmap(QPixmap(p.PATH_FONDO))
+        self.logo = QLabel(self)
+        self.logo.setGeometry(40, 50, 550, 100)
+        self.logo.setPixmap(QPixmap(p.PATH_LOGO))
+        self.logo.setScaledContents(True)
+        vbox.addWidget(background)
+
         hbox = QHBoxLayout()
         self.label_username = QLabel("Usuario", self)
         self.txt_username = QLineEdit("", self)
-        self.dropdown_menu = QComboBox()
-        self.dropdown_menu.addItem("Opción 1")
-        self.btn_login = QPushButton("Login", self)
         hbox.addWidget(self.label_username)
         hbox.addWidget(self.txt_username)
+        self.dropdown_menu = QComboBox()
+        self.dropdown_menu.addItem(p.MODO_CONSTRUCTOR)
+        self.btn_login = QPushButton("Login", self)
+        self.btn_exit = QPushButton("Salir", self)
+        self.btn_exit.clicked.connect(self.close)
         vbox.addLayout(hbox)
         vbox.addWidget(self.dropdown_menu)
         vbox.addWidget(self.btn_login)
+        vbox.addWidget(self.btn_exit)
+
         self.setLayout(vbox)
         self.btn_login.clicked.connect(self.login)
-        self.setStyleSheet("background-image: 'sprites/Fondos/fondo_inicio.png'")
+
+    def cargar_mapas(self, mapas):
+        for nombre, mapa in mapas:
+            self.dropdown_menu.addItem(nombre, mapa)
+        self.show()
 
     def login(self):
         print(self.txt_username.text())
-        self.senal_iniciar_juego.emit(self.txt_username.text())
+        indice_seleccion = self.dropdown_menu.currentIndex()
+        self.senal_login.emit(
+            self.txt_username.text(),
+            self.dropdown_menu.itemData(indice_seleccion))
+
+    def alerta_nombre_invalido(self, razon):
+        alerta = QMessageBox(self)
+        alerta.setWindowTitle("Nombre inválido")
+        alerta.setIcon(QMessageBox.Warning)
+        alerta.setText(razon)
+        alerta.setStandardButtons(QMessageBox.Ok)
+        alerta.exec()
 
 
 class ElementoConstructor(QWidget):
@@ -216,32 +240,24 @@ class MenuJuego(QWidget):
 
         layout_timer = QHBoxLayout()
         layout_timer.addWidget(QLabel("Tiempo", self))
-        self.tiempo_restante = p.TIEMPO_JUEGO
-        self.label_timer = QLabel(self.formatear_tiempo(self.tiempo_restante), self)
+        self.label_timer = QLabel(self)
         layout_timer.addWidget(self.label_timer)
         vbox.addLayout(layout_timer)
-        self.timer_juego = QTimer(self)
-        self.timer_juego.setInterval(1000)
-        self.timer_juego.timeout.connect(self.actualizar_tiempo)
 
         layout_vidas = QHBoxLayout()
         layout_vidas.addWidget(QLabel("Vidas", self))
-        layout_vidas.addWidget(QLabel(str(p.CANTIDAD_VIDAS), self))
+        self.label_vidas = QLabel(str(p.CANTIDAD_VIDAS), self)
+        layout_vidas.addWidget()
         vbox.addLayout(layout_vidas)
 
         btn_pausar = QPushButton()
         vbox.addWidget(btn_pausar)
 
-    def actualizar_tiempo(self):
-        self.tiempo_restante -= 1
-        self.label_timer.setText(self.formatear_tiempo(self.tiempo_restante))
-        if self.tiempo_restante == 0:
-            self.timer_juego.stop()
-            self.label_timer.setText("Game Over")
+    def actualizar_tiempo(self, tiempo):
+        self.label_timer.setText(tiempo)
 
-    def formatear_tiempo(self, segundos):
-        minutos, segundos = divmod(segundos, 60)
-        return f"{minutos}:{segundos}"
+    def actualizar_vidas(self, vidas):
+        self.label_vidas.setText(vidas)
 
 
 class VentanaJuego(QWidget):
@@ -285,47 +301,49 @@ class VentanaJuego(QWidget):
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)
 
-
-class VentanaCompleta(QWidget):
+class VentanaCompleta(QStackedWidget):
     senal_cargar_mapa = pyqtSignal(list)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.move(0, 0)
-        layout_principal = QHBoxLayout()
-        self.setLayout(layout_principal)
 
-        self.layout_menus = QStackedLayout()
-        layout_principal.addLayout(self.layout_menus)
+        self.widget_constructor = QWidget()
+        self.layout_constructor = QHBoxLayout()
         self.menu_constructor = MenuConstructor(self)
-        self.layout_menus.addWidget(self.menu_constructor)
-        self.menu_juego = MenuJuego(self)
-        self.layout_menus.addWidget(self.menu_juego)
-
-        self.layout_mapas = QStackedLayout()
         self.mapa = MapaJuego(self)
+        self.layout_constructor.addWidget(self.menu_constructor)
+        self.layout_constructor.addWidget(self.mapa)
+        self.widget_constructor.setLayout(self.layout_constructor)
+        self.addWidget(self.widget_constructor)
+
+        self.widget_juego = QWidget()
+        self.layout_juego = QHBoxLayout()
+        self.menu_juego = MenuJuego(self)
         self.mapa_juego = VentanaJuego()
-        self.layout_mapas.addWidget(self.mapa)
-        self.layout_mapas.addWidget(self.mapa_juego)
-        layout_principal.addLayout(self.layout_mapas)
+        self.layout_juego.addWidget(self.menu_juego)
+        self.layout_juego.addWidget(self.mapa_juego)
+        self.widget_juego.setLayout(self.layout_juego)
+        self.addWidget(self.widget_juego)
 
         self.menu_constructor.lista_elementos.itemSelectionChanged.connect(self.cambiar_seleccion_elemento)
 
-    def cargar_mapa(self):
+    def cargar_mapa_constructor(self):
         self.senal_cargar_mapa.emit(self.mapa.mapa_lista)
 
     def jugar(self):
-        self.layout_menus.setCurrentWidget(self.menu_juego)
-        self.menu_juego.timer_juego.start()
-        self.layout_mapas.setCurrentWidget(self.mapa_juego)
+        self.setCurrentWidget(self.widget_juego)
 
     def keyPressEvent(self, event) -> None:
         super().keyPressEvent(event)
         self.mapa_juego.keyPressEvent(event)
-        
+
     def cambiar_seleccion_elemento(self):
         self.mapa.elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
 
+    def limpiar_nivel(self):
+        self.mapa_juego.setParent(None)
+        self.mapa_juego = VentanaJuego()
 
 if __name__ == '__main__':
     app = QApplication([])
