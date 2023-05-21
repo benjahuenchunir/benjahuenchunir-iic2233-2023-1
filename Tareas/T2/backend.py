@@ -309,8 +309,9 @@ class Juego(QObject):
                     break
 
     def perder_vida(self):
-        self.vidas -= 1
-        self.senal_perder_vida.emit(str(self.vidas))
+        if not self.god_mode:
+            self.vidas -= 1
+            self.senal_perder_vida.emit(str(self.vidas))
         if self.vidas != 0:
             self.reiniciar_nivel()
         else:
