@@ -218,11 +218,11 @@ class Juego(QObject):
 
     def iniciar_juego(self, mapa):
         self.mapa = mapa
+        self.character.mapa = self.mapa
         self.leer_mapa(mapa)
         self.senal_actualizar_tiempo.emit(
             self.formatear_tiempo(self.tiempo_restante))
         self.pausar()
-        #self.timer_juego.start()
         self.senal_iniciar_juego.emit()
 
     def iniciar_juego_constructor(self):
@@ -231,7 +231,6 @@ class Juego(QObject):
         self.senal_actualizar_tiempo.emit(
             self.formatear_tiempo(self.tiempo_restante))
         self.pausar()
-        #self.timer_juego.start()
         self.senal_iniciar_juego_constructor.emit()
 
     def leer_mapa(self, filas):

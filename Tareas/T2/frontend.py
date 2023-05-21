@@ -1,8 +1,7 @@
-from PyQt5 import QtGui
-from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag, QMouseEvent
+from PyQt5.QtGui import QPixmap, QFont, QMouseEvent
 import parametros as p
-from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QAbstractItemView, QStackedWidget, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
-from PyQt5.QtCore import QUrl, pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
+from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QAbstractItemView, QStackedWidget, QWidget, QListWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
+from PyQt5.QtCore import QUrl, pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize
 from PyQt5.QtMultimedia import QSoundEffect
 import sys
 from collections import defaultdict
