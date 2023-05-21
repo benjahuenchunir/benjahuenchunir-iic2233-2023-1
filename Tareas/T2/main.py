@@ -41,6 +41,11 @@ class DCCazaFantasmas():
         self.backend.character.senal_animar_luigi.connect(self.ventana_juego.mapa_juego.mover_luigi)
         self.backend.senal_mover_fantasma.connect(
             self.ventana_juego.mapa_juego.mover_fantasmas)
+        self.backend.senal_perder_vida.connect(self.ventana_juego.menu_juego.actualizar_vidas)
+        self.backend.senal_reiniciar_fantasma.connect(self.ventana_juego.mapa_juego.reiniciar_fantasma)
+        #self.backend.senal_limpiar_nivel.connect(self.ventana_juego.mapa_juego.limpiar_nivel)
+        self.ventana_juego.menu_juego.btn_pausar.clicked.connect(self.backend.pausar)
+        self.backend.senal_pausar.connect(self.ventana_juego.pausar)
 
     def conectar_senales_mapa(self):
         self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
@@ -50,7 +55,6 @@ class DCCazaFantasmas():
 
     def conectar(self):
         self.conectar_senales_mapa()
-        self.backend.senal_limpiar_nivel.connect(self.ventana_juego.limpiar_nivel)
 
     def iniciar(self):
         self.backend.iniciar_ventana_inicio()

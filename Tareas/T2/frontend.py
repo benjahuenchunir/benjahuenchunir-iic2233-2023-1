@@ -253,8 +253,8 @@ class MenuJuego(QWidget):
         layout_vidas.addWidget(self.label_vidas)
         vbox.addLayout(layout_vidas)
 
-        btn_pausar = QPushButton()
-        vbox.addWidget(btn_pausar)
+        self.btn_pausar = QPushButton('Pausar')
+        vbox.addWidget(self.btn_pausar)
 
     def actualizar_tiempo(self, tiempo):
         self.label_timer.setText(tiempo)
@@ -272,6 +272,7 @@ class VentanaJuego(QWidget):
         self.setLayout(self.mapa.mapa)
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         self.fantasmas = {}
+        self.elementos = []
 
     def iniciar(self):
         self.show()
@@ -290,11 +291,13 @@ class VentanaJuego(QWidget):
         elemento = QLabel(self)
         elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
         self.mapa.mapa.addWidget(elemento, fil, col)
+        self.elementos.append(elemento)
 
     def mover_fantasmas(self, id, *args):
         self.fantasmas[id].mover(*args)
 
     def keyPressEvent(self, event):
+        print("moverdsadsds")
         if event.isAutoRepeat():
             return
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
@@ -303,6 +306,16 @@ class VentanaJuego(QWidget):
 
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)
+ 
+    def limpiar_nivel(self):
+        self.label_luigi.deleteLater()
+        for fantasma in self.fantasmas.values():
+            fantasma.deleteLater()
+        for elemento in self.elementos.values():
+            elemento.deleteLater()
+
+    def reiniciar_fantasma(self, id, x, y):
+        self.fantasmas[id].move(x, y)
 
 
 class VentanaCompleta(QStackedWidget):
@@ -326,6 +339,7 @@ class VentanaCompleta(QStackedWidget):
         self.layout_juego = QHBoxLayout()
         self.menu_juego = MenuJuego(self)
         self.mapa_juego = VentanaJuego()
+        self.mapa_juego.setFocusPolicy(Qt.NoFocus)
         self.layout_juego.addWidget(self.menu_juego)
         self.layout_juego.addWidget(self.mapa_juego)
         self.widget_juego.setLayout(self.layout_juego)
@@ -335,20 +349,18 @@ class VentanaCompleta(QStackedWidget):
         self.senal_cargar_mapa.emit(self.mapa.mapa_lista)
 
     def jugar(self):
-        print('Actualizand')
         self.setCurrentWidget(self.widget_juego)
-
-    def keyPressEvent(self, event) -> None:
-        super().keyPressEvent(event)
-        self.mapa_juego.keyPressEvent(event)
+        self.mapa_juego.setFocus()
 
     def emitir_colocar_elemento(self, x, y):
         elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
         self.senal_colocar_elemento_constructor.emit(elemento_seleccionado, x, y)
 
-    def limpiar_nivel(self):
-        self.mapa_juego.setParent(None)
-        self.mapa_juego = VentanaJuego()
+    def pausar(self, is_focused):
+        if is_focused:
+            self.mapa_juego.clearFocus()
+        else:
+            self.mapa_juego.setFocus()
 
 if __name__ == '__main__':
     app = QApplication([])
