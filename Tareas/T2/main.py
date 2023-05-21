@@ -43,14 +43,18 @@ class DCCazaFantasmas():
             self.ventana_juego.mapa_juego.mover_fantasmas)
         self.backend.senal_perder_vida.connect(self.ventana_juego.menu_juego.actualizar_vidas)
         self.backend.senal_reiniciar_fantasma.connect(self.ventana_juego.mapa_juego.reiniciar_fantasma)
+        self.backend.senal_reiniciar_luigi.connect(self.ventana_juego.mapa_juego.reiniciar_luigi)
         #self.backend.senal_limpiar_nivel.connect(self.ventana_juego.mapa_juego.limpiar_nivel)
         self.ventana_juego.menu_juego.btn_pausar.clicked.connect(self.backend.pausar)
         self.ventana_juego.senal_pausar.connect(self.backend.pausar)
         self.backend.senal_pausar.connect(self.ventana_juego.pausar)
-        
+
         self.ventana_juego.mapa_juego.senal_eliminar_villanos.connect(self.backend.eliminar_villanos)
         self.ventana_juego.mapa_juego.senal_godmode.connect(self.backend.activar_godmode)
-        
+        self.ventana_juego.mapa_juego.senal_liberar_aossa.connect(self.backend.liberar_aossa)
+
+        self.backend.senal_terminar_partida.connect(self.ventana_juego.terminar_partida)
+
     def conectar_senales_mapa(self):
         self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
         self.backend.senal_crear_luigi.connect(self.ventana_juego.mapa_juego.crear_luigi)

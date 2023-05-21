@@ -15,8 +15,8 @@ class Fantasma(QObject):
         Fantasma.identificador += 1
         self.tipo = tipo
         self.mapa = mapa
-        self.x_original = col * p.TAMANO_GRILLA
-        self.y_original = fil * p.TAMANO_GRILLA
+        self.col0 = col
+        self.fil0 = fil
         self.__col = col
         self.__fil = fil
         self.senal_mover = senal_mover_fantasma
@@ -67,51 +67,50 @@ class Luigi(QObject):
     def __init__(self):
         super().__init__()
         self.vidas = p.CANTIDAD_VIDAS
-        self.__x = 0
-        self.__y = 0
+        self.col0 = 0
+        self.fil0 = 0
+        self.__col = 0
+        self.__fil = 0
         self.mapa = None
 
     @property
-    def x(self):
-        return self.__x
+    def col(self):
+        return self.__col
 
-    @x.setter
-    def x(self, nuevo_x):
-        col, fil = nuevo_x // p.TAMANO_GRILLA, self.y // p.TAMANO_GRILLA
-        if not self.mapa[fil][col] == p.MAPA_PARED:
-            self.__x = max(p.TAMANO_GRILLA, min(nuevo_x, p.TAMANO_GRILLA*p.ANCHO_MAPA))
+    @col.setter
+    def col(self, nuevo_col):
+        if not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
+            self.__col = max(1, min(nuevo_col, p.ANCHO_MAPA))
 
     @property
-    def y(self):
-        return self.__y
+    def fil(self):
+        return self.__fil
 
-    @y.setter
-    def y(self, nuevo_y):
-        col, fil = self.x // p.TAMANO_GRILLA, nuevo_y // p.TAMANO_GRILLA
-        if not self.mapa[fil][col] == p.MAPA_PARED:
-            self.__y = max(p.TAMANO_GRILLA, min(nuevo_y, p.TAMANO_GRILLA*p.LARGO_MAPA))
+    @fil.setter
+    def fil(self, nuevo_fil):
+        if not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
+            self.__fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
 
     def move_character(self, key):
-        x, y = self.x, self.y
+        col, fil = self.col, self.fil
         if key == Qt.Key_W:
-            direccion = 'up'
-            self.y -= p.TAMANO_GRILLA
+            direccion = p.ARRIBA
+            self.fil -= 1
 
         if key == Qt.Key_A:
-            direccion = 'left'
-            self.x -= p.TAMANO_GRILLA
+            direccion = p.IZQUIERDA
+            self.col -= 1
 
         if key == Qt.Key_S:
-            direccion = 'down'
-            self.y += p.TAMANO_GRILLA
+            direccion = p.ABAJO
+            self.fil += 1
 
         if key == Qt.Key_D:
-            direccion = 'rigth'
-            self.x += p.TAMANO_GRILLA
+            direccion = p.DERECHA
+            self.col += 1
 
-        if x != self.x or y != self.y:
-            self.senal_animar_luigi.emit(direccion, (self.x, self.y))
-
+        if col != self.col or fil != self.fil:
+            self.senal_animar_luigi.emit(direccion, (self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA))
 
 class Juego(QObject):
     senal_iniciar_ventana_inicio = pyqtSignal(list)
@@ -131,13 +130,17 @@ class Juego(QObject):
     senal_mover_fantasma = pyqtSignal(int, str, int, int)
     
     senal_reiniciar_fantasma  = pyqtSignal(int, int, int)
+    senal_reiniciar_luigi = pyqtSignal(int, int)
 
-    senal_perder_vida = pyqtSignal(int)
+    senal_perder_vida = pyqtSignal(str)
     senal_limpiar_nivel = pyqtSignal()
     senal_pausar = pyqtSignal(bool)
 
+    senal_terminar_partida = pyqtSignal(str, str, str, float)
+
     def __init__(self):
         super().__init__()
+        self.nombre_usuario = None
         self.fantasmas = []
         self.character = Luigi()
         self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
@@ -154,7 +157,7 @@ class Juego(QObject):
         self.timer_juego.setInterval(1000)
         self.timer_juego.timeout.connect(self.actualizar_tiempo)
 
-        self.vidas = p.CANTIDAD_VIDAS
+        self.vidas = p.CANTIDAD_VIDAS - 1
         self.pausa = False
         self.colision_fantasmas = True
         self.god_mode = False
@@ -183,10 +186,12 @@ class Juego(QObject):
             self.senal_nombre_invalido.emit(p.NOMBRE_INVALIDO_ALFANUMERICO)
         elif not p.MIN_CARACTERES <= len(nombre_usuario) <= p.MAX_CARACTERES:
             self.senal_nombre_invalido.emit(p.NOMBRE_INVALIDO_LARGO)
-        elif mapa is not None:
-            self.iniciar_juego(mapa)
         else:
-            self.senal_iniciar_constructor.emit()
+            self.nombre_usuario = nombre_usuario
+            if mapa is not None:
+                self.iniciar_juego(mapa)
+            else:
+                self.senal_iniciar_constructor.emit()
 
     def iniciar_juego(self, mapa):
         self.mapa = mapa
@@ -206,9 +211,9 @@ class Juego(QObject):
         for fil, fila in enumerate(filas):
             for col, columna in enumerate(fila):
                 if columna == p.MAPA_LUIGI:
-                    self.character.x = col * p.TAMANO_GRILLA
-                    self.character.y = fil * p.TAMANO_GRILLA
-                    self.senal_crear_luigi.emit(self.character.x, self.character.y)
+                    self.character.col, self.character.col0 = col, col
+                    self.character.fil, self.character.fil0 = fil, fil
+                    self.senal_crear_luigi.emit(self.character.col  * p.TAMANO_GRILLA, self.character.fil * p.TAMANO_GRILLA)
                 elif columna in p.SPRITES_ENTIDADES:
                     self.crear_fantasma(columna, col, fil)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
@@ -238,8 +243,8 @@ class Juego(QObject):
         self.tiempo_restante -= 1
         self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
         if self.tiempo_restante == 0:
-            self.timer_juego.stop()
-            print('Acabo juego')
+            self.pausar()
+            self.perder()
 
     def formatear_tiempo(self, segundos):
         minutos, segundos = divmod(segundos, 60)
@@ -247,10 +252,10 @@ class Juego(QObject):
 
     def mover_personaje(self, key):
         self.character.move_character(key)
-        self.verificar_colision
+        self.verificar_colision()
 
     def verificar_colision(self):
-        pos_personaje = (self.character.x // p.TAMANO_GRILLA, self.character.y // p.TAMANO_GRILLA)
+        pos_personaje = (self.character.col, self.character.fil)
         if self.colision_fantasmas:
             for fantasma in self.fantasmas:
                 if (fantasma.col, fantasma.fil) == pos_personaje:
@@ -265,17 +270,16 @@ class Juego(QObject):
         if self.vidas != 0:
             #self.senal_limpiar_nivel.emit()
             self.senal_perder_vida.emit(str(self.vidas))
-
             self.reiniciar_nivel()
         else:
-            pass
-            #self.leer_mapa(self.mapa)
+            self.perder()
 
     def reiniciar_nivel(self):
+        self.senal_reiniciar_luigi.emit(self.character.col0 * p.TAMANO_GRILLA, self.character.fil0 * p.TAMANO_GRILLA)
         for fantasma in self.fantasmas:
-            fantasma.x = fantasma.x_original
-            fantasma.y = fantasma.y_original
-            self.senal_reiniciar_fantasma.emit(fantasma.id, fantasma.x, fantasma.y)
+            fantasma.col = fantasma.col0
+            fantasma.fil = fantasma.fil0
+            self.senal_reiniciar_fantasma.emit(fantasma.id, fantasma.col * p.TAMANO_GRILLA, fantasma.fil * p.TAMANO_GRILLA)
 
     def eliminar_villanos(self):
         self.colision_fantasmas = False
@@ -285,3 +289,17 @@ class Juego(QObject):
     def activar_godmode(self):
         self.god_mode = True
         self.timer_juego.stop()
+
+    def perder(self):
+        self.senal_terminar_partida.emit(p.DERROTA, p.PATH_SONIDO_DERROTA, self.nombre_usuario, self.calcular_puntaje())
+
+    def liberar_aossa(self):
+        if self.mapa[self.character.fil][self.character.col] == p.MAPA_ESTRELLA:
+            self.pausar()
+            self.senal_terminar_partida.emit(p.VICTORIA, p.PATH_SONIDO_VICTORIA, self.nombre_usuario, self.calcular_puntaje())
+
+    def calcular_puntaje(self):
+        print(self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE)
+        print(p.CANTIDAD_VIDAS - self.vidas)
+        print((self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE) / (p.CANTIDAD_VIDAS - self.vidas))
+        return (self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE) / (p.CANTIDAD_VIDAS - self.vidas)

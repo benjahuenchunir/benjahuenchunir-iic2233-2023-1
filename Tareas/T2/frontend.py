@@ -2,7 +2,8 @@ from PyQt5 import QtGui
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QKeySequence, QDrag, QMouseEvent
 import parametros as p
 from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QAbstractItemView, QStackedWidget, QWidget, QShortcut, QListWidget, QMainWindow, QApplication, QStackedLayout, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
-from PyQt5.QtCore import pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
+from PyQt5.QtCore import QUrl, pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize, QByteArray, QDataStream, QIODevice, QMimeData
+from PyQt5.QtMultimedia import QSoundEffect
 import sys
 from collections import defaultdict
 import os
@@ -249,7 +250,7 @@ class MenuJuego(QWidget):
 
         layout_vidas = QHBoxLayout()
         layout_vidas.addWidget(QLabel("Vidas", self))
-        self.label_vidas = QLabel(str(p.CANTIDAD_VIDAS), self)
+        self.label_vidas = QLabel(str(p.CANTIDAD_VIDAS - 1), self)
         layout_vidas.addWidget(self.label_vidas)
         vbox.addLayout(layout_vidas)
 
@@ -339,11 +340,15 @@ class VentanaJuego(QWidget):
     def reiniciar_fantasma(self, id, x, y):
         self.fantasmas[id].move(x, y)
 
+    def reiniciar_luigi(self, x, y):
+        self.label_luigi.move(x, y)
+
 
 class VentanaCompleta(QStackedWidget):
     senal_cargar_mapa = pyqtSignal(list)
     senal_colocar_elemento_constructor = pyqtSignal(str, int, int)
     senal_pausar = pyqtSignal()
+    senal_reiniciar_juego = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -388,6 +393,25 @@ class VentanaCompleta(QStackedWidget):
             self.mapa_juego.clearFocus()
         else:
             self.mapa_juego.setFocus()
+
+    def terminar_partida(self, resultado, path_audio, nombre_usuario, puntaje):
+        sonido = QSoundEffect()
+        sonido_url = QUrl.fromLocalFile(path_audio)
+        sonido.setSource(sonido_url)
+        sonido.play()
+        self.mostrar_mensaje(resultado, nombre_usuario, puntaje)
+
+    def mostrar_mensaje(self, resultado, nombre_usuario, score):
+        mensaje = QMessageBox(self)
+        mensaje.setWindowTitle(resultado)
+        mensaje.setText(f"Usuario: {nombre_usuario}\nPuntuación: {score}")
+        btn_salir = mensaje.addButton("Salir", QMessageBox.AcceptRole)
+        btn_reiniciar = mensaje.addButton("Jugar de nuevo", QMessageBox.RejectRole)
+        mensaje.exec_()
+        if mensaje.clickedButton() == btn_salir:
+            self.close()
+        elif mensaje.clickedButton() == btn_reiniciar:
+            self.senal_reiniciar_juego.emit()
 
 if __name__ == '__main__':
     app = QApplication([])
