@@ -1,15 +1,16 @@
-from PyQt5.QtCore import QObject, QTimer, QPropertyAnimation, QPoint, Qt, pyqtSignal
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QLabel
+from PyQt5.QtCore import QObject, QTimer, Qt, pyqtSignal
 import random
 import parametros as p
 import os
-import time
+
 
 class Fantasma(QObject):
     identificador = 0
 
-    def __init__(self, tipo, col, fil, senal_mover_fantasma, tiempo_movimiento, mapa) -> None:
+    def __init__(
+        self, tipo, col, fil, senal_mover_fantasma, senal_verificar_colision,
+        tiempo_movimiento, mapa
+    ) -> None:
         super().__init__()
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
@@ -20,8 +21,11 @@ class Fantasma(QObject):
         self.__col = col
         self.__fil = fil
         self.senal_mover = senal_mover_fantasma
-        self.nombre_direccion = random.choice(p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
-        self.direccion = random.choice(p.DIRECCIONES_FANTASMA[self.nombre_direccion])
+        self.senal_verificar_colision = senal_verificar_colision
+        self.nombre_direccion = random.choice(
+            p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
+        self.direccion = random.choice(
+            p.DIRECCIONES_FANTASMA[self.nombre_direccion])
         self.timer_mover = QTimer(self)
         self.timer_mover.setInterval(tiempo_movimiento)
         self.timer_mover.timeout.connect(self.mover)
@@ -52,13 +56,19 @@ class Fantasma(QObject):
             self.fil += self.direccion
         if self.col == col and self.fil == fil:
             if self.tipo != p.TIPO_VERTICAL:
-                otra_direccion = p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo].copy()
-                otra_direccion.remove(self.nombre_direccion)
-                self.nombre_direccion = otra_direccion[0]
+                nueva_dir = p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo].copy()
+                nueva_dir.remove(self.nombre_direccion)
+                self.nombre_direccion = nueva_dir[0]
             self.direccion = -self.direccion
             self.mover()
         else:
-            self.senal_mover.emit(self.id, self.nombre_direccion, self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA)
+            self.senal_mover.emit(
+                self.id,
+                self.nombre_direccion,
+                self.col * p.TAMANO_GRILLA,
+                self.fil * p.TAMANO_GRILLA,
+            )
+            self.senal_verificar_colision.emit()
 
 
 class Luigi(QObject):
@@ -110,7 +120,11 @@ class Luigi(QObject):
             self.col += 1
 
         if col != self.col or fil != self.fil:
-            self.senal_animar_luigi.emit(direccion, (self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA))
+            self.senal_animar_luigi.emit(
+                direccion, (self.col * p.TAMANO_GRILLA,
+                            self.fil * p.TAMANO_GRILLA)
+            )
+
 
 class Juego(QObject):
     senal_iniciar_ventana_inicio = pyqtSignal(list)
@@ -128,10 +142,8 @@ class Juego(QObject):
 
     senal_actualizar_tiempo = pyqtSignal(str)
     senal_mover_fantasma = pyqtSignal(int, str, int, int)
-    
-    senal_reiniciar_fantasma  = pyqtSignal(int, int, int)
-    senal_reiniciar_luigi = pyqtSignal(int, int)
 
+    senal_verificar_colision = pyqtSignal()
     senal_perder_vida = pyqtSignal(str)
     senal_limpiar_nivel = pyqtSignal()
     senal_pausar = pyqtSignal(bool)
@@ -143,13 +155,16 @@ class Juego(QObject):
         self.nombre_usuario = None
         self.fantasmas = []
         self.character = Luigi()
-        self.ponderador_velocidad_fantasmas = random.uniform(p.MIN_VELOCIDAD, p.MAX_VELOCIDAD)
-        self.tiempo_movimiento_fantasmas = int(1 / self.ponderador_velocidad_fantasmas)
-        self.timer_colision_fantasmas = QTimer(self)
-        self.timer_colision_fantasmas.setInterval(self.tiempo_movimiento_fantasmas)
-        self.timer_colision_fantasmas.timeout.connect(self.verificar_colision)
+        self.ponderador_velocidad_fantasmas = random.uniform(
+            p.MIN_VELOCIDAD, p.MAX_VELOCIDAD
+        )
+        self.tiempo_movimiento_fantasmas = (
+            int(1 / self.ponderador_velocidad_fantasmas))
 
-        self.mapa = [[p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)] for i in range(p.LARGO_GRILLA)]
+        self.mapa = [
+            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
+            for i in range(p.LARGO_GRILLA)
+        ]
         self.cantidad_elementos = p.MAXIMO_ELEMENTOS
 
         self.tiempo_restante = p.TIEMPO_CUENTA_REGRESIVA
@@ -158,24 +173,32 @@ class Juego(QObject):
         self.timer_juego.timeout.connect(self.actualizar_tiempo)
 
         self.vidas = p.CANTIDAD_VIDAS - 1
-        self.pausa = False
+        self.pausa = True
         self.colision_fantasmas = True
         self.god_mode = False
+        self.senal_verificar_colision.connect(self.verificar_colision)
+        self.colision_detectada = False
 
     def colocar_elemento(self, elemento, x, y):
         col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
         if elemento and self.cantidad_elementos[elemento]:
-            if col in (0, p.ANCHO_GRILLA - 1) or fil in (0, p.LARGO_GRILLA - 1) or self.mapa[fil][col] != p.MAPA_VACIO:
+            if (
+                col in (0, p.ANCHO_GRILLA - 1)
+                or fil in (0, p.LARGO_GRILLA - 1)
+                or self.mapa[fil][col] != p.MAPA_VACIO
+            ):
                 return
             self.cantidad_elementos[elemento] -= 1
             self.mapa[fil][col] = elemento
-            self.senal_actualizar_cantidad_elemento.emit(elemento, str(self.cantidad_elementos[elemento]))
+            self.senal_actualizar_cantidad_elemento.emit(
+                elemento, str(self.cantidad_elementos[elemento])
+            )
             self.senal_colocar_elemento.emit(elemento, fil, col)
 
     def iniciar_ventana_inicio(self):
         mapas = []
         for mapa in os.listdir(p.PATH_MAPAS):
-            with open(p.PATH_MAPAS + mapa, 'rt', encoding='utf-8') as f:
+            with open(p.PATH_MAPAS + mapa, "rt", encoding="utf-8") as f:
                 mapas.append((mapa, f.readlines()))
         self.senal_iniciar_ventana_inicio.emit(mapas)
 
@@ -196,15 +219,19 @@ class Juego(QObject):
     def iniciar_juego(self, mapa):
         self.mapa = mapa
         self.leer_mapa(mapa)
-        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
-        self.timer_juego.start()
+        self.senal_actualizar_tiempo.emit(
+            self.formatear_tiempo(self.tiempo_restante))
+        self.pausar()
+        #self.timer_juego.start()
         self.senal_iniciar_juego.emit()
 
     def iniciar_juego_constructor(self):
         self.character.mapa = self.mapa
         self.leer_mapa(self.mapa)
-        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
-        self.timer_juego.start()
+        self.senal_actualizar_tiempo.emit(
+            self.formatear_tiempo(self.tiempo_restante))
+        self.pausar()
+        #self.timer_juego.start()
         self.senal_iniciar_juego_constructor.emit()
 
     def leer_mapa(self, filas):
@@ -213,18 +240,35 @@ class Juego(QObject):
                 if columna == p.MAPA_LUIGI:
                     self.character.col, self.character.col0 = col, col
                     self.character.fil, self.character.fil0 = fil, fil
-                    self.senal_crear_luigi.emit(self.character.col  * p.TAMANO_GRILLA, self.character.fil * p.TAMANO_GRILLA)
+                    self.senal_crear_luigi.emit(
+                        self.character.col * p.TAMANO_GRILLA,
+                        self.character.fil * p.TAMANO_GRILLA,
+                    )
                 elif columna in p.SPRITES_ENTIDADES:
                     self.crear_fantasma(columna, col, fil)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
                     self.senal_crear_elemento.emit(columna, col, fil)
 
     def crear_fantasma(self, tipo, col, fil):
-        fantasma = Fantasma(p.FANTASMA_CONVERSION[tipo], col, fil, self.senal_mover_fantasma, self.tiempo_movimiento_fantasmas * 1000, self.mapa)
-        fantasma.timer_mover.start()
-        self.timer_colision_fantasmas.start()
+        fantasma = Fantasma(
+            p.FANTASMA_CONVERSION[tipo],
+            col,
+            fil,
+            self.senal_mover_fantasma,
+            self.senal_verificar_colision,
+            self.tiempo_movimiento_fantasmas * 1000,
+            self.mapa,
+        )
+        #fantasma.timer_mover.start()
+        #self.timer_colision_fantasmas.start()
         self.fantasmas.append(fantasma)
-        self.senal_crear_fantasma.emit(fantasma.id, fantasma.tipo, fantasma.nombre_direccion, col * p.TAMANO_GRILLA, fil * p.TAMANO_GRILLA)
+        self.senal_crear_fantasma.emit(
+            fantasma.id,
+            fantasma.tipo,
+            fantasma.nombre_direccion,
+            col * p.TAMANO_GRILLA,
+            fil * p.TAMANO_GRILLA,
+        )
 
     def pausar(self):
         self.pausa = False if self.pausa else True
@@ -238,10 +282,11 @@ class Juego(QObject):
             for fantasma in self.fantasmas:
                 fantasma.timer_mover.start()
         self.senal_pausar.emit(self.pausa)
-    
+
     def actualizar_tiempo(self):
         self.tiempo_restante -= 1
-        self.senal_actualizar_tiempo.emit(self.formatear_tiempo(self.tiempo_restante))
+        self.senal_actualizar_tiempo.emit(
+            self.formatear_tiempo(self.tiempo_restante))
         if self.tiempo_restante == 0:
             self.pausar()
             self.perder()
@@ -258,28 +303,29 @@ class Juego(QObject):
         pos_personaje = (self.character.col, self.character.fil)
         if self.colision_fantasmas:
             for fantasma in self.fantasmas:
-                if (fantasma.col, fantasma.fil) == pos_personaje:
-                    print('Colision')
+                if (fantasma.col, fantasma.fil) == pos_personaje and not self.colision_detectada:
+                    print(f"Colision con {fantasma.id}")
+                    self.colision_detectada = True
                     self.perder_vida()
-                    '''      
-                    self.leer_mapa(self.mapa)
-                    '''
+                    break
 
     def perder_vida(self):
         self.vidas -= 1
+        self.senal_perder_vida.emit(str(self.vidas))
         if self.vidas != 0:
-            #self.senal_limpiar_nivel.emit()
-            self.senal_perder_vida.emit(str(self.vidas))
             self.reiniciar_nivel()
         else:
             self.perder()
 
     def reiniciar_nivel(self):
-        self.senal_reiniciar_luigi.emit(self.character.col0 * p.TAMANO_GRILLA, self.character.fil0 * p.TAMANO_GRILLA)
+        self.senal_limpiar_nivel.emit()
         for fantasma in self.fantasmas:
-            fantasma.col = fantasma.col0
-            fantasma.fil = fantasma.fil0
-            self.senal_reiniciar_fantasma.emit(fantasma.id, fantasma.col * p.TAMANO_GRILLA, fantasma.fil * p.TAMANO_GRILLA)
+            fantasma.timer_mover.stop()
+        self.fantasmas.clear()
+        self.leer_mapa(self.mapa)
+        for fantasma in self.fantasmas:
+            fantasma.timer_mover.start()
+        self.colision_detectada = False
 
     def eliminar_villanos(self):
         self.colision_fantasmas = False
@@ -291,15 +337,26 @@ class Juego(QObject):
         self.timer_juego.stop()
 
     def perder(self):
-        self.senal_terminar_partida.emit(p.DERROTA, p.PATH_SONIDO_DERROTA, self.nombre_usuario, self.calcular_puntaje())
+        self.pausar()
+        self.senal_terminar_partida.emit(
+            p.DERROTA,
+            p.PATH_SONIDO_DERROTA,
+            self.nombre_usuario,
+            self.calcular_puntaje(),
+        )
 
     def liberar_aossa(self):
-        if self.mapa[self.character.fil][self.character.col] == p.MAPA_ESTRELLA:
+        if (self.mapa[self.character.fil][self.character.col] ==
+                p.MAPA_ESTRELLA):
             self.pausar()
-            self.senal_terminar_partida.emit(p.VICTORIA, p.PATH_SONIDO_VICTORIA, self.nombre_usuario, self.calcular_puntaje())
+            self.senal_terminar_partida.emit(
+                p.VICTORIA,
+                p.PATH_SONIDO_VICTORIA,
+                self.nombre_usuario,
+                self.calcular_puntaje(),
+            )
 
     def calcular_puntaje(self):
-        print(self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE)
-        print(p.CANTIDAD_VIDAS - self.vidas)
-        print((self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE) / (p.CANTIDAD_VIDAS - self.vidas))
-        return (self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE) / (p.CANTIDAD_VIDAS - self.vidas)
+        return (self.tiempo_restante * p.MULTIPLICADOR_PUNTAJE) / (
+            p.CANTIDAD_VIDAS - self.vidas
+        )

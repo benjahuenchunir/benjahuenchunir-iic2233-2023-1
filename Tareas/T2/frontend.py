@@ -87,12 +87,11 @@ class ElementoConstructor(QWidget):
 
 class MapaJuego(QWidget):
     senal_on_click = pyqtSignal(int, int)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
         self.mapa = QGridLayout(self)
-        self.elementos_por_poner = p.MAXIMO_ELEMENTOS # TODO otra manera de manejar esto es con el label del list_wdget
         self.mapa.setSpacing(0)
         self.mapa.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mapa)
@@ -118,6 +117,7 @@ class MapaJuego(QWidget):
         label = QLabel(self)
         label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][elemento]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
         self.mapa.addWidget(label, fil, col)
+
 
 class Fantasma(QLabel):
     def __init__(self, tipo, direccion, x, y, *args, **kwargs):
@@ -170,7 +170,7 @@ class Luigi(QLabel):
         self.timer.timeout.connect(self.animar_luigi)
         self.cargar_imagenes_luigi()
         self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-        
+
     def cargar_imagenes_luigi(self):
         for image in os.listdir(p.PATH_ENTIDADES):
             if p.NOMBRE_LUIGI in image:
@@ -235,6 +235,7 @@ class MenuConstructor(QWidget):
             item = self.lista_elementos.item(i)
             if item.whatsThis() == elemento:
                 self.lista_elementos.itemWidget(item).actualizar_cantidad(cantidad)
+
 
 class MenuJuego(QWidget):
     def __init__(self, *args, **kwargs):
@@ -305,7 +306,6 @@ class VentanaJuego(QWidget):
         if event.isAutoRepeat():
             return
         self.pressed_keys.add(event.key())
-        print(event.modifiers())
         if event.key() == Qt.Key_P:
             self.senal_pausar.emit()
         if event.key() == Qt.Key_G:
@@ -334,14 +334,10 @@ class VentanaJuego(QWidget):
         self.label_luigi.deleteLater()
         for fantasma in self.fantasmas.values():
             fantasma.deleteLater()
-        for elemento in self.elementos.values():
+        self.fantasmas.clear()
+        for elemento in self.elementos:
             elemento.deleteLater()
-
-    def reiniciar_fantasma(self, id, x, y):
-        self.fantasmas[id].move(x, y)
-
-    def reiniciar_luigi(self, x, y):
-        self.label_luigi.move(x, y)
+        self.elementos.clear()
 
 
 class VentanaCompleta(QStackedWidget):
@@ -412,6 +408,7 @@ class VentanaCompleta(QStackedWidget):
             self.close()
         elif mensaje.clickedButton() == btn_reiniciar:
             self.senal_reiniciar_juego.emit()
+
 
 if __name__ == '__main__':
     app = QApplication([])
