@@ -265,21 +265,25 @@ class MenuJuego(QWidget):
 
 class VentanaJuego(QWidget):
     senal_mover_personaje = pyqtSignal(int)
+    senal_eliminar_villanos = pyqtSignal()
+    senal_godmode = pyqtSignal()
+    senal_liberar_aossa = pyqtSignal()
 
-    def __init__(self) -> None:
+    def __init__(self, senal_pausar) -> None:
         super().__init__()
         self.mapa = MapaJuego()
         self.setLayout(self.mapa.mapa)
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         self.fantasmas = {}
         self.elementos = []
+        self.pressed_keys = set()
+        self.senal_pausar = senal_pausar
 
     def iniciar(self):
         self.show()
 
     def crear_luigi(self, x, y):
         self.label_luigi = Luigi(x, y, self)
-        print(self.label_luigi.pos())
         self.label_luigi.show()
 
     def crear_fantasma(self, id, tipo, nombre_direccion, x, y):
@@ -297,16 +301,34 @@ class VentanaJuego(QWidget):
         self.fantasmas[id].mover(*args)
 
     def keyPressEvent(self, event):
-        print("moverdsadsds")
         if event.isAutoRepeat():
             return
+        self.pressed_keys.add(event.key())
+        print(event.modifiers())
+        if event.key() == Qt.Key_P:
+            self.senal_pausar.emit()
+        if event.key() == Qt.Key_G:
+            self.senal_liberar_aossa.emit()
+        if len({Qt.Key_K, Qt.Key_I, Qt.Key_L}.intersection(self.pressed_keys)) == 3:
+            self.senal_eliminar_villanos.emit()
+            self.eliminar_villanos()
+        if len({Qt.Key_I, Qt.Key_N, Qt.Key_F}.intersection(self.pressed_keys)) == 3:
+            self.senal_godmode.emit()
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
             key = event.key()
             self.senal_mover_personaje.emit(key)
 
+    def keyReleaseEvent(self, event):
+        if event.key() in self.pressed_keys:
+            self.pressed_keys.remove(event.key())
+
     def mover_luigi(self, direccion, pos_final):
         self.label_luigi.mover(direccion, pos_final)
- 
+
+    def eliminar_villanos(self):
+        for fantasma in self.fantasmas.values():
+            fantasma.hide()
+
     def limpiar_nivel(self):
         self.label_luigi.deleteLater()
         for fantasma in self.fantasmas.values():
@@ -321,6 +343,7 @@ class VentanaJuego(QWidget):
 class VentanaCompleta(QStackedWidget):
     senal_cargar_mapa = pyqtSignal(list)
     senal_colocar_elemento_constructor = pyqtSignal(str, int, int)
+    senal_pausar = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -338,7 +361,7 @@ class VentanaCompleta(QStackedWidget):
         self.widget_juego = QWidget()
         self.layout_juego = QHBoxLayout()
         self.menu_juego = MenuJuego(self)
-        self.mapa_juego = VentanaJuego()
+        self.mapa_juego = VentanaJuego(self.senal_pausar)
         self.mapa_juego.setFocusPolicy(Qt.NoFocus)
         self.layout_juego.addWidget(self.menu_juego)
         self.layout_juego.addWidget(self.mapa_juego)
@@ -355,6 +378,10 @@ class VentanaCompleta(QStackedWidget):
     def emitir_colocar_elemento(self, x, y):
         elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
         self.senal_colocar_elemento_constructor.emit(elemento_seleccionado, x, y)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_P:
+            self.senal_pausar.emit()
 
     def pausar(self, is_focused):
         if is_focused:

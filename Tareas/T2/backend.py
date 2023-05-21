@@ -156,6 +156,8 @@ class Juego(QObject):
 
         self.vidas = p.CANTIDAD_VIDAS
         self.pausa = False
+        self.colision_fantasmas = True
+        self.god_mode = False
 
     def colocar_elemento(self, elemento, x, y):
         col, fil = x // p.TAMANO_GRILLA, y // p.TAMANO_GRILLA
@@ -226,7 +228,8 @@ class Juego(QObject):
             for fantasma in self.fantasmas:
                 fantasma.timer_mover.stop()
         else:
-            self.timer_juego.start()
+            if not self.god_mode:
+                self.timer_juego.start()
             for fantasma in self.fantasmas:
                 fantasma.timer_mover.start()
         self.senal_pausar.emit(self.pausa)
@@ -248,27 +251,37 @@ class Juego(QObject):
 
     def verificar_colision(self):
         pos_personaje = (self.character.x // p.TAMANO_GRILLA, self.character.y // p.TAMANO_GRILLA)
-        for fantasma in self.fantasmas:
-            if (fantasma.col, fantasma.fil) == pos_personaje:
-                print('Colision')
-                self.perder_vida()
-                '''      
-                self.leer_mapa(self.mapa)
-                '''
+        if self.colision_fantasmas:
+            for fantasma in self.fantasmas:
+                if (fantasma.col, fantasma.fil) == pos_personaje:
+                    print('Colision')
+                    self.perder_vida()
+                    '''      
+                    self.leer_mapa(self.mapa)
+                    '''
 
     def perder_vida(self):
         self.vidas -= 1
         if self.vidas != 0:
             #self.senal_limpiar_nivel.emit()
             self.senal_perder_vida.emit(str(self.vidas))
-            
+
             self.reiniciar_nivel()
-        else:            
+        else:
             pass
             #self.leer_mapa(self.mapa)
-            
+
     def reiniciar_nivel(self):
         for fantasma in self.fantasmas:
             fantasma.x = fantasma.x_original
             fantasma.y = fantasma.y_original
             self.senal_reiniciar_fantasma.emit(fantasma.id, fantasma.x, fantasma.y)
+
+    def eliminar_villanos(self):
+        self.colision_fantasmas = False
+        for fantasma in self.fantasmas:
+            fantasma.timer_mover.stop()
+
+    def activar_godmode(self):
+        self.god_mode = True
+        self.timer_juego.stop()
