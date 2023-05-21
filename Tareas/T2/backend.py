@@ -36,8 +36,9 @@ class Fantasma(QObject):
 
     @col.setter
     def col(self, nuevo_col):
+        nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
         if not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
-            self.__col = max(1, min(nuevo_col, p.ANCHO_MAPA))
+            self.__col = nuevo_col
 
     @property
     def fil(self):
@@ -45,8 +46,9 @@ class Fantasma(QObject):
 
     @fil.setter
     def fil(self, nuevo_fil):
+        nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
         if not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
-            self.__fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
+            self.__fil = nuevo_fil
 
     def mover(self):
         col, fil = self.col, self.fil
@@ -89,8 +91,9 @@ class Luigi(QObject):
 
     @col.setter
     def col(self, nuevo_col):
+        nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
         if not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
-            self.__col = max(1, min(nuevo_col, p.ANCHO_MAPA))
+            self.__col = nuevo_col
 
     @property
     def fil(self):
@@ -98,8 +101,9 @@ class Luigi(QObject):
 
     @fil.setter
     def fil(self, nuevo_fil):
+        nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
         if not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
-            self.__fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
+            self.__fil = nuevo_fil
 
     def move_character(self, key):
         col, fil = self.col, self.fil
