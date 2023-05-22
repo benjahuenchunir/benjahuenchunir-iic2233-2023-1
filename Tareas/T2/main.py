@@ -51,6 +51,9 @@ class DCCazaFantasmas:
         self.ventana_juego.mapa.senal_on_click.connect(
             self.ventana_juego.emitir_colocar_elemento
         )
+        self.backend.senal_elemento_no_valido.connect(
+            self.ventana_juego.mostrar_alerta
+        )
         self.ventana_juego.senal_colocar_elemento_constructor.connect(
             self.backend.colocar_elemento
         )

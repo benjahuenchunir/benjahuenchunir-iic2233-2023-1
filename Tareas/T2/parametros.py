@@ -30,6 +30,8 @@ CANTIDAD_VIDAS = 4
 
 # Constructor
 MODO_CONSTRUCTOR = 'Modo constructor'
+POSICION_INVALIDA = 'La posición seleccionada es invalida'
+MAXIMO_SPRITES_ALCANZADO = 'No se pueden colocar más de este sprite'
 MAPA_BORDE = 'B'
 MAPA_LUIGI = 'L'
 MAPA_PARED = 'P'

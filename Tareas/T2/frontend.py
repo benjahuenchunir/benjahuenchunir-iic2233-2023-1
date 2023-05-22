@@ -421,6 +421,14 @@ class VentanaCompleta(QStackedWidget):
         elif mensaje.clickedButton() == btn_reiniciar:
             self.senal_reiniciar_juego.emit()
             self.mapa_juego.setFocus()
+ 
+    def mostrar_alerta(self, mensaje):
+        alerta = QMessageBox(self)
+        alerta.setWindowTitle("No se puede colocar el elemento")
+        alerta.setIcon(QMessageBox.Warning)
+        alerta.setText(mensaje)
+        alerta.setStandardButtons(QMessageBox.Ok)
+        alerta.exec()
 
 
 if __name__ == '__main__':

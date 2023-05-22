@@ -168,6 +168,7 @@ class Juego(QObject):
     senal_iniciar_juego_constructor = pyqtSignal()
 
     senal_colocar_elemento = pyqtSignal(str, int, int)
+    senal_elemento_no_valido = pyqtSignal(str)
     senal_filtrar_elementos = pyqtSignal(list)
     senal_actualizar_cantidad_elemento = pyqtSignal(str, str)
 
@@ -225,6 +226,7 @@ class Juego(QObject):
                 or fil in (0, p.LARGO_GRILLA - 1)
                 or self.mapa[fil][col] != p.MAPA_VACIO
             ):
+                self.senal_elemento_no_valido.emit(p.POSICION_INVALIDA)
                 return
             self.cantidad_elementos[elemento] -= 1
             self.mapa[fil][col] = elemento
@@ -232,6 +234,8 @@ class Juego(QObject):
                 elemento, str(self.cantidad_elementos[elemento])
             )
             self.senal_colocar_elemento.emit(elemento, fil, col)
+        else:
+            self.senal_elemento_no_valido.emit(p.MAXIMO_SPRITES_ALCANZADO)
 
     def iniciar_ventana_inicio(self):
         mapas = []
@@ -262,6 +266,14 @@ class Juego(QObject):
                 continue
             filtrados.append((nombre_mapa, nombre_archivo, str(self.cantidad_elementos[nombre_mapa])))
         self.senal_filtrar_elementos.emit(filtrados)
+        
+    def limpiar_mapa(self, filtro):
+        self.mapa = [
+            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
+            for i in range(p.LARGO_GRILLA)
+        ]
+        self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
+        self.filtrar_elementos_constructor(filtro)
 
     def iniciar_juego(self, mapa):
         self.mapa = mapa
@@ -285,14 +297,6 @@ class Juego(QObject):
         return (len(p.REQUISITOS_MINIMOS_CONSTRUCTOR) ==
                 len([col for fila in self.mapa for col in fila
                      if col in p.REQUISITOS_MINIMOS_CONSTRUCTOR]))
-
-    def limpiar_mapa(self, filtro):
-        self.mapa = [
-            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
-            for i in range(p.LARGO_GRILLA)
-        ]
-        self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
-        self.filtrar_elementos_constructor(filtro)
 
     def leer_mapa(self, filas):
         for fil, fila in enumerate(filas):
