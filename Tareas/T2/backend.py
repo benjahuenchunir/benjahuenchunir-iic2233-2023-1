@@ -262,8 +262,6 @@ class Juego(QObject):
             self.tiempo_movimiento_fantasmas * 1000,
             self.mapa,
         )
-        #fantasma.timer_mover.start()
-        #self.timer_colision_fantasmas.start()
         self.fantasmas.append(fantasma)
         self.senal_crear_fantasma.emit(
             fantasma.id,
@@ -304,6 +302,10 @@ class Juego(QObject):
 
     def verificar_colision(self):
         pos_personaje = (self.character.col, self.character.fil)
+        if self.mapa[pos_personaje[1]][pos_personaje[0]] == p.MAPA_FUEGO:
+            self.colision_detectada = True
+            self.perder_vida()
+            return
         if self.colision_fantasmas:
             for fantasma in self.fantasmas:
                 if (fantasma.col, fantasma.fil) == pos_personaje and not self.colision_detectada:

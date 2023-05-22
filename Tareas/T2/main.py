@@ -2,8 +2,6 @@ from frontend import VentanaInicio, VentanaCompleta
 from backend import Juego
 from PyQt5.QtWidgets import QApplication
 import sys
-import parametros as p
-import os
 
 
 class DCCazaFantasmas:
