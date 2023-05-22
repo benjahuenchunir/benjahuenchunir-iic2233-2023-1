@@ -182,7 +182,7 @@ class Luigi(QObject):
 
         if col != self.col or fil != self.fil:
             self.mapa[fil][col] = p.MAPA_VACIO
-            if self.mapa[self.fil][self.col] != p.MAPA_ESTRELLA:
+            if self.mapa[self.fil][self.col] not in (p.MAPA_ESTRELLA, p.MAPA_FUEGO):
                 self.mapa[self.fil][self.col] = p.MAPA_LUIGI
             self.senal_animar_luigi.emit(
                 direccion, (self.col * p.TAMANO_GRILLA,
@@ -236,8 +236,8 @@ class Juego(QObject):
         self.tiempo_movimiento_fantasmas = (
             int(1 / self.ponderador_velocidad_fantasmas))
         self.mapa_original = [
-            [p.MAPA_VACIO for i in range(p.ANCHO_MAPA)]
-            for i in range(p.LARGO_MAPA)
+            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
+            for i in range(p.LARGO_GRILLA)
         ]
         self.mapa = deepcopy(self.mapa_original)
         print('el largo del mapa es', len(self.mapa))
@@ -279,7 +279,12 @@ class Juego(QObject):
         mapas = []
         for mapa in os.listdir(p.PATH_MAPAS):
             with open(p.PATH_MAPAS + mapa, "rt", encoding="utf-8") as f:
-                mapas.append((mapa, [list(fila.strip()) for fila in f.readlines()]))
+                mapa_final = [[p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]]
+                for fila in f.readlines():
+                    fila = [p.MAPA_VACIO] + list(fila) + [p.MAPA_VACIO]
+                    mapa_final.append(fila)
+                mapa_final.append([p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)])
+                mapas.append((mapa, deepcopy(mapa_final)))
         self.senal_iniciar_ventana_inicio.emit(mapas)
 
     def revisar_login(self, nombre_usuario, mapa):
