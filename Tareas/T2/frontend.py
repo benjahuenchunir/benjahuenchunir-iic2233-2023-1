@@ -404,8 +404,8 @@ class VentanaCompleta(QStackedWidget):
         mensaje = QMessageBox(self)
         mensaje.setWindowTitle(resultado)
         mensaje.setText(f"Usuario: {nombre_usuario}\nPuntuación: {score}")
-        btn_salir = mensaje.addButton("Salir", QMessageBox.AcceptRole)
-        btn_reiniciar = mensaje.addButton("Jugar de nuevo", QMessageBox.RejectRole)
+        btn_salir = mensaje.addButton("Salir", QMessageBox.RejectRole)
+        btn_reiniciar = mensaje.addButton("Jugar de nuevo", QMessageBox.NoRole)
         mensaje.exec_()
         if mensaje.clickedButton() == btn_salir:
             self.close()
