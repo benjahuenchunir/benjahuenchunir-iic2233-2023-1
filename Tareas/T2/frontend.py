@@ -89,7 +89,8 @@ class MapaJuego(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAcceptDrops(True)
+        #self.setAcceptDrops(True)
+        self.agregados = []
         self.mapa = QGridLayout(self)
         self.mapa.setSpacing(0)
         self.mapa.setContentsMargins(0, 0, 0, 0)
@@ -116,6 +117,12 @@ class MapaJuego(QWidget):
         label = QLabel(self)
         label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][elemento]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
         self.mapa.addWidget(label, fil, col)
+        self.agregados.append(label)
+
+    def limpiar_mapa(self):
+        for elemento in self.agregados:
+            elemento.deleteLater()
+        self.agregados.clear()
 
 
 class Fantasma(QLabel):
@@ -193,6 +200,8 @@ class Luigi(QLabel):
 
 
 class MenuConstructor(QWidget):
+    senal_limpiar_mapa = pyqtSignal(str)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         menu_constructor = QVBoxLayout()
@@ -200,7 +209,6 @@ class MenuConstructor(QWidget):
 
         self.filtro_elementos = QComboBox()
         self.filtro_elementos.addItems(p.FILTROS)
-        self.filtro_elementos.currentTextChanged.connect(self.filtrar_lista)
         menu_constructor.addWidget(self.filtro_elementos)
 
         self.lista_elementos = QListWidget(self)
@@ -208,7 +216,6 @@ class MenuConstructor(QWidget):
         self.lista_elementos.setDragDropMode(QAbstractItemView.DragDrop)
         self.lista_elementos.setDefaultDropAction(Qt.ActionMask)
         self.lista_elementos.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.filtrar_lista(self.filtro_elementos.currentText())
         menu_constructor.addWidget(self.lista_elementos)
 
         layout_botones = QHBoxLayout()
@@ -218,22 +225,24 @@ class MenuConstructor(QWidget):
         layout_botones.addWidget(self.btn_jugar)
         menu_constructor.addLayout(layout_botones)
 
-    def filtrar_lista(self, texto):
+    def limpiar_mapa(self):
+        self.senal_limpiar_mapa.emit(self.filtro_elementos.currentText())
+
+    def filtrar_lista(self, elementos):
         self.lista_elementos.clear()
-        for nombre_mapa, nombre_archivo in p.FILTROS[texto].items():
-            if p.MAPA_BORDE in p.FILTROS[texto] and nombre_archivo == p.FILTROS[texto][p.MAPA_BORDE]:
-                continue
+        for nombre_mapa, nombre_archivo, cantidad in elementos:
             item1 = QListWidgetItem()
             item1.setWhatsThis(nombre_mapa)
             item1.setSizeHint(QSize(100, 80))
             self.lista_elementos.addItem(item1)
-            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, str(p.MAXIMO_ELEMENTOS[nombre_mapa])))
+            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, cantidad))
 
     def actualizar_cantidad_elemento(self, elemento, cantidad):
         for i in range(self.lista_elementos.count()):
             item = self.lista_elementos.item(i)
             if item.whatsThis() == elemento:
                 self.lista_elementos.itemWidget(item).actualizar_cantidad(cantidad)
+                break
 
 
 class MenuJuego(QWidget):

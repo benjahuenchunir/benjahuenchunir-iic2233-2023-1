@@ -77,6 +77,32 @@ class Fantasma(QObject):
                 self.senal_verificar_colision.emit()
 
 
+class Roca:
+    def __init__(self, fil, col, mapa):
+        self.__fil = fil
+        self.__col = col
+        self.mapa = mapa
+
+    @property
+    def col(self):
+        return self.__col
+
+    @col.setter
+    def col(self, nuevo_col):
+        nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
+        if self.mapa[self.fil][nuevo_col] == p.MAPA_VACIO:
+            self.__col = nuevo_col
+
+    @property
+    def fil(self):
+        return self.__fil
+
+    @fil.setter
+    def fil(self, nuevo_fil):
+        nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
+        if not self.mapa[nuevo_fil][self.col] in p.COLISION_FANTASMAS:
+            self.__fil = nuevo_fil
+
 class Luigi(QObject):
     senal_animar_luigi = pyqtSignal(str, tuple)
 
@@ -142,6 +168,7 @@ class Juego(QObject):
     senal_iniciar_juego_constructor = pyqtSignal()
 
     senal_colocar_elemento = pyqtSignal(str, int, int)
+    senal_filtrar_elementos = pyqtSignal(list)
     senal_actualizar_cantidad_elemento = pyqtSignal(str, str)
 
     senal_crear_luigi = pyqtSignal(int, int)
@@ -175,7 +202,7 @@ class Juego(QObject):
             [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
             for i in range(p.LARGO_GRILLA)
         ]
-        self.cantidad_elementos = p.MAXIMO_ELEMENTOS
+        self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
 
         self.tiempo_restante = p.TIEMPO_CUENTA_REGRESIVA
         self.timer_juego = QTimer(self)
@@ -226,6 +253,15 @@ class Juego(QObject):
                 self.iniciar_juego(mapa)
             else:
                 self.senal_iniciar_constructor.emit()
+                self.filtrar_elementos_constructor(p.FILTRO_TODOS)
+
+    def filtrar_elementos_constructor(self, filtro):
+        filtrados = []
+        for nombre_mapa, nombre_archivo in p.FILTROS[filtro].items():
+            if p.MAPA_BORDE in p.FILTROS[filtro] and nombre_archivo == p.FILTROS[filtro][p.MAPA_BORDE]:
+                continue
+            filtrados.append((nombre_mapa, nombre_archivo, str(self.cantidad_elementos[nombre_mapa])))
+        self.senal_filtrar_elementos.emit(filtrados)
 
     def iniciar_juego(self, mapa):
         self.mapa = mapa
@@ -249,6 +285,14 @@ class Juego(QObject):
         return (len(p.REQUISITOS_MINIMOS_CONSTRUCTOR) ==
                 len([col for fila in self.mapa for col in fila
                      if col in p.REQUISITOS_MINIMOS_CONSTRUCTOR]))
+
+    def limpiar_mapa(self, filtro):
+        self.mapa = [
+            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
+            for i in range(p.LARGO_GRILLA)
+        ]
+        self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
+        self.filtrar_elementos_constructor(filtro)
 
     def leer_mapa(self, filas):
         for fil, fila in enumerate(filas):

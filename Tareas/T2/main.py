@@ -31,6 +31,17 @@ class DCCazaFantasmas:
         self.backend.senal_iniciar_juego.connect(self.ventana_juego.jugar)
 
     def conectar_senales_ventana_constructor(self):
+        (self.ventana_juego.menu_constructor.
+         filtro_elementos.currentTextChanged.connect(
+             self.backend.filtrar_elementos_constructor))
+        self.backend.senal_filtrar_elementos.connect(self.ventana_juego.menu_constructor.filtrar_lista)
+        self.ventana_juego.menu_constructor.btn_limpiar.clicked.connect(
+            self.ventana_juego.mapa.limpiar_mapa)
+        self.ventana_juego.menu_constructor.btn_limpiar.clicked.connect(
+            self.ventana_juego.menu_constructor.limpiar_mapa
+        )
+        self.ventana_juego.menu_constructor.senal_limpiar_mapa.connect(
+            self.backend.limpiar_mapa)
         self.ventana_juego.menu_constructor.btn_jugar.clicked.connect(
             self.backend.iniciar_juego_constructor
         )
