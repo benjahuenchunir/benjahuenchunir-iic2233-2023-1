@@ -8,8 +8,8 @@ class Fantasma(QObject):
     identificador = 0
 
     def __init__(
-        self, tipo, col, fil, senal_mover_fantasma, senal_morir, senal_verificar_colision,
-        tiempo_movimiento, mapa
+        self, tipo, col, fil, senal_mover_fantasma, senal_morir,
+        senal_verificar_colision, tiempo_movimiento, mapa
     ) -> None:
         super().__init__()
         self.id = Fantasma.identificador
@@ -38,7 +38,7 @@ class Fantasma(QObject):
     @col.setter
     def col(self, nuevo_col):
         nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
-        if not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
+        if not self.mapa[self.fil][nuevo_col] in (p.MAPA_PARED, p.MAPA_ROCA):
             self.__col = nuevo_col
 
     @property
@@ -48,7 +48,7 @@ class Fantasma(QObject):
     @fil.setter
     def fil(self, nuevo_fil):
         nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
-        if not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
+        if not self.mapa[nuevo_fil][self.col] == (p.MAPA_PARED, p.MAPA_ROCA):
             self.__fil = nuevo_fil
 
     def mover(self):
