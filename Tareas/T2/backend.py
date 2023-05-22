@@ -38,7 +38,7 @@ class Fantasma(QObject):
     @col.setter
     def col(self, nuevo_col):
         nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
-        if not self.mapa[self.fil][nuevo_col] in (p.MAPA_PARED, p.MAPA_ROCA):
+        if not self.mapa[self.fil][nuevo_col] in p.COLISION_FANTASMAS:
             self.__col = nuevo_col
 
     @property
@@ -48,7 +48,7 @@ class Fantasma(QObject):
     @fil.setter
     def fil(self, nuevo_fil):
         nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
-        if not self.mapa[nuevo_fil][self.col] == (p.MAPA_PARED, p.MAPA_ROCA):
+        if not self.mapa[nuevo_fil][self.col] in p.COLISION_FANTASMAS:
             self.__fil = nuevo_fil
 
     def mover(self):
@@ -73,7 +73,8 @@ class Fantasma(QObject):
             )
             if self.mapa[self.fil][self.col] == p.MAPA_FUEGO:
                 self.senal_morir.emit(self.id)
-            self.senal_verificar_colision.emit()
+            else:
+                self.senal_verificar_colision.emit()
 
 
 class Luigi(QObject):
@@ -236,12 +237,18 @@ class Juego(QObject):
         self.senal_iniciar_juego.emit()
 
     def iniciar_juego_constructor(self):
-        self.character.mapa = self.mapa
-        self.leer_mapa(self.mapa)
-        self.senal_actualizar_tiempo.emit(
-            self.formatear_tiempo(self.tiempo_restante))
-        self.pausar()
-        self.senal_iniciar_juego_constructor.emit()
+        if self.verificar_condiciones_mapa():
+            self.character.mapa = self.mapa
+            self.leer_mapa(self.mapa)
+            self.senal_actualizar_tiempo.emit(
+                self.formatear_tiempo(self.tiempo_restante))
+            self.pausar()
+            self.senal_iniciar_juego_constructor.emit()
+
+    def verificar_condiciones_mapa(self):
+        return (len(p.REQUISITOS_MINIMOS_CONSTRUCTOR) ==
+                len([col for fila in self.mapa for col in fila
+                     if col in p.REQUISITOS_MINIMOS_CONSTRUCTOR]))
 
     def leer_mapa(self, filas):
         for fil, fila in enumerate(filas):
@@ -303,7 +310,6 @@ class Juego(QObject):
         self.senal_actualizar_tiempo.emit(
             self.formatear_tiempo(self.tiempo_restante))
         if self.tiempo_restante == 0:
-            self.pausar()
             self.perder()
 
     def formatear_tiempo(self, segundos):
@@ -332,10 +338,11 @@ class Juego(QObject):
         if not self.god_mode:
             self.vidas -= 1
             self.senal_perder_vida.emit(str(self.vidas))
-        if self.vidas != 0:
+        if self.vidas > 0:
             self.reiniciar_nivel()
         else:
             self.perder()
+        self.colision_detectada = False
 
     def reiniciar_nivel(self):
         self.senal_limpiar_nivel.emit()
@@ -345,7 +352,16 @@ class Juego(QObject):
         self.leer_mapa(self.mapa)
         for fantasma in self.fantasmas:
             fantasma.timer_mover.start()
-        self.colision_detectada = False
+
+    def reiniciar_juego(self):
+        self.god_mode = False
+        self.colision_fantasmas = True
+        self.pausa = False
+        self.tiempo_restante = p.TIEMPO_CUENTA_REGRESIVA
+        self.vidas = p.CANTIDAD_VIDAS - 1
+        self.senal_perder_vida.emit(str(self.vidas))
+        self.reiniciar_nivel()
+        self.timer_juego.start()
 
     def eliminar_villanos(self):
         self.colision_fantasmas = False

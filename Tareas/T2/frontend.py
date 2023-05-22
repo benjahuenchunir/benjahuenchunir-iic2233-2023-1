@@ -411,6 +411,7 @@ class VentanaCompleta(QStackedWidget):
             self.close()
         elif mensaje.clickedButton() == btn_reiniciar:
             self.senal_reiniciar_juego.emit()
+            self.mapa_juego.setFocus()
 
 
 if __name__ == '__main__':
