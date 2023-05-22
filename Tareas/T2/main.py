@@ -77,6 +77,8 @@ class DCCazaFantasmas:
         self.backend.senal_mover_fantasma.connect(
             self.ventana_juego.mapa_juego.mover_fantasmas
         )
+        self.backend.senal_mover_roca.connect(
+            self.ventana_juego.mapa_juego.mover_roca)
         self.backend.senal_perder_vida.connect(
             self.ventana_juego.menu_juego.actualizar_vidas
         )
@@ -112,6 +114,9 @@ class DCCazaFantasmas:
         )
         self.backend.senal_crear_fantasma.connect(
             self.ventana_juego.mapa_juego.crear_fantasma
+        )
+        self.backend.senal_crear_roca.connect(
+            self.ventana_juego.mapa_juego.crear_roca
         )
         self.backend.senal_crear_elemento.connect(
             self.ventana_juego.mapa_juego.crear_elemento

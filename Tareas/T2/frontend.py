@@ -162,6 +162,20 @@ class Fantasma(QLabel):
         self.animar()
 
 
+class Roca(QLabel):
+    def __init__(self, x, y, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.anim = QPropertyAnimation(self, b"pos")
+        self.anim.setDuration(400)
+        self.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_ROCA]))
+        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+        self.setScaledContents(True)
+
+    def mover(self, x, y):
+        self.anim.setEndValue(QPoint(x, y))
+        self.anim.start()
+
+
 class Luigi(QLabel):
     def __init__(self, x, y, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -285,12 +299,10 @@ class VentanaJuego(QWidget):
         self.setLayout(self.mapa.mapa)
         self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
         self.fantasmas = {}
+        self.rocas = {}
         self.elementos = []
         self.pressed_keys = set()
         self.senal_pausar = senal_pausar
-
-    def iniciar(self):
-        self.show()
 
     def crear_luigi(self, x, y):
         self.label_luigi = Luigi(x, y, self)
@@ -301,6 +313,11 @@ class VentanaJuego(QWidget):
         self.fantasmas[id] = label_fantasma
         label_fantasma.show()
 
+    def crear_roca(self, id, x, y):
+        label_roca = Roca(x, y, self)
+        self.rocas[id] = label_roca
+        label_roca.show()
+
     def crear_elemento(self, tipo, col, fil):
         elemento = QLabel(self)
         elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
@@ -309,6 +326,9 @@ class VentanaJuego(QWidget):
 
     def mover_fantasmas(self, id, *args):
         self.fantasmas[id].mover(*args)
+
+    def mover_roca(self, id, *args):
+        self.rocas[id].mover(*args)
 
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
@@ -337,7 +357,7 @@ class VentanaJuego(QWidget):
     def eliminar_villanos(self):
         for fantasma in self.fantasmas.values():
             fantasma.hide()
-            
+
     def eliminar_fantasma(self, id):
         self.fantasmas[id].deleteLater()
         del self.fantasmas[id]
@@ -347,6 +367,9 @@ class VentanaJuego(QWidget):
         for fantasma in self.fantasmas.values():
             fantasma.deleteLater()
         self.fantasmas.clear()
+        for roca in self.rocas.values():
+            roca.deleteLater()
+        self.rocas.clear()
         for elemento in self.elementos:
             elemento.deleteLater()
         self.elementos.clear()

@@ -2,18 +2,20 @@ from PyQt5.QtCore import QObject, QTimer, Qt, pyqtSignal
 import random
 import parametros as p
 import os
+from copy import deepcopy
 
 
 class Fantasma(QObject):
     identificador = 0
 
     def __init__(
-        self, tipo, col, fil, senal_mover_fantasma, senal_morir,
+        self, tipo_mapa, tipo, col, fil, senal_mover_fantasma, senal_morir,
         senal_verificar_colision, tiempo_movimiento, mapa
     ) -> None:
         super().__init__()
         self.id = Fantasma.identificador
         Fantasma.identificador += 1
+        self.tipo_mapa = tipo_mapa
         self.tipo = tipo
         self.mapa = mapa
         self.col0 = col
@@ -74,14 +76,21 @@ class Fantasma(QObject):
             if self.mapa[self.fil][self.col] == p.MAPA_FUEGO:
                 self.senal_morir.emit(self.id)
             else:
+                self.mapa[fil][col] = p.MAPA_VACIO
+                self.mapa[self.fil][self.col] = self.tipo_mapa
                 self.senal_verificar_colision.emit()
 
 
 class Roca:
-    def __init__(self, fil, col, mapa):
+    identificador = 0
+
+    def __init__(self, col, fil, mapa, senal_mover):
+        self.id = Roca.identificador
+        Roca.identificador += 1
         self.__fil = fil
         self.__col = col
         self.mapa = mapa
+        self.senal_mover_roca = senal_mover
 
     @property
     def col(self):
@@ -100,8 +109,19 @@ class Roca:
     @fil.setter
     def fil(self, nuevo_fil):
         nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
-        if not self.mapa[nuevo_fil][self.col] in p.COLISION_FANTASMAS:
+        if self.mapa[nuevo_fil][self.col] == p.MAPA_VACIO:
             self.__fil = nuevo_fil
+
+    def mover(self, nuevo_col, nuevo_fil):
+        col, fil = self.col, self.fil
+        self.col, self.fil = nuevo_col, nuevo_fil
+        if (col, fil) != (self.col, self.fil):
+            print(self.mapa[fil][col])
+            print(self.mapa[self.fil][self.col])
+            self.mapa[fil][col] = p.MAPA_VACIO
+            self.mapa[self.fil][self.col] = p.MAPA_ROCA
+            self.senal_mover_roca.emit(self.id, self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA)
+            return True
 
 class Luigi(QObject):
     senal_animar_luigi = pyqtSignal(str, tuple)
@@ -114,6 +134,7 @@ class Luigi(QObject):
         self.__col = 0
         self.__fil = 0
         self.mapa = None
+        self.rocas = []
 
     @property
     def col(self):
@@ -122,7 +143,10 @@ class Luigi(QObject):
     @col.setter
     def col(self, nuevo_col):
         nuevo_col = max(1, min(nuevo_col, p.ANCHO_MAPA))
-        if not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
+        if self.mapa[self.fil][nuevo_col] == p.MAPA_ROCA:
+            if self.mover_roca((nuevo_col, self.fil), (2 * nuevo_col - self.col, self.fil)):
+                self.__col = nuevo_col
+        elif not self.mapa[self.fil][nuevo_col] == p.MAPA_PARED:
             self.__col = nuevo_col
 
     @property
@@ -132,7 +156,10 @@ class Luigi(QObject):
     @fil.setter
     def fil(self, nuevo_fil):
         nuevo_fil = max(1, min(nuevo_fil, p.LARGO_MAPA))
-        if not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
+        if self.mapa[nuevo_fil][self.col] == p.MAPA_ROCA:
+            if self.mover_roca((self.col, nuevo_fil), (self.col, 2 * nuevo_fil - self.fil)):
+                self.__fil = nuevo_fil
+        elif not self.mapa[nuevo_fil][self.col] == p.MAPA_PARED:
             self.__fil = nuevo_fil
 
     def move_character(self, key):
@@ -154,10 +181,18 @@ class Luigi(QObject):
             self.col += 1
 
         if col != self.col or fil != self.fil:
+            self.mapa[fil][col] = p.MAPA_VACIO
+            if self.mapa[self.fil][self.col] != p.MAPA_ESTRELLA:
+                self.mapa[self.fil][self.col] = p.MAPA_LUIGI
             self.senal_animar_luigi.emit(
                 direccion, (self.col * p.TAMANO_GRILLA,
                             self.fil * p.TAMANO_GRILLA)
             )
+
+    def mover_roca(self, posicion, nueva_posicion):
+        for roca in self.rocas:
+            if (roca.col, roca.fil) == posicion:
+                return roca.mover(*nueva_posicion)
 
 
 class Juego(QObject):
@@ -174,12 +209,14 @@ class Juego(QObject):
 
     senal_crear_luigi = pyqtSignal(int, int)
     senal_crear_fantasma = pyqtSignal(int, str, str, int, int)
+    senal_crear_roca = pyqtSignal(int, int, int)
     senal_crear_elemento = pyqtSignal(str, int, int)
 
     senal_actualizar_tiempo = pyqtSignal(str)
     senal_mover_fantasma = pyqtSignal(int, str, int, int)
     senal_morir = pyqtSignal(int)
     senal_eliminar_fantasma = pyqtSignal(int)
+    senal_mover_roca = pyqtSignal(int, int, int)
 
     senal_verificar_colision = pyqtSignal()
     senal_perder_vida = pyqtSignal(str)
@@ -198,11 +235,12 @@ class Juego(QObject):
         )
         self.tiempo_movimiento_fantasmas = (
             int(1 / self.ponderador_velocidad_fantasmas))
-
-        self.mapa = [
-            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
-            for i in range(p.LARGO_GRILLA)
+        self.mapa_original = [
+            [p.MAPA_VACIO for i in range(p.ANCHO_MAPA)]
+            for i in range(p.LARGO_MAPA)
         ]
+        self.mapa = deepcopy(self.mapa_original)
+        print('el largo del mapa es', len(self.mapa))
         self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
 
         self.tiempo_restante = p.TIEMPO_CUENTA_REGRESIVA
@@ -224,12 +262,12 @@ class Juego(QObject):
             if (
                 col in (0, p.ANCHO_GRILLA - 1)
                 or fil in (0, p.LARGO_GRILLA - 1)
-                or self.mapa[fil][col] != p.MAPA_VACIO
+                or self.mapa_original[fil][col] != p.MAPA_VACIO
             ):
                 self.senal_elemento_no_valido.emit(p.POSICION_INVALIDA)
                 return
             self.cantidad_elementos[elemento] -= 1
-            self.mapa[fil][col] = elemento
+            self.mapa_original[fil][col] = elemento
             self.senal_actualizar_cantidad_elemento.emit(
                 elemento, str(self.cantidad_elementos[elemento])
             )
@@ -241,7 +279,7 @@ class Juego(QObject):
         mapas = []
         for mapa in os.listdir(p.PATH_MAPAS):
             with open(p.PATH_MAPAS + mapa, "rt", encoding="utf-8") as f:
-                mapas.append((mapa, f.readlines()))
+                mapas.append((mapa, [list(fila.strip()) for fila in f.readlines()]))
         self.senal_iniciar_ventana_inicio.emit(mapas)
 
     def revisar_login(self, nombre_usuario, mapa):
@@ -266,17 +304,18 @@ class Juego(QObject):
                 continue
             filtrados.append((nombre_mapa, nombre_archivo, str(self.cantidad_elementos[nombre_mapa])))
         self.senal_filtrar_elementos.emit(filtrados)
-        
+
     def limpiar_mapa(self, filtro):
         self.mapa = [
-            [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
-            for i in range(p.LARGO_GRILLA)
+            [p.MAPA_VACIO for i in range(p.ANCHO_MAPA)]
+            for i in range(p.LARGO_MAPA)
         ]
         self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
         self.filtrar_elementos_constructor(filtro)
 
     def iniciar_juego(self, mapa):
-        self.mapa = mapa
+        self.mapa_original = mapa
+        self.mapa = deepcopy(self.mapa_original)
         self.character.mapa = self.mapa
         self.leer_mapa(mapa)
         self.senal_actualizar_tiempo.emit(
@@ -286,6 +325,7 @@ class Juego(QObject):
 
     def iniciar_juego_constructor(self):
         if self.verificar_condiciones_mapa():
+            self.mapa = deepcopy(self.mapa_original)
             self.character.mapa = self.mapa
             self.leer_mapa(self.mapa)
             self.senal_actualizar_tiempo.emit(
@@ -295,7 +335,7 @@ class Juego(QObject):
 
     def verificar_condiciones_mapa(self):
         return (len(p.REQUISITOS_MINIMOS_CONSTRUCTOR) ==
-                len([col for fila in self.mapa for col in fila
+                len([col for fila in self.mapa_original for col in fila
                      if col in p.REQUISITOS_MINIMOS_CONSTRUCTOR]))
 
     def leer_mapa(self, filas):
@@ -310,11 +350,14 @@ class Juego(QObject):
                     )
                 elif columna in p.SPRITES_ENTIDADES:
                     self.crear_fantasma(columna, col, fil)
+                elif columna == p.MAPA_ROCA:
+                    self.crear_roca(col, fil)
                 elif columna in p.SPRITES_ELEMENTOS.keys():
                     self.senal_crear_elemento.emit(columna, col, fil)
 
     def crear_fantasma(self, tipo, col, fil):
         fantasma = Fantasma(
+            tipo,
             p.FANTASMA_CONVERSION[tipo],
             col,
             fil,
@@ -332,6 +375,11 @@ class Juego(QObject):
             col * p.TAMANO_GRILLA,
             fil * p.TAMANO_GRILLA,
         )
+
+    def crear_roca(self, col, fil):
+        roca = Roca(col, fil, self.mapa, self.senal_mover_roca)
+        self.character.rocas.append(roca)
+        self.senal_crear_roca.emit(roca.id, col * p.TAMANO_GRILLA, fil * p.TAMANO_GRILLA)
 
     def eliminar_fantasma(self, id):
         for fantasma in self.fantasmas:
@@ -365,6 +413,7 @@ class Juego(QObject):
         return f"{minutos}:{segundos}"
 
     def mover_personaje(self, key):
+        print(self.mapa)
         self.character.move_character(key)
         self.verificar_colision()
 
@@ -397,6 +446,8 @@ class Juego(QObject):
         for fantasma in self.fantasmas:
             fantasma.timer_mover.stop()
         self.fantasmas.clear()
+        self.character.rocas.clear()
+        self.mapa = deepcopy(self.mapa_original)
         self.leer_mapa(self.mapa)
         for fantasma in self.fantasmas:
             fantasma.timer_mover.start()
