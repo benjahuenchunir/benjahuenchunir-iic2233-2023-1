@@ -8,7 +8,7 @@ class Fantasma(QObject):
     identificador = 0
 
     def __init__(
-        self, tipo, col, fil, senal_mover_fantasma, senal_verificar_colision,
+        self, tipo, col, fil, senal_mover_fantasma, senal_morir, senal_verificar_colision,
         tiempo_movimiento, mapa
     ) -> None:
         super().__init__()
@@ -21,6 +21,7 @@ class Fantasma(QObject):
         self.__col = col
         self.__fil = fil
         self.senal_mover = senal_mover_fantasma
+        self.senal_morir = senal_morir
         self.senal_verificar_colision = senal_verificar_colision
         self.nombre_direccion = random.choice(
             p.NOMBRES_DIRECCIONES_FANTASMA[self.tipo])
@@ -70,6 +71,8 @@ class Fantasma(QObject):
                 self.col * p.TAMANO_GRILLA,
                 self.fil * p.TAMANO_GRILLA,
             )
+            if self.mapa[self.fil][self.col] == p.MAPA_FUEGO:
+                self.senal_morir.emit(self.id)
             self.senal_verificar_colision.emit()
 
 
@@ -146,6 +149,8 @@ class Juego(QObject):
 
     senal_actualizar_tiempo = pyqtSignal(str)
     senal_mover_fantasma = pyqtSignal(int, str, int, int)
+    senal_morir = pyqtSignal(int)
+    senal_eliminar_fantasma = pyqtSignal(int)
 
     senal_verificar_colision = pyqtSignal()
     senal_perder_vida = pyqtSignal(str)
@@ -181,6 +186,7 @@ class Juego(QObject):
         self.colision_fantasmas = True
         self.god_mode = False
         self.senal_verificar_colision.connect(self.verificar_colision)
+        self.senal_morir.connect(self.eliminar_fantasma)
         self.colision_detectada = False
 
     def colocar_elemento(self, elemento, x, y):
@@ -258,6 +264,7 @@ class Juego(QObject):
             col,
             fil,
             self.senal_mover_fantasma,
+            self.senal_morir,
             self.senal_verificar_colision,
             self.tiempo_movimiento_fantasmas * 1000,
             self.mapa,
@@ -270,6 +277,13 @@ class Juego(QObject):
             col * p.TAMANO_GRILLA,
             fil * p.TAMANO_GRILLA,
         )
+
+    def eliminar_fantasma(self, id):
+        for fantasma in self.fantasmas:
+            if fantasma.id == id:
+                fantasma.timer_mover.stop()
+                self.senal_eliminar_fantasma.emit(id)
+                break
 
     def pausar(self):
         self.pausa = False if self.pausa else True

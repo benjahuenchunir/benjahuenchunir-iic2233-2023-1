@@ -328,6 +328,10 @@ class VentanaJuego(QWidget):
     def eliminar_villanos(self):
         for fantasma in self.fantasmas.values():
             fantasma.hide()
+            
+    def eliminar_fantasma(self, id):
+        self.fantasmas[id].deleteLater()
+        del self.fantasmas[id]
 
     def limpiar_nivel(self):
         self.label_luigi.deleteLater()

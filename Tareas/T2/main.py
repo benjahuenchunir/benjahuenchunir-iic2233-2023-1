@@ -88,6 +88,7 @@ class DCCazaFantasmas:
         self.backend.senal_terminar_partida.connect(
             self.ventana_juego.terminar_partida
         )
+        self.backend.senal_eliminar_fantasma.connect(self.ventana_juego.mapa_juego.eliminar_fantasma)
 
     def conectar_senales_mapa(self):
         self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
