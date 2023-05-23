@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QWidget,
     QListWidget,
-    QApplication,
     QLabel,
     QLineEdit,
     QHBoxLayout,
@@ -17,7 +16,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize
 from PyQt5.QtMultimedia import QSoundEffect
-import sys
 import frontend_elementos as fe
 
 
@@ -47,14 +45,12 @@ class VentanaInicio(QWidget):
         self.dropdown_menu.addItem(p.MODO_CONSTRUCTOR)
         self.btn_login = QPushButton("Login", self)
         self.btn_exit = QPushButton("Salir", self)
-        self.btn_exit.clicked.connect(self.close)
         vbox.addLayout(hbox)
         vbox.addWidget(self.dropdown_menu)
         vbox.addWidget(self.btn_login)
         vbox.addWidget(self.btn_exit)
 
         self.setLayout(vbox)
-        self.btn_login.clicked.connect(self.login)
 
     def cargar_mapas(self, mapas):
         for nombre, mapa in mapas:

@@ -6,15 +6,6 @@ La tarea esta completa, es decir, cree la ventana de inicio y de juego, cada una
 
 ### Cosas implementadas y no implementadas :white_check_mark: :x:
 
-Explicación: mantén el emoji correspondiente, de manera honesta, para cada item. Si quieres, también puedes agregarlos a los títulos:
-- ❌ si **NO** completaste lo pedido
-- ✅ si completaste **correctamente** lo pedido
-- 🟠 si el item está **incompleto** o tiene algunos errores
-
-**⚠️⚠️NO BASTA CON SOLO PONER EL COLOR DE LO IMPLEMENTADO**,
-SINO QUE SE DEBERÁ EXPLICAR QUÉ SE REALIZO DETALLADAMENTE EN CADA ITEM.
-⚠️⚠️
-
 #### Ventanas: 27 pts (27%)
 ##### ✅ Ventana de Inicio Se verifica el nombre de usuario notificando en caso de error y permite abrir cualquier mapa o el modo constructor. Ademas posee un boton para salir
 ##### ✅ Ventana de Juego: El modo constructor posee una lista de elementos para colocar en el mapa que se pueden filtrar indicando si el usuario intenta colocar un elemento enuna posicion invalida. Se puede limpiar el mapa e iniciar el juego.  El modo juego posee un contador para el tiempo y muestra las vidas. Al perder/ganar se muestra una alerta con la opcion de jugar de nuevo o salir.
@@ -64,4 +55,14 @@ Por otro lado, los módulos que fueron creados fueron los siguientes:
 ## Supuestos y consideraciones adicionales :thinking:
 Los supuestos que realicé durante la tarea son los siguientes:
 
-1. En los cheatcodes, el INF permanece activo cuando Luigi muere, en cambio el KIL se debe volver a activar. Cuando se reinicia el juego se resetean todos los cheatcodes
+1. En los cheatcodes, el INF permanece activo cuando Luigi muere, en cambio el KIL se debe volver a activar. Cuando se reinicia el juego tras haber terminado la partida se resetean todos los cheatcodes. Esto lo hice de acuerdo al issue 324.
+
+## Lineas de codigo elementos azules y amarillos
+1. Ventana de inicio: La señal para la verificacion del nombre la manda el boton de iniciar. Se conecta a la funcion revisar_login de la linea 96 en el backend. Esta emite una señal si el nombre es invalido que se conecta a la funcion alerta_nombre_invalido de la linea 67 en el frontend. La misma  es el que, en caso de nombre valido, maneja la seleccion ya sea constructor o un mapa existente. El boton salir se conecta a una señal que cierra la ventana en el main en la linea 19.
+2. Ventana de juego: Las señales senal_actualizar_tiempo y senal_morir del backend actualizan el tiempo restante y las vidas de luigi en las lineas 173 y 176 del frontend. El boton jugar se conecta a la funcion in iniciar_juego_constructor del backend en al linea 143 que luego crea los sprites en el back y manda señales para crearlos en el front. El boton de salir se encuentra en la alerta que aparece al terminar la partida (linea 336 del front)
+3. Luigi: El keyPressEvent de la linea 228 del front manda una señal al back para mover a luigi con la tecla que se presiono (linea 236 del back). El personaje procesa esta accion en la clase Luigi del backend_elementos y si se mueve manda una senal para animar su movimiento en el front y para verificar colision con fantasma o fuego en el back (lineas 176 del backend_elementos). Al haber colision la funcion perder_vida manda señal al front para actualizar las vidas y reinicar el mapa o terminar la partida (lineas 259). Al chocar con una roca la roca verifica su movimiento y manda senal a front para moverse en caso de ser valido (lineas 123 del backend_elementos). 
+4. Fantasmas: los fantasmas comparten la senal_mover_fantasma que utilizan para comunicarse con el front. Su movimiento es independiente y aleatorio usando random y un qtimer. Todo esto se encuentra en el init de la clase Fantasma (linea 9 de backend_elementos)
+5. Modo constructor: El maximo de los elementos se definio en parametros en las lineas 56 y se crea una copia de esto en la clase Juego del backend. El boton jugar se conecta a la funcion iniciar_juego_constructor del backend (linea 143).
+6. Fin de ronda: El puntaje se calcula en la funcion calcular_puntaje (linea 321 del backend). El boton para salir aparece cuando se cumple algunas de las condiciones de termino de partida en una alerta (linea 336 del frontend)
+7. Funcionalidades del teclado: El keyPressEvent de la linea 228 del front manda una señal al back dependiendo de la tecla presionada para pausar el juego o hacer un cheatcode
+8. Archivos: se trabaja con archivos en las linea 86 del backend y 83 y 145 del frontend_elementos (para cargar las imagenes del personaje luigi y fantasmas)

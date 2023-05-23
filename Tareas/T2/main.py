@@ -14,6 +14,9 @@ class DCCazaFantasmas:
         self.conectar_senales_ventana_juego()
 
     def conectar_señales_ventanta_inicio(self):
+        self.ventana_inicio.btn_login.clicked.connect(
+            self.ventana_inicio.login)
+        self.ventana_inicio.btn_exit.clicked.connect(self.ventana_inicio.close)
         self.backend.senal_iniciar_ventana_inicio.connect(
             self.ventana_inicio.cargar_mapas
         )
