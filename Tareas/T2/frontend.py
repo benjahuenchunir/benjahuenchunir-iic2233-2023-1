@@ -357,10 +357,3 @@ class VentanaCompleta(QStackedWidget):
         alerta.setText(mensaje)
         alerta.setStandardButtons(QMessageBox.Ok)
         alerta.exec()
-
-
-if __name__ == "__main__":
-    app = QApplication([])
-    ventana = VentanaCompleta()
-    ventana.show()
-    sys.exit(app.exec())

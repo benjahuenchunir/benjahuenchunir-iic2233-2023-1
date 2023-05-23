@@ -8,15 +8,11 @@ MIN_CARACTERES = 5
 MAX_CARACTERES = 10
 NOMBRE_INVALIDO_VACIO = 'El nombre de usuario no puede estar vacio'
 NOMBRE_INVALIDO_ALFANUMERICO = 'El nombre de usuario debe ser alfanumerico'
-NOMBRE_INVALIDO_LARGO = f'El nombre de usuario debe contener entre {MIN_CARACTERES} y {MAX_CARACTERES} caracteres incluyendo los extremos'
+NOMBRE_INVALIDO_LARGO = ('El nombre de usuario debe contener entre '
+                         f'{MIN_CARACTERES} y {MAX_CARACTERES} '
+                         'caracteres incluyendo los extremos')
 
-TAMANO_GRILLA = 50
-ANCHO_MAPA = ANCHO_GRILLA - 2
-LARGO_MAPA = LARGO_GRILLA - 2
-TIEMPO_CUENTA_REGRESIVA = 110
-
-LUIGI_QUIETO = 'front'
-
+# Paths
 PATH_MAPAS = 'mapas/'
 PATH_FONDO = 'sprites/Fondos/fondo_inicio.png'
 PATH_LOGO = 'sprites/Elementos/logo.png'
@@ -43,10 +39,6 @@ MAPA_ROCA = 'R'
 MAPA_VACIO = '-'
 REQUISITOS_MINIMOS_CONSTRUCTOR = (MAPA_LUIGI, MAPA_ESTRELLA)
 
-TIPO_HORIZONTAL = 'white'
-TIPO_VERTICAL = 'red'
-
-
 SPRITES_ELEMENTOS = {MAPA_BORDE: PATH_ELEMENTOS + 'bordermap.png',
                      MAPA_FUEGO: PATH_ELEMENTOS + 'fire.png',
                      MAPA_ESTRELLA: PATH_ELEMENTOS + 'osstar.png',
@@ -58,7 +50,8 @@ SPRITES_ENTIDADES = {
     MAPA_FANTASMA_V: PATH_ENTIDADES + 'red_ghost_vertical_1.png',
 }
 FILTRO_TODOS = 'Todos'
-FILTROS = {FILTRO_TODOS: SPRITES_ENTIDADES | SPRITES_ELEMENTOS, 'Bloques': SPRITES_ELEMENTOS, 'Entidades': SPRITES_ENTIDADES}
+FILTROS = {FILTRO_TODOS: SPRITES_ENTIDADES | SPRITES_ELEMENTOS,
+           'Bloques': SPRITES_ELEMENTOS, 'Entidades': SPRITES_ENTIDADES}
 
 MAXIMO_LUIGI = 1
 MAXIMO_ESTRELLA = 1
@@ -77,6 +70,9 @@ MAXIMO_ELEMENTOS = {
     MAPA_ROCA: MAXIMO_ROCA
 }
 
+# Luigi
+LUIGI_QUIETO = 'front'
+
 # Fantasmas
 MIN_VELOCIDAD = 0.3
 MAX_VELOCIDAD = 0.8
@@ -91,8 +87,14 @@ FANTASMA_CONVERSION = {MAPA_FANTASMA_H: 'white', MAPA_FANTASMA_V: 'red'}
 NOMBRES_DIRECCIONES_FANTASMA = {
     FANTASMA_CONVERSION[MAPA_FANTASMA_H]: [DERECHA, IZQUIERDA],
     FANTASMA_CONVERSION[MAPA_FANTASMA_V]: [VERTICAL]}
+TIPO_HORIZONTAL = 'white'
+TIPO_VERTICAL = 'red'
 
 # Otros
 MULTIPLICADOR_PUNTAJE = 0.8
 VICTORIA = 'VICTORIA'
 DERROTA = 'DERROTA'
+TAMANO_GRILLA = 50
+ANCHO_MAPA = ANCHO_GRILLA - 2
+LARGO_MAPA = LARGO_GRILLA - 2
+TIEMPO_CUENTA_REGRESIVA = 110

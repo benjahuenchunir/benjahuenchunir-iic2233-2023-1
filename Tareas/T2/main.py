@@ -9,7 +9,6 @@ class DCCazaFantasmas:
         self.backend = Juego()
         self.ventana_inicio = VentanaInicio()
         self.ventana_juego = VentanaCompleta()
-        self.conectar_senales_mapa()
         self.conectar_señales_ventanta_inicio()
         self.conectar_senales_ventana_constructor()
         self.conectar_senales_ventana_juego()
@@ -66,6 +65,19 @@ class DCCazaFantasmas:
         )
 
     def conectar_senales_ventana_juego(self):
+        self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
+        self.backend.senal_crear_luigi.connect(
+            self.ventana_juego.mapa_juego.crear_luigi
+        )
+        self.backend.senal_crear_fantasma.connect(
+            self.ventana_juego.mapa_juego.crear_fantasma
+        )
+        self.backend.senal_crear_roca.connect(
+            self.ventana_juego.mapa_juego.crear_roca
+        )
+        self.backend.senal_crear_elemento.connect(
+            self.ventana_juego.mapa_juego.crear_elemento
+        )
         self.backend.senal_actualizar_tiempo.connect(
             self.ventana_juego.menu_juego.actualizar_tiempo
         )
@@ -110,26 +122,8 @@ class DCCazaFantasmas:
         self.ventana_juego.senal_reiniciar_juego.connect(
             self.backend.reiniciar_juego)
 
-    def conectar_senales_mapa(self):
-        self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
-        self.backend.senal_crear_luigi.connect(
-            self.ventana_juego.mapa_juego.crear_luigi
-        )
-        self.backend.senal_crear_fantasma.connect(
-            self.ventana_juego.mapa_juego.crear_fantasma
-        )
-        self.backend.senal_crear_roca.connect(
-            self.ventana_juego.mapa_juego.crear_roca
-        )
-        self.backend.senal_crear_elemento.connect(
-            self.ventana_juego.mapa_juego.crear_elemento
-        )
-
     def iniciar(self):
         self.backend.iniciar_ventana_inicio()
-
-    def jugar(self):
-        self.ventana_juego.jugar()
 
 
 if __name__ == "__main__":
