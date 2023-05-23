@@ -167,9 +167,10 @@ class Roca(QLabel):
         super().__init__(*args, **kwargs)
         self.anim = QPropertyAnimation(self, b"pos")
         self.anim.setDuration(400)
-        self.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_ROCA]))
+        self.setPixmap(
+            QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_ROCA]).scaled(
+                p.TAMANO_GRILLA, p.TAMANO_GRILLA))
         self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-        self.setScaledContents(True)
 
     def mover(self, x, y):
         self.anim.setEndValue(QPoint(x, y))

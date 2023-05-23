@@ -116,8 +116,6 @@ class Roca:
         col, fil = self.col, self.fil
         self.col, self.fil = nuevo_col, nuevo_fil
         if (col, fil) != (self.col, self.fil):
-            print(self.mapa[fil][col])
-            print(self.mapa[self.fil][self.col])
             self.mapa[fil][col] = p.MAPA_VACIO
             self.mapa[self.fil][self.col] = p.MAPA_ROCA
             self.senal_mover_roca.emit(self.id, self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA)
@@ -240,7 +238,6 @@ class Juego(QObject):
             for i in range(p.LARGO_GRILLA)
         ]
         self.mapa = deepcopy(self.mapa_original)
-        print('el largo del mapa es', len(self.mapa))
         self.cantidad_elementos = p.MAXIMO_ELEMENTOS.copy()
 
         self.tiempo_restante = p.TIEMPO_CUENTA_REGRESIVA
@@ -418,7 +415,6 @@ class Juego(QObject):
         return f"{minutos}:{segundos}"
 
     def mover_personaje(self, key):
-        print(self.mapa)
         self.character.move_character(key)
         self.verificar_colision()
 
@@ -431,7 +427,6 @@ class Juego(QObject):
         if self.colision_fantasmas:
             for fantasma in self.fantasmas:
                 if (fantasma.col, fantasma.fil) == pos_personaje and not self.colision_detectada:
-                    print(f"Colision con {fantasma.id}")
                     self.colision_detectada = True
                     self.perder_vida()
                     break
@@ -453,6 +448,7 @@ class Juego(QObject):
         self.fantasmas.clear()
         self.character.rocas.clear()
         self.mapa = deepcopy(self.mapa_original)
+        self.character.mapa = self.mapa
         self.leer_mapa(self.mapa)
         for fantasma in self.fantasmas:
             fantasma.timer_mover.start()
