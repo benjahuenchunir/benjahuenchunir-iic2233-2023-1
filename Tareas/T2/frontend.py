@@ -238,8 +238,8 @@ class VentanaJuego(QWidget):
             self.senal_pausar.emit()
         if event.key() == Qt.Key_G:
             self.senal_liberar_aossa.emit()
-        if (len({Qt.Key_K, Qt.Key_I, Qt.Key_L}.intersection(self.pressed_keys))
-            == 3):
+        if (len({Qt.Key_K, Qt.Key_I, Qt.Key_L}.intersection(self.pressed_keys)
+                ) == 3):
             self.senal_eliminar_villanos.emit()
             self.eliminar_villanos()
         if (len({Qt.Key_I, Qt.Key_N, Qt.Key_F}.intersection(self.pressed_keys)
