@@ -121,6 +121,7 @@ class Roca:
             self.senal_mover_roca.emit(self.id, self.col * p.TAMANO_GRILLA, self.fil * p.TAMANO_GRILLA)
             return True
 
+
 class Luigi(QObject):
     senal_animar_luigi = pyqtSignal(str, tuple)
 
@@ -308,7 +309,7 @@ class Juego(QObject):
         self.senal_filtrar_elementos.emit(filtrados)
 
     def limpiar_mapa(self, filtro):
-        self.mapa = [
+        self.mapa_original = [
             [p.MAPA_VACIO for i in range(p.ANCHO_MAPA)]
             for i in range(p.LARGO_MAPA)
         ]
@@ -442,6 +443,7 @@ class Juego(QObject):
         self.colision_detectada = False
 
     def reiniciar_nivel(self):
+        self.colision_fantasmas = True
         self.senal_limpiar_nivel.emit()
         for fantasma in self.fantasmas:
             fantasma.timer_mover.stop()

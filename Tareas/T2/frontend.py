@@ -1,15 +1,27 @@
-from PyQt5.QtGui import QPixmap, QFont, QMouseEvent
+from PyQt5.QtGui import QPixmap, QMouseEvent
 import parametros as p
-from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QAbstractItemView, QStackedWidget, QWidget, QListWidget, QApplication, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QComboBox
-from PyQt5.QtCore import QUrl, pyqtSignal, QTimer, QPropertyAnimation, QPoint, Qt, QSize
+from PyQt5.QtWidgets import (
+    QListWidgetItem,
+    QMessageBox,
+    QAbstractItemView,
+    QStackedWidget,
+    QWidget,
+    QListWidget,
+    QApplication,
+    QLabel,
+    QLineEdit,
+    QHBoxLayout,
+    QVBoxLayout,
+    QPushButton,
+    QComboBox,
+)
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize
 from PyQt5.QtMultimedia import QSoundEffect
 import sys
-from collections import defaultdict
-import os
+import frontend_elementos as fe
 
 
 class VentanaInicio(QWidget):
-
     senal_login = pyqtSignal(str, object)
 
     def __init__(self):
@@ -54,7 +66,8 @@ class VentanaInicio(QWidget):
         indice_seleccion = self.dropdown_menu.currentIndex()
         self.senal_login.emit(
             self.txt_username.text(),
-            self.dropdown_menu.itemData(indice_seleccion))
+            self.dropdown_menu.itemData(indice_seleccion)
+        )
 
     def alerta_nombre_invalido(self, razon):
         alerta = QMessageBox(self)
@@ -65,57 +78,25 @@ class VentanaInicio(QWidget):
         alerta.exec()
 
 
-class ElementoConstructor(QWidget):
-    def __init__(self, path_imagen, cantidad):
-        super().__init__()
-
-        hbox = QHBoxLayout(self)
-        self.setLayout(hbox)
-
-        self.label_elemento = QLabel(self)
-        self.label_elemento.setPixmap(QPixmap(path_imagen).scaled(64, 64, Qt.KeepAspectRatio) )
-        hbox.addWidget(self.label_elemento)
-
-        self.label_cantidad = QLabel(cantidad, self)
-        self.label_cantidad.setFont(QFont('Arial', 16))
-        hbox.addWidget(self.label_cantidad)
-
-    def actualizar_cantidad(self, cantidad):
-        self.label_cantidad.setText(cantidad)
-
-
-class MapaJuego(QWidget):
+class MapaConstructor(QWidget):
     senal_on_click = pyqtSignal(int, int)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.setAcceptDrops(True)
         self.agregados = []
-        self.mapa = QGridLayout(self)
-        self.mapa.setSpacing(0)
-        self.mapa.setContentsMargins(0, 0, 0, 0)
+        self.mapa = fe.FondoMapa()
         self.setLayout(self.mapa)
-        for fil in range(p.LARGO_GRILLA):
-            for col in range(p.ANCHO_GRILLA):
-                if fil == 0 or fil == p.LARGO_GRILLA - 1 or col == 0 or col == p.ANCHO_GRILLA - 1:
-                    borde = QLabel(self)
-                    borde.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_BORDE]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-                    self.mapa.addWidget(borde, fil, col)
-                else:
-                    fondo = QLabel(self)
-                    fondo.setStyleSheet(f"""
-                            background-color: #2D2C2C;
-                            border: 2px solid #242323;
-                        """)
-                    fondo.setFixedSize(p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-                    self.mapa.addWidget(fondo, fil, col)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         self.senal_on_click.emit(event.x(), event.y())
 
     def colocar_elemento(self, elemento, fil, col):
         label = QLabel(self)
-        label.setPixmap(QPixmap(p.FILTROS[p.FILTRO_TODOS][elemento]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
+        label.setPixmap(
+            QPixmap(p.FILTROS[p.FILTRO_TODOS][elemento]).scaled(
+                p.TAMANO_GRILLA, p.TAMANO_GRILLA
+            )
+        )
         self.mapa.addWidget(label, fil, col)
         self.agregados.append(label)
 
@@ -123,95 +104,6 @@ class MapaJuego(QWidget):
         for elemento in self.agregados:
             elemento.deleteLater()
         self.agregados.clear()
-
-
-class Fantasma(QLabel):
-    def __init__(self, tipo, direccion, x, y, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.imagenes = defaultdict(list)
-        self.tipo = tipo
-        self.current_direction = direccion
-        self.current_image = 0
-        self.anim = QPropertyAnimation(self, b"pos")
-        self.anim.setDuration(400)
-        self.anim.finished.connect(self.parar_movimiento)
-        self.timer = QTimer(self)
-        self.timer.setInterval(40)
-        self.timer.timeout.connect(self.animar)
-        self.cargar_imagenes()
-        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-
-    def cargar_imagenes(self):
-        for image in os.listdir(p.PATH_ENTIDADES):
-            if self.tipo in image:
-                self.imagenes[os.path.splitext(image)[0].split('_')[2]].append(QPixmap(os.path.join(p.PATH_ENTIDADES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
-        self.setPixmap(self.imagenes[self.current_direction][self.current_image])
-
-    def mover(self, direccion, x, y):
-        self.current_direction = direccion
-        self.anim.setEndValue(QPoint(x, y))
-        self.timer.start()
-        self.anim.start()
-
-    def animar(self):
-        self.current_image = (self.current_image + 1) % len(self.imagenes[self.current_direction])
-        self.setPixmap(self.imagenes[self.current_direction][self.current_image])
-
-    def parar_movimiento(self):
-        self.timer.stop()
-        self.animar()
-
-
-class Roca(QLabel):
-    def __init__(self, x, y, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.anim = QPropertyAnimation(self, b"pos")
-        self.anim.setDuration(400)
-        self.setPixmap(
-            QPixmap(p.SPRITES_ELEMENTOS[p.MAPA_ROCA]).scaled(
-                p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-
-    def mover(self, x, y):
-        self.anim.setEndValue(QPoint(x, y))
-        self.anim.start()
-
-
-class Luigi(QLabel):
-    def __init__(self, x, y, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.images_luigi = defaultdict(list)
-        self.current_direction = p.LUIGI_QUIETO
-        self.current_image = 0
-        self.anim = QPropertyAnimation(self, b"pos")
-        self.anim.setDuration(400)
-        self.anim.finished.connect(self.parar_movimiento)
-        self.timer = QTimer(self)
-        self.timer.setInterval(40)
-        self.timer.timeout.connect(self.animar_luigi)
-        self.cargar_imagenes_luigi()
-        self.setGeometry(x, y, p.TAMANO_GRILLA, p.TAMANO_GRILLA)
-
-    def cargar_imagenes_luigi(self):
-        for image in os.listdir(p.PATH_ENTIDADES):
-            if p.NOMBRE_LUIGI in image:
-                self.images_luigi[os.path.splitext(image)[0].split('_')[1]].append(QPixmap(os.path.join(p.PATH_ENTIDADES, image)).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA, Qt.KeepAspectRatio))
-        self.setPixmap(self.images_luigi[self.current_direction][self.current_image])
-
-    def mover(self, direccion, final_pos):
-        self.current_direction = direccion
-        self.anim.setEndValue(QPoint(*final_pos))
-        self.timer.start()
-        self.anim.start()
-
-    def animar_luigi(self):
-        self.current_image = (self.current_image + 1) % len(self.images_luigi[self.current_direction])
-        self.setPixmap(self.images_luigi[self.current_direction][self.current_image])
-
-    def parar_movimiento(self):
-        self.current_direction = p.LUIGI_QUIETO
-        self.timer.stop()
-        self.animar_luigi()
 
 
 class MenuConstructor(QWidget):
@@ -227,10 +119,8 @@ class MenuConstructor(QWidget):
         menu_constructor.addWidget(self.filtro_elementos)
 
         self.lista_elementos = QListWidget(self)
-        self.lista_elementos.setDragEnabled(True)
-        self.lista_elementos.setDragDropMode(QAbstractItemView.DragDrop)
-        self.lista_elementos.setDefaultDropAction(Qt.ActionMask)
-        self.lista_elementos.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.lista_elementos.setSelectionMode(
+            QAbstractItemView.SingleSelection)
         menu_constructor.addWidget(self.lista_elementos)
 
         layout_botones = QHBoxLayout()
@@ -250,13 +140,17 @@ class MenuConstructor(QWidget):
             item1.setWhatsThis(nombre_mapa)
             item1.setSizeHint(QSize(100, 80))
             self.lista_elementos.addItem(item1)
-            self.lista_elementos.setItemWidget(item1, ElementoConstructor(nombre_archivo, cantidad))
+            self.lista_elementos.setItemWidget(
+                item1, fe.ElementoConstructor(nombre_archivo, cantidad)
+            )
+        self.lista_elementos.setCurrentRow(0)
 
     def actualizar_cantidad_elemento(self, elemento, cantidad):
         for i in range(self.lista_elementos.count()):
             item = self.lista_elementos.item(i)
             if item.whatsThis() == elemento:
-                self.lista_elementos.itemWidget(item).actualizar_cantidad(cantidad)
+                (self.lista_elementos.itemWidget(item)
+                 .actualizar_cantidad(cantidad))
                 break
 
 
@@ -278,7 +172,7 @@ class MenuJuego(QWidget):
         layout_vidas.addWidget(self.label_vidas)
         vbox.addLayout(layout_vidas)
 
-        self.btn_pausar = QPushButton('Pausar')
+        self.btn_pausar = QPushButton("Pausar")
         vbox.addWidget(self.btn_pausar)
 
     def actualizar_tiempo(self, tiempo):
@@ -296,9 +190,11 @@ class VentanaJuego(QWidget):
 
     def __init__(self, senal_pausar) -> None:
         super().__init__()
-        self.mapa = MapaJuego()
-        self.setLayout(self.mapa.mapa)
-        self.setFixedSize(p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA)
+        self.mapa = fe.FondoMapa()
+        self.setLayout(self.mapa)
+        self.setFixedSize(
+            p.ANCHO_GRILLA * p.TAMANO_GRILLA, p.LARGO_GRILLA * p.TAMANO_GRILLA
+        )
         self.fantasmas = {}
         self.rocas = {}
         self.elementos = []
@@ -306,23 +202,26 @@ class VentanaJuego(QWidget):
         self.senal_pausar = senal_pausar
 
     def crear_luigi(self, x, y):
-        self.label_luigi = Luigi(x, y, self)
+        self.label_luigi = fe.Luigi(x, y, self)
         self.label_luigi.show()
 
     def crear_fantasma(self, id, tipo, nombre_direccion, x, y):
-        label_fantasma = Fantasma(tipo, nombre_direccion, x, y, self)
+        label_fantasma = fe.Fantasma(tipo, nombre_direccion, x, y, self)
         self.fantasmas[id] = label_fantasma
         label_fantasma.show()
 
     def crear_roca(self, id, x, y):
-        label_roca = Roca(x, y, self)
+        label_roca = fe.Roca(x, y, self)
         self.rocas[id] = label_roca
         label_roca.show()
 
     def crear_elemento(self, tipo, col, fil):
         elemento = QLabel(self)
-        elemento.setPixmap(QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(p.TAMANO_GRILLA, p.TAMANO_GRILLA))
-        self.mapa.mapa.addWidget(elemento, fil, col)
+        elemento.setPixmap(
+            QPixmap(p.SPRITES_ELEMENTOS[tipo]).scaled(
+                p.TAMANO_GRILLA, p.TAMANO_GRILLA)
+        )
+        self.mapa.addWidget(elemento, fil, col)
         self.elementos.append(elemento)
 
     def mover_fantasmas(self, id, *args):
@@ -339,10 +238,12 @@ class VentanaJuego(QWidget):
             self.senal_pausar.emit()
         if event.key() == Qt.Key_G:
             self.senal_liberar_aossa.emit()
-        if len({Qt.Key_K, Qt.Key_I, Qt.Key_L}.intersection(self.pressed_keys)) == 3:
+        if (len({Qt.Key_K, Qt.Key_I, Qt.Key_L}.intersection(self.pressed_keys))
+            == 3):
             self.senal_eliminar_villanos.emit()
             self.eliminar_villanos()
-        if len({Qt.Key_I, Qt.Key_N, Qt.Key_F}.intersection(self.pressed_keys)) == 3:
+        if (len({Qt.Key_I, Qt.Key_N, Qt.Key_F}.intersection(self.pressed_keys)
+                ) == 3):
             self.senal_godmode.emit()
         if self.label_luigi.current_direction == p.LUIGI_QUIETO:
             key = event.key()
@@ -389,7 +290,7 @@ class VentanaCompleta(QStackedWidget):
         self.widget_constructor = QWidget()
         self.layout_constructor = QHBoxLayout()
         self.menu_constructor = MenuConstructor(self)
-        self.mapa = MapaJuego(self)
+        self.mapa = MapaConstructor(self)
         self.layout_constructor.addWidget(self.menu_constructor)
         self.layout_constructor.addWidget(self.mapa)
         self.widget_constructor.setLayout(self.layout_constructor)
@@ -400,7 +301,7 @@ class VentanaCompleta(QStackedWidget):
         self.menu_juego = MenuJuego(self)
         self.mapa_juego = VentanaJuego(self.senal_pausar)
         self.mapa_juego.setFocusPolicy(Qt.NoFocus)
-        self.layout_juego.addWidget(self.menu_juego)
+        self.layout_juego.addWidget(self.menu_juego, alignment=Qt.AlignTop)
         self.layout_juego.addWidget(self.mapa_juego)
         self.widget_juego.setLayout(self.layout_juego)
         self.addWidget(self.widget_juego)
@@ -413,8 +314,11 @@ class VentanaCompleta(QStackedWidget):
         self.mapa_juego.setFocus()
 
     def emitir_colocar_elemento(self, x, y):
-        elemento_seleccionado = self.menu_constructor.lista_elementos.selectedItems()[0].whatsThis()
-        self.senal_colocar_elemento_constructor.emit(elemento_seleccionado, x, y)
+        elemento_seleccionado = (
+            self.menu_constructor.lista_elementos.
+            selectedItems()[0].whatsThis())
+        self.senal_colocar_elemento_constructor.emit(
+            elemento_seleccionado, x, y)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_P:
@@ -445,7 +349,7 @@ class VentanaCompleta(QStackedWidget):
         elif mensaje.clickedButton() == btn_reiniciar:
             self.senal_reiniciar_juego.emit()
             self.mapa_juego.setFocus()
- 
+
     def mostrar_alerta(self, mensaje):
         alerta = QMessageBox(self)
         alerta.setWindowTitle("No se puede colocar el elemento")
@@ -455,7 +359,7 @@ class VentanaCompleta(QStackedWidget):
         alerta.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication([])
     ventana = VentanaCompleta()
     ventana.show()

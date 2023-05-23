@@ -34,7 +34,8 @@ class DCCazaFantasmas:
         (self.ventana_juego.menu_constructor.
          filtro_elementos.currentTextChanged.connect(
              self.backend.filtrar_elementos_constructor))
-        self.backend.senal_filtrar_elementos.connect(self.ventana_juego.menu_constructor.filtrar_lista)
+        self.backend.senal_filtrar_elementos.connect(
+            self.ventana_juego.menu_constructor.filtrar_lista)
         self.ventana_juego.menu_constructor.btn_limpiar.clicked.connect(
             self.ventana_juego.mapa.limpiar_mapa)
         self.ventana_juego.menu_constructor.btn_limpiar.clicked.connect(
@@ -104,8 +105,10 @@ class DCCazaFantasmas:
         self.backend.senal_terminar_partida.connect(
             self.ventana_juego.terminar_partida
         )
-        self.backend.senal_eliminar_fantasma.connect(self.ventana_juego.mapa_juego.eliminar_fantasma)
-        self.ventana_juego.senal_reiniciar_juego.connect(self.backend.reiniciar_juego)
+        self.backend.senal_eliminar_fantasma.connect(
+            self.ventana_juego.mapa_juego.eliminar_fantasma)
+        self.ventana_juego.senal_reiniciar_juego.connect(
+            self.backend.reiniciar_juego)
 
     def conectar_senales_mapa(self):
         self.ventana_juego.senal_cargar_mapa.connect(self.backend.leer_mapa)
