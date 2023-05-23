@@ -62,7 +62,6 @@ class VentanaInicio(QWidget):
         self.show()
 
     def login(self):
-        print(self.txt_username.text())
         indice_seleccion = self.dropdown_menu.currentIndex()
         self.senal_login.emit(
             self.txt_username.text(),
@@ -286,6 +285,7 @@ class VentanaCompleta(QStackedWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.move(0, 0)
+        self.setWindowTitle('DCCazafantasmas')
 
         self.widget_constructor = QWidget()
         self.layout_constructor = QHBoxLayout()

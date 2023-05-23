@@ -41,11 +41,6 @@ class Juego(QObject):
         self.nombre_usuario = None
         self.fantasmas = []
         self.character = be.Luigi()
-        self.ponderador_velocidad_fantasmas = random.uniform(
-            p.MIN_VELOCIDAD, p.MAX_VELOCIDAD
-        )
-        self.tiempo_movimiento_fantasmas = int(
-            1 / self.ponderador_velocidad_fantasmas)
         self.mapa_original = [
             [p.MAPA_VACIO for i in range(p.ANCHO_GRILLA)]
             for i in range(p.LARGO_GRILLA)
@@ -192,7 +187,6 @@ class Juego(QObject):
             self.senal_mover_fantasma,
             self.senal_morir,
             self.senal_verificar_colision,
-            self.tiempo_movimiento_fantasmas * 1000,
             self.mapa,
         )
         self.fantasmas.append(fantasma)

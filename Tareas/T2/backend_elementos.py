@@ -8,7 +8,7 @@ class Fantasma(QObject):
 
     def __init__(
         self, tipo_mapa, tipo, col, fil, senal_mover_fantasma, senal_morir,
-        senal_verificar_colision, tiempo_movimiento, mapa
+        senal_verificar_colision, mapa
     ) -> None:
         super().__init__()
         self.id = Fantasma.identificador
@@ -20,6 +20,11 @@ class Fantasma(QObject):
         self.fil0 = fil
         self.__col = col
         self.__fil = fil
+        self.ponderador_velocidad_fantasmas = random.uniform(
+            p.MIN_VELOCIDAD, p.MAX_VELOCIDAD
+        )
+        self.tiempo_movimiento_fantasmas = int(
+            1 / self.ponderador_velocidad_fantasmas)
         self.senal_mover = senal_mover_fantasma
         self.senal_morir = senal_morir
         self.senal_verificar_colision = senal_verificar_colision
@@ -28,7 +33,7 @@ class Fantasma(QObject):
         self.direccion = random.choice(
             p.DIRECCIONES_FANTASMA[self.nombre_direccion])
         self.timer_mover = QTimer(self)
-        self.timer_mover.setInterval(tiempo_movimiento)
+        self.timer_mover.setInterval(self.tiempo_movimiento_fantasmas * 1000)
         self.timer_mover.timeout.connect(self.mover)
 
     @property
@@ -63,7 +68,10 @@ class Fantasma(QObject):
                 nueva_dir.remove(self.nombre_direccion)
                 self.nombre_direccion = nueva_dir[0]
             self.direccion = -self.direccion
-            self.mover()
+            try:
+                self.mover()
+            except RecursionError:
+                pass
         else:
             self.senal_mover.emit(
                 self.id,
