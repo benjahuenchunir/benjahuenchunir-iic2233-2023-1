@@ -4,14 +4,17 @@ from errors import JsonError, SequenceError
 
 
 def deserializar_diccionario(mensaje_codificado: bytearray) -> dict:
-    # Completar
-    pass
+    try:
+        return json.loads(mensaje_codificado.decode("UTF-8"))
+    except json.JSONDecodeError:
+        raise JsonError()
 
 
 def decodificar_largo(mensaje: bytearray) -> int:
-    # Completar
-    pass
+    print(b'\x00\x00\x00\x04')
+    print(int.from_bytes(b'\x00\x00\x00\x04', 'big'))
 
+decodificar_largo(bytearray())
 
 def separar_msg_encriptado(mensaje: bytearray) -> List[bytearray]:
     m_bytes_secuencia = bytearray()

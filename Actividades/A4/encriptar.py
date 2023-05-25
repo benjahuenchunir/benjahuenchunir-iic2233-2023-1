@@ -4,23 +4,26 @@ from errors import JsonError, SequenceError
 
 
 def serializar_diccionario(dictionary: dict) -> bytearray:
-    # Completar
-    pass
+    try:
+        return bytearray(json.dumps(dictionary).encode("UTF-8"))
+    except TypeError:
+        raise JsonError()
 
 
 def verificar_secuencia(mensaje: bytearray, secuencia: List[int]) -> None:
-    # Completar
-    pass
+    if max(secuencia) >= len(mensaje) or len(set(secuencia)) != len(secuencia):
+        raise SequenceError()
 
 
 def codificar_secuencia(secuencia: List[int]) -> bytearray:
-    # Completar
-    pass
+    secuencia_codificada = bytearray()
+    for numero in secuencia:
+        secuencia_codificada.extend(numero.to_bytes(length=2, byteorder='big'))
+    return secuencia_codificada
 
 
 def codificar_largo(largo: int) -> bytearray:
-    # Completar
-    pass
+    return bytearray(largo.to_bytes(length=4, byteorder='big'))
 
 
 def separar_msg(mensaje: bytearray, secuencia: List[int]) -> List[bytearray]:
