@@ -29,7 +29,13 @@ def codificar_largo(largo: int) -> bytearray:
 def separar_msg(mensaje: bytearray, secuencia: List[int]) -> List[bytearray]:
     m_bytes_secuencia = bytearray()
     m_reducido = bytearray()
-    # Completar
+
+    for indice in secuencia:
+        m_bytes_secuencia.extend(mensaje[indice].to_bytes(1, 'big'))
+
+    for indice, byte in enumerate(mensaje):
+        if indice not in secuencia:
+            m_reducido.extend(byte.to_bytes(1, 'big'))
 
     return [m_bytes_secuencia, m_reducido]
 
