@@ -82,7 +82,7 @@ class Fantasma(QObject):
             if self.mapa[self.fil][self.col] == p.MAPA_FUEGO:
                 self.senal_morir.emit(self.id)
             else:
-                if self.mapa[fil][col] != p.MAPA_ESTRELLA:
+                if self.mapa[fil][col] in (p.MAPA_ESTRELLA, p.MAPA_FANTASMA_H, p.MAPA_FANTASMA_V):
                     self.mapa[fil][col] = p.MAPA_VACIO
                 if self.mapa[self.fil][self.col] != p.MAPA_ESTRELLA:
                     self.mapa[self.fil][self.col] = self.tipo_mapa
