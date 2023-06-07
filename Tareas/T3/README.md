@@ -17,14 +17,46 @@ en cierta línea del código o comentar una función>
 
 ### Cosas implementadas y no implementadas :white_check_mark: :x:
 
-* <Nombre item pauta<sub>1</sub>>: Hecha completa
-* <Nombre item pauta<sub>2</sub>>: Me faltó hacer <insertar qué cosa faltó>
-    * <Nombre subitem pauta<sub>2.1</sub>>: Hecha completa 
-    * <Nombre subitem pauta<sub>2.2</sub>>: Me faltó hacer <insertar qué cosa faltó>
-    * ...
-* <Nombre item pauta<sub>3</sub>>: Me faltó hacer <insertar qué cosa faltó>
-* ...
-* <Nombre item pauta<sub>n</sub>>: Me faltó hacer <insertar qué cosa faltó>
+Explicación: mantén el emoji correspondiente, de manera honesta, para cada item. Si quieres, también puedes agregarlos a los títulos:
+- ❌ si **NO** completaste lo pedido
+- ✅ si completaste **correctamente** lo pedido
+- 🟠 si el item está **incompleto** o tiene algunos errores
+
+**⚠️⚠️NO BASTA CON SOLO PONER EL COLOR DE LO IMPLEMENTADO**,
+SINO QUE SE DEBERÁ EXPLICAR QUÉ SE REALIZO DETALLADAMENTE EN CADA ITEM.
+⚠️⚠️
+
+#### Networking: 18 pts (16%)
+##### ❌✅🟠 Protocolo
+##### ❌✅🟠 Correcto uso de sockets
+##### ❌✅🟠 Conexión
+##### ❌✅🟠 Manejo de Clientes
+##### ❌✅🟠 Desconexión Repentina
+#### Arquitectura Cliente - Servidor: 18 pts (16%)
+##### ❌✅🟠 Roles
+##### ❌✅🟠 Consistencia
+##### ❌✅🟠 Logs
+#### Manejo de Bytes: 26 pts (22%)
+##### ❌✅🟠 Codificación
+##### ❌✅🟠 Decodificación
+##### ❌✅🟠 Encriptación
+##### ❌✅🟠 Desencriptación
+##### ❌✅🟠 Integración
+#### Interfaz Gráfica: 22 pts (19%)
+##### ❌✅🟠 Ventana de Inicio
+##### ❌✅🟠 Ventana de juego
+#### Reglas de DCCachos: 22 pts (19%)
+##### ❌✅🟠 Inicio del juego
+##### ❌✅🟠 Bots
+##### ❌✅🟠 Ronda
+##### ❌✅🟠 Termino del juego
+#### Archivos: 10 pts (9%)
+##### ❌✅🟠 Parámetros (JSON)
+##### ❌✅🟠 main.py
+##### ❌✅🟠 Cripto.py
+#### Bonus: 4 décimas máximo
+##### ❌✅🟠 Cheatcodes
+##### ❌✅🟠 Turno con tiempo
 
 ## Ejecución :computer:
 El módulo principal de la tarea a ejecutar es  ```archivo.py```. Además se debe crear los siguientes archivos y directorios adicionales:
@@ -95,4 +127,4 @@ Para realizar mi tarea saqué código de:
 
 
 ## Descuentos
-La guía de descuentos se encuentra [link](https://github.com/IIC2233/syllabus/blob/master/Tareas/Descuentos.md).
+La guía de descuentos se encuentra [link](https://github.com/IIC2233/syllabus/blob/main/Tareas/Descuentos.md).
