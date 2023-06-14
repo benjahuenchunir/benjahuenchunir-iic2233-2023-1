@@ -1,11 +1,17 @@
 import random
+import json
+
+with open('../parametros.json') as file:  # TODO parametros
+    data = json.load(file)
+
+
 def encriptar(msg: bytearray, ID) -> bytearray:
-    pass
+    N = random.randint(1, len(msg), seed=ID)
+    ponderador = data["PONDERADOR_ENCRIPTACION"]
 
 
 def desencriptar(msg: bytearray, ID):
     pass
-    
 
 
 if __name__ == "__main__":
