@@ -1,9 +1,15 @@
 {
     "host": "localhost",
     "port": "3000",
-    "id_1": "Lily416",
-    "id_2": "Sir Hernan4444",
-    "id_3": "Rey Joaking",
-    "id_4": "Dr. Pinto",
-    "PONDERADOR_ENCRIPTACION": 1
+    "ids": {
+        "id_1": "Lily416",
+        "id_2": "Sir Hernan4444",
+        "id_3": "Rey Joaking",
+        "id_4": "Dr. Pinto"
+    },
+    "PONDERADOR_ENCRIPTACION": 1,
+    "MAXIMO_JUGADORES": 4,
+    "SIZE_BUFFER": 4096,
+    "USUARIO_CONECTADO": "conectado:",
+    "USUARIO_DESCONECTADO": "desconectado:"
 }

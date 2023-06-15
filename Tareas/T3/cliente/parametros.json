@@ -1,4 +1,7 @@
 {
     "host": "localhost",
-    "port": "3000"
+    "port": "3000",
+    "ventana_inicio_size": 800,
+    "path_fondo_inicio": "sprites/background/background_inicio.png",
+    "SIZE_BUFFER": 4096
 }
