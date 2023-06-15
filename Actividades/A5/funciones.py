@@ -39,6 +39,7 @@ def obtener_precio_promedio(generador_productos: Generator) -> int:
     suma = reduce(lambda x, y: x + y.precio, copia_generador1, 0)
     return int(suma / reduce(lambda x, y: x + 1, copia_generador2, 0))
 
+
 def filtrar_por_medida(generador_productos: Generator,
                        medida_min: float, medida_max: float, unidad: str
                        ) -> filter:
@@ -51,6 +52,7 @@ def filtrar_por_categoria(generador_productos: Generator,
     ids_productos = map(lambda x: x.id_producto, filter(lambda x: x.nombre_categoria == nombre_categoria, generador_categorias))
     lista_ids = generador_a_lista(ids_productos)
     return filter(lambda x: x.id_producto in lista_ids, generador_productos)
+
 
 def agrupar_por_pasillo(generador_productos: Generator) -> groupby:
     return groupby(generador_productos, key=lambda x: x.pasillo)
@@ -77,7 +79,7 @@ class IteradorCarrito:
 
     def __next__(self):
         if len(self.productos_iterable) == 0:
-            raise StopIteration("Llegamos al final")
+            raise StopIteration("Lista vacia")
         else:
             self.productos_iterable.sort(key=lambda x: x.precio)
             valor = self.productos_iterable[0]
