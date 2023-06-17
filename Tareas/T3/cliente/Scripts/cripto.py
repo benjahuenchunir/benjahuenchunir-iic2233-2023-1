@@ -1,9 +1,20 @@
 def encriptar(msg: bytearray, N: int) -> bytearray:
-    pass
+    bytearray_encriptado = bytearray(msg)
+    for y in range(len(msg)):
+        bytearray_encriptado[(y + N) % len(msg)] = msg[y]
+    bytearray_encriptado[N], bytearray_encriptado[0] = (
+        bytearray_encriptado[0],
+        bytearray_encriptado[N],
+    )
+    return bytearray_encriptado
 
 
 def desencriptar(msg: bytearray, N: int) -> bytearray:
-    pass
+    msg[N], msg[0] = msg[0], msg[N],
+    bytearray_desencriptado = bytearray(msg)
+    for y in range(len(msg)):
+        bytearray_desencriptado[y] = msg[(y + N) % len(msg)]
+    return bytearray_desencriptado
     
 
 
@@ -17,7 +28,7 @@ if __name__ == "__main__":
         print("[ERROR] Mensaje escriptado erroneamente")
     else:
         print("[SUCCESSFUL] Mensaje escriptado correctamente")
-    
+
     # Testear desencriptar
     msg_desencriptado = desencriptar(msg_esperado, N)
     if msg_desencriptado != msg_original:
