@@ -22,8 +22,7 @@ class Server:
         thread.start()
 
     def accept_connections_thread(self) -> None:
-        counter = 0
-        while counter < data["MAXIMO_JUGADORES"]:
+        while len(self.sockets) < data["NUMERO_JUGADORES"]:
             try:
                 print("Esperando que alguien se quiera conectar...")
                 socket_cliente, address = self.sock.accept()
@@ -34,11 +33,11 @@ class Server:
                     args=(socket_cliente, ),
                     daemon=True)
                 listening_client_thread.start()
-                counter += 1
             except ConnectionError:
                 print("Ocurrió un error.")
             except KeyboardInterrupt:
                 print("Interrupcion del usuario")
+                break
         self.sock.close()
 
     def agregar_cliente(self, socket_cliente, address):

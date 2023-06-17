@@ -7,8 +7,8 @@
         "id_3": "Rey Joaking",
         "id_4": "Dr. Pinto"
     },
-    "PONDERADOR_ENCRIPTACION": 1,
-    "MAXIMO_JUGADORES": 4,
+    "N_PONDERADOR": 1,
+    "NUMERO_JUGADORES": 4,
     "SIZE_BUFFER": 4096,
     "USUARIO_CONECTADO": "conectado:",
     "USUARIO_DESCONECTADO": "desconectado:"
