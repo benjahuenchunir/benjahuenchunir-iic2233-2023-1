@@ -2,6 +2,8 @@
     "host": "localhost",
     "port": "3000",
     "ventana_inicio_size": 800,
-    "path_fondo_inicio": "sprites/background/background_inicio.png",
-    "SIZE_BUFFER": 4096
+    "path_fondo_inicio": "frontend/Sprites/background/background_inicio.png",
+    "N_PONDERADOR": 1,
+    "TAMANO_CHUNKS_BLOQUE": 4,
+    "TAMANO_CHUNKS_MENSAJE": 128
 }
