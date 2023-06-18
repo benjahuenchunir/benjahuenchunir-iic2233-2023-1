@@ -2,7 +2,7 @@ import frontend.frontend as frontend
 import backend.backend as backend
 from PyQt5.QtWidgets import QApplication
 import sys
-from parametros import parametro
+from utils.utils import parametro
 
 
 if __name__ == "__main__":

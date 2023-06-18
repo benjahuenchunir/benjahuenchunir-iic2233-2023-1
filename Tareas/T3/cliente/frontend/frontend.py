@@ -20,7 +20,7 @@ from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize
 from PyQt5.QtMultimedia import QSoundEffect
 import sys
 import json
-from parametros import parametro
+from utils.utils import parametro
 
 
 class VentanaInicio(QWidget):
@@ -65,7 +65,7 @@ class VentanaInicio(QWidget):
     def agregar_usuario(self, id):
         print("Agregando label usuario")
         label_usuario = QLabel(self)
-        label_usuario.setPixmap(QPixmap("Sprites/extra/user_profile.png"))
+        label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")))
         self.usuarios[id] = label_usuario
         self.players_layout.addWidget(label_usuario)
 
