@@ -21,6 +21,8 @@ if __name__ == "__main__":
     front.btn_comenzar.pressed.connect(back.test_manejar_mensaje)
     front.btn_salir.pressed.connect(back.test_manejar_mensaje2)
     back.senal_agregar_usuario.connect(front.agregar_usuario)
+    back.senal_servidor_cerrado.connect(front.servidor_cerrado)
+    back.senal_eliminar_usuario.connect(front.eliminar_usuario)
 
     back.conectar_servidor()
 

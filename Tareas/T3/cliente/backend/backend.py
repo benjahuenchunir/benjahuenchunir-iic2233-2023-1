@@ -9,6 +9,7 @@ import pickle
 class Logica(QObject):
     senal_agregar_usuario = pyqtSignal(str)
     senal_eliminar_usuario = pyqtSignal(str)
+    senal_servidor_cerrado = pyqtSignal(str)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -35,9 +36,8 @@ class Logica(QObject):
                 print(mensaje)
                 self.manejar_mensaje(mensaje)
             else:
-                print(
-                    "No hay info"
-                )  # TODO creo que esto nunca pasa o pasa cuando se cae el server?
+                self.senal_servidor_cerrado.emit("El servidor se cerró")
+                # TODO arreglar
                 
     def manejar_mensaje(self, mensaje: Mensaje):
         if mensaje.operacion == parametro("OP_ASIGNAR_NOMBRE"):
@@ -46,6 +46,15 @@ class Logica(QObject):
         elif mensaje.operacion == parametro("OP_AGREGAR_USUARIO"):
             print("Agregando a:", mensaje.data)
             self.senal_agregar_usuario.emit(mensaje.data)
+        elif mensaje.operacion == parametro("OP_AGREGAR_USUARIOS"):
+            print("Agregando usuarios")
+            for id in mensaje.data:
+                self.senal_agregar_usuario.emit(id)
+        elif mensaje.operacion == parametro("OP_ELIMINAR_USUARIO"):
+            print("Eliminando usuario")
+            self.senal_eliminar_usuario.emit(mensaje.data)
+        else:
+            print("El tipo de operacion no existe")
 
     def recibir_mensaje(self, data: bytes) -> Mensaje:
         largo = int.from_bytes(data, byteorder='little')

@@ -5,7 +5,11 @@
         "id_1": "Lily416",
         "id_2": "Sir Hernan4444",
         "id_3": "Rey Joaking",
-        "id_4": "Dr. Pinto"
+        "id_4": "Dr. Pinto",
+        "id_5": "Cliente 5",
+        "id_6": "Cliente 6",
+        "id_7": "Cliente 7",
+        "id_8": "Cliente 8"
     },
     "N_PONDERADOR": 1,
     "NUMERO_JUGADORES": 4,
@@ -14,5 +18,7 @@
     "TAMANO_CHUNKS_BLOQUE": 4,
     "TAMANO_CHUNKS_MENSAJE": 128,
     "OP_ASIGNAR_NOMBRE": "ASIGNAR_NOMBRE",
-    "OP_AGREGAR_USUARIO": "AGREGAR_USUARIO"
+    "OP_AGREGAR_USUARIOS": "AGREGAR_USUARIOS",
+    "OP_AGREGAR_USUARIO": "AGREGAR_USUARIO",
+    "OP_ELIMINAR_USUARIO": "ELIMINAR_USUARIO"
 }

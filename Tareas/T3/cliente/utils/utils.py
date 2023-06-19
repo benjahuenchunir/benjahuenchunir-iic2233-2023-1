@@ -1,4 +1,27 @@
 import json
+from PyQt5.QtGui import QPixmap, QMouseEvent, QFont
+from PyQt5.QtWidgets import (
+    QListWidgetItem,
+    QMessageBox,
+    QAbstractItemView,
+    QStackedWidget,
+    QWidget,
+    QListWidget,
+    QLabel,
+    QLineEdit,
+    QHBoxLayout,
+    QVBoxLayout,
+    QPushButton,
+    QComboBox,
+    QApplication,
+    QMainWindow,
+    QSizePolicy,
+    QGridLayout,
+    QSpacerItem,
+)
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize, QRect
+from PyQt5.QtMultimedia import QSoundEffect
+import sys
 
 
 def parametro(llave: str):

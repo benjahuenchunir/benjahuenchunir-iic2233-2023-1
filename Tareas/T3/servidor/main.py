@@ -46,10 +46,11 @@ class Server:
     def agregar_cliente(self, socket_cliente, address) -> str:
         self.sockets[socket_cliente] = address
         print(parametro("ids"))
-        id = random.choice(list(parametro("ids").values()))
+        id = random.choice([nombre for nombre in parametro("ids").values() if nombre not in self.socket_ids.values()])
         print(id)
         self.socket_ids[socket_cliente] = id
         self.mandar_mensaje(Mensaje(parametro("OP_ASIGNAR_NOMBRE"), id), socket_cliente)
+        self.mandar_mensaje(Mensaje(parametro("OP_AGREGAR_USUARIOS"), [usuario for usuario in self.socket_ids.values() if usuario != id]), socket_cliente)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_USUARIO"), id))
 
     def escuchar_cliente(self, socket_cliente: socket.socket) -> None:
@@ -57,18 +58,25 @@ class Server:
             print(f"{self.sockets[socket_cliente]}")
             try:
                 data = socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
-                if data:
+                if len(data) > 0:
                     print("Recibiendo mensaje de un cliente")
                     mensaje = self.recibir_mensaje(socket_cliente, data)
                     print(mensaje)
                 else:
                     print("Usuario desconectado")
-                    del self.sockets[socket_cliente]
+                    self.eliminar_cliente(socket_cliente) # TODO esto no se llama sino que si el usuario se va tira exception
                     break
             except Exception:
                 print("Hubo algun error")
-                del self.sockets[socket_cliente]
+                self.eliminar_cliente(socket_cliente)
                 break
+
+    def eliminar_cliente(self, socket_cliente):
+        print("ELiminando cliente")
+        del self.sockets[socket_cliente]
+        self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), self.socket_ids[socket_cliente]))
+        del self.socket_ids[socket_cliente]
+        print("Cliente eliminado")
 
     def recibir_mensaje(self, socket_cliente: socket.socket, data: bytes) -> Mensaje:
         largo = int.from_bytes(data, byteorder='little')
