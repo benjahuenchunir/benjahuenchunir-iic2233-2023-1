@@ -10,6 +10,8 @@ class Logica(QObject):
     senal_agregar_usuario = pyqtSignal(str)
     senal_eliminar_usuario = pyqtSignal(str)
     senal_servidor_cerrado = pyqtSignal(str)
+    senal_empezar_juego = pyqtSignal(list)
+    senal_cambiar_dados = pyqtSignal(tuple)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -40,19 +42,20 @@ class Logica(QObject):
                 # TODO arreglar
                 
     def manejar_mensaje(self, mensaje: Mensaje):
-        if mensaje.operacion == parametro("OP_ASIGNAR_NOMBRE"):
-            print(mensaje.data)
+        print(mensaje)
+        if mensaje == parametro("OP_ASIGNAR_NOMBRE"):
             self.id = mensaje.data
-        elif mensaje.operacion == parametro("OP_AGREGAR_USUARIO"):
-            print("Agregando a:", mensaje.data)
+        elif mensaje == parametro("OP_AGREGAR_USUARIO"):
             self.senal_agregar_usuario.emit(mensaje.data)
-        elif mensaje.operacion == parametro("OP_AGREGAR_USUARIOS"):
-            print("Agregando usuarios")
+        elif mensaje == parametro("OP_AGREGAR_USUARIOS"):
             for id in mensaje.data:
                 self.senal_agregar_usuario.emit(id)
-        elif mensaje.operacion == parametro("OP_ELIMINAR_USUARIO"):
-            print("Eliminando usuario")
+        elif mensaje == parametro("OP_ELIMINAR_USUARIO"):
             self.senal_eliminar_usuario.emit(mensaje.data)
+        elif mensaje == parametro("OP_AGREGAR_JUGADORES"):
+            self.senal_empezar_juego.emit(mensaje.data)
+        elif mensaje == parametro("OP_CAMBIAR_DADOS"):
+            self.senal_cambiar_dados.emit((self.id, mensaje.data))
         else:
             print("El tipo de operacion no existe")
 
@@ -92,9 +95,8 @@ class Logica(QObject):
         mensaje_codificado = self.codificar_mensaje(mensaje_encriptado)
         self.socket_cliente.sendall(mensaje_codificado)
 
-    def test_manejar_mensaje(self): #Mensaje exacto
-        mensaje = Mensaje("comenzar", "ajdhasdhñashidoasjdoasidjasidjaosaaaaaaaaaaaaaaa")
-        self.mandar_mensaje(mensaje)
+    def empezar_partida(self): #Mensaje exacto
+        self.mandar_mensaje(Mensaje(parametro("OP_COMENZAR_PARTIDA")))
 
     def test_manejar_mensaje2(self):
         mensaje = Mensaje("eliminar", "xd")

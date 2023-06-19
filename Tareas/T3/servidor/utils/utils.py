@@ -13,3 +13,6 @@ class Mensaje:
 
     def __repr__(self):
         return f"{self.operacion}: {self.data}"
+
+    def __eq__(self, obj):
+        return self.operacion == obj

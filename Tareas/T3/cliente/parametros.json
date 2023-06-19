@@ -6,12 +6,24 @@
     "VENTANA_JUEGO_ALTO": 720,
     "path_fondo_inicio": "frontend/Sprites/background/background_inicio.png",
     "PATH_USER_IMAGE": "frontend/Sprites/extra/user_profile.png",
-    "PATH_FONDO_JUEGO":"frontend/Sprites/background/background_juego.png",
+    "PATH_FONDO_JUEGO": "frontend/Sprites/background/background_juego.png",
     "N_PONDERADOR": 1,
     "TAMANO_CHUNKS_BLOQUE": 4,
     "TAMANO_CHUNKS_MENSAJE": 128,
     "OP_ASIGNAR_NOMBRE": "ASIGNAR_NOMBRE",
     "OP_AGREGAR_USUARIOS": "AGREGAR_USUARIOS",
     "OP_AGREGAR_USUARIO": "AGREGAR_USUARIO",
-    "OP_ELIMINAR_USUARIO": "ELIMINAR_USUARIO"
+    "OP_ELIMINAR_USUARIO": "ELIMINAR_USUARIO",
+    "OP_COMENZAR_PARTIDA": "COMENZAR_PARTIDA",
+    "OP_AGREGAR_JUGADORES": "AGREGAR_JUGADORES",
+    "OP_CAMBIAR_DADOS": "CAMBIAR_DADOS",
+    "NUMERO_VIDAS": 3,
+    "PATH_DADOS": [
+        "frontend/Sprites/dices/dice_1.png",
+        "frontend/Sprites/dices/dice_2.png",
+        "frontend/Sprites/dices/dice_3.png",
+        "frontend/Sprites/dices/dice_4.png",
+        "frontend/Sprites/dices/dice_5.png",
+        "frontend/Sprites/dices/dice_6.png"
+    ]
 }

@@ -126,11 +126,20 @@ class LabelUserImage(QLabel):
 class Jugador(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.lbl_vidas = LabelCuadrados("vidas", self)
+        self.lbl_vidas = LabelCuadrados(str(parametro("NUMERO_VIDAS")), self)
         self.lbl_imagen = LabelUserImage(self)
         self.dado1 = LabelCuadrados("Dado 1", self)
         self.dado2 = LabelCuadrados("Dado 2", self)
         self.lbl_nombre = LabelTextos("Jugador", self)
+
+    def actualizar_dados(self, dados):
+        dado1, dado2 = dados
+        self.dado1.setText("")
+        self.dado2.setText("")
+        self.dado1.setStyleSheet("")
+        self.dado2.setStyleSheet("")
+        self.dado1.setPixmap(QPixmap(parametro("PATH_DADOS")[dado1 - 1]).scaled(self.dado1.width(), self.dado1.height()))
+        self.dado2.setPixmap(QPixmap(parametro("PATH_DADOS")[dado2 - 1]).scaled(self.dado1.width(), self.dado1.height()))
 
 
 class Jugador1(Jugador):
@@ -159,7 +168,7 @@ class Jugador2(Jugador):
         hbox.addWidget(self.lbl_vidas)
         hbox.addWidget(self.lbl_imagen)
         layout_dados = QVBoxLayout()
-        layout_dados.setSpacing(10)
+        layout_dados.setSpacing(15)
         layout_dados.addWidget(self.dado1)
         layout_dados.addWidget(self.dado2)
         hbox.addLayout(layout_dados)
@@ -191,7 +200,7 @@ class Jugador4(Jugador):
         vbox = QVBoxLayout(self)
         hbox = QHBoxLayout()
         layout_dados = QVBoxLayout()
-        layout_dados.setSpacing(10)
+        layout_dados.setSpacing(15)
         layout_dados.addWidget(self.dado1)
         layout_dados.addWidget(self.dado2)
         hbox.addLayout(layout_dados)
@@ -248,11 +257,28 @@ class VentanaJuego(QWidget):
         layout_acciones.addWidget(self.btn_usar_poder, 2, 0)
         self.btn_dudar = CustomButton("Dudar", widget_acciones)
         layout_acciones.addWidget(self.btn_dudar, 2, 1)
+        
+        self.jugadores = {}
 
-        self.jugador1 = Jugador1(self)
-        self.jugador2 = Jugador2(self)
-        self.jugador3 = Jugador3(self)
-        self.jugador4 = Jugador4(self)
+    def iniciar(self, jugadores):
+        jugador1 = Jugador1(self)
+        jugador2 = Jugador2(self)
+        jugador3 = Jugador3(self)
+        jugador4 = Jugador4(self)
+        id1, id2, id3, id4 = jugadores
+        jugador1.lbl_nombre.setText(id1)
+        jugador2.lbl_nombre.setText(id2)
+        jugador3.lbl_nombre.setText(id3)
+        jugador4.lbl_nombre.setText(id4)
+        self.jugadores[id1] = jugador1
+        self.jugadores[id2] = jugador2
+        self.jugadores[id3] = jugador3
+        self.jugadores[id4] = jugador4
+        self.show()
+
+    def actualizar_dados(self, data):
+        id, dados = data
+        self.jugadores[id].actualizar_dados(dados)
 
 
 if __name__ == "__main__":
