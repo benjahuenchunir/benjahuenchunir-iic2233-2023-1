@@ -17,6 +17,8 @@
     "OP_COMENZAR_PARTIDA": "COMENZAR_PARTIDA",
     "OP_AGREGAR_JUGADORES": "AGREGAR_JUGADORES",
     "OP_CAMBIAR_DADOS": "CAMBIAR_DADOS",
+    "OP_CAMBIAR_NUMERO_MAYOR": "CAMBIAR_NUMERO_MAYOR",
+    "OP_CAMBIAR_TURNOS": "CAMBIAR_TURNOS",
     "NUMERO_VIDAS": 3,
     "PATH_DADOS": [
         "frontend/Sprites/dices/dice_1.png",
@@ -25,5 +27,10 @@
         "frontend/Sprites/dices/dice_4.png",
         "frontend/Sprites/dices/dice_5.png",
         "frontend/Sprites/dices/dice_6.png"
-    ]
+    ],
+    "AC_ANUNCIAR_VALOR": "ANUNCIAR_VALOR",
+    "AC_DUDAR": "DUDAR",
+    "AC_PASAR_TURNO": "PASAR_TURNO",
+    "AC_CAMBIAR_DADOS": "CAMBIAR_DADOS",
+    "AC_USAR_PODER": "USAR_PODER"
 }

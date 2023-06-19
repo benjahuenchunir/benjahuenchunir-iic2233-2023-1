@@ -20,8 +20,7 @@ class Jugador():
 
 
 class Bot():
-    def __init__(self, socket, id):
-        self.socket = socket
+    def __init__(self, id):
         self.id = id
         self.dado1 = None
         self.dado2 = None
@@ -48,13 +47,15 @@ class Server:
         self.sock.bind((self.host, self.port))
         self.sock.listen()
         self.jugando = False
+        self.ids = parametro("IDS")
         self.aceptar_conexiones()
         
 
         self.turnos = []
         self.turno_actual = 0
-        self.valor_anterior = None
-        self.valor_actual = None
+        self.turnos_totales = 1
+        self.valor_anterior = 0
+        self.valor_actual = 0
 
     def aceptar_conexiones(self) -> None:
         thread = Thread(
@@ -84,11 +85,10 @@ class Server:
 
     def agregar_cliente(self, socket_cliente) -> str:
         self.sockets.append(socket_cliente)
-        used_ids = map(lambda x: x.id, self.socket_players.values())
-        id = random.choice([nombre for nombre in parametro("ids").values() if nombre not in used_ids])
-        self.socket_players[socket_cliente] = Jugador(socket_cliente, id)
+        id = self.asignar_id()
         self.mandar_mensaje(Mensaje(parametro("OP_ASIGNAR_NOMBRE"), id), socket_cliente)
-        self.mandar_mensaje(Mensaje(parametro("OP_AGREGAR_USUARIOS"), [usuario for usuario in used_ids if usuario != id]), socket_cliente)
+        self.mandar_mensaje(Mensaje(parametro("OP_AGREGAR_USUARIOS"), [usuario for usuario in map(lambda x: x.id, self.socket_players.values())]), socket_cliente)
+        self.socket_players[socket_cliente] = Jugador(socket_cliente, id)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_USUARIO"), id))
 
     def escuchar_cliente(self, socket_cliente: socket.socket) -> None:
@@ -97,18 +97,22 @@ class Server:
                 data = socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
                 if len(data) > 0:
                     print("Recibiendo mensaje de un cliente")
-                    self.manejar_mensaje(self.recibir_mensaje(socket_cliente, data))
+                    if self.jugando:
+                        self.manejar_mensaje_juego(self.recibir_mensaje(socket_cliente, data), socket_cliente)
+                    else:
+                        self.manejar_mensaje(self.recibir_mensaje(socket_cliente, data))
                 else:
                     print("Usuario desconectado")
                     self.eliminar_cliente(socket_cliente) # TODO esto no se llama sino que si el usuario se va tira exception
                     break
-            except Exception:
+            except ConnectionError:
                 print("Hubo algun error")
                 self.eliminar_cliente(socket_cliente)
                 break
 
     def eliminar_cliente(self, socket_cliente):
-        print("ELiminando cliente")
+        print("Eliminando cliente")
+        self.ids.append(self.socket_players[socket_cliente].id)
         self.sockets.remove(socket_cliente)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), self.socket_players[socket_cliente].id))
         del self.socket_players[socket_cliente]
@@ -127,7 +131,7 @@ class Server:
         mensaje_decodificado = bytearray()
         for i in range(0, len(mensaje) - (parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")), parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")):
             mensaje_decodificado.extend(mensaje[i+parametro("TAMANO_CHUNKS_BLOQUE"):i+parametro("TAMANO_CHUNKS_MENSAJE")+parametro("TAMANO_CHUNKS_BLOQUE")])
-        mensaje_decodificado.extend(mensaje[-parametro("TAMANO_CHUNKS_MENSAJE"):][:largo])
+        mensaje_decodificado.extend(mensaje[-parametro("TAMANO_CHUNKS_MENSAJE"):][:largo-(parametro("TAMANO_CHUNKS_MENSAJE"))*(largo // parametro("TAMANO_CHUNKS_MENSAJE"))])
         return mensaje_decodificado
 
     def codificar_mensaje(self, mensaje: bytearray) -> bytearray:
@@ -156,23 +160,44 @@ class Server:
     def mandar_mensaje(self, mensaje: Mensaje, socket_cliente: socket.socket):
         mensaje_codificado = self.convertir_mensaje(mensaje)
         socket_cliente.sendall(mensaje_codificado)
-        
+
     def manejar_mensaje(self, mensaje: Mensaje):
+        print(mensaje)
         if mensaje == parametro("OP_COMENZAR_PARTIDA"):
             self.comenzar_partida()
+        else:
+            print("No existe esa operacion")
+
+    def manejar_mensaje_juego(self, mensaje: Mensaje, socket_cliente):
+        print(mensaje)
+        if self.socket_players[socket_cliente] != self.turnos[self.turno_actual]:
+            return
+        if mensaje == parametro("AC_ANUNCIAR_VALOR"):
+            self.anunciar_valor(mensaje.data)
+        else:
+            print("No existe esa operacion")
+
+    def asignar_id(self):
+        id = random.choice(self.ids)
+        self.ids.remove(id)
+        return id
 
     def comenzar_partida(self): # TODO sumar bots
         self.jugando = True
-        self.turno_actual = random.randint(0, 1)
-        self.turnos = self.sockets.copy()
+        self.turnos = list(self.socket_players.values())
+        if len(self.turnos) < parametro("NUMERO_JUGADORES"):
+            for i in range(parametro("NUMERO_JUGADORES") - len(self.sockets)):
+                self.turnos.append(Bot(self.asignar_id()))
+        random.shuffle(self.turnos)
         data = []
-        for socket in self.turnos:
-            data.append(self.socket_players[socket].id)
-        data.extend(["2", "3", "4"])
+        for jugador in self.turnos:
+            data.append(jugador.id)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_JUGADORES"), data))
         for socket, jugador in self.socket_players.items():
             jugador.lanzar_dados()
             self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
+        if isinstance(self.turnos[self.turno_actual], Bot):
+            self.jugar_bot(self.turnos[self.turno_actual])
 
     def jugar_bot(self, bot: Bot):
         if bot.dudar():
@@ -181,7 +206,29 @@ class Server:
             bot.lanzar_dados()
             if bot.anunciar():
                 print("Anunciar")
-                
+
+    def actualizar_turno(self):
+        turno_anterior = self.turno_actual
+        self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
+        self.turnos_totales += 1
+        return turno_anterior
+
+    def anunciar_valor(self, valor: str):
+        if not valor.isdecimal():
+            return
+        if int(valor) > self.valor_actual and (1 <= int(valor) <= 12):
+            self.valor_anterior = self.valor_actual
+            self.valor_actual = int(valor)
+            turno_anterior = self.actualizar_turno()
+            self.mandar_mensaje_a_todos(
+                Mensaje(parametro("OP_CAMBIAR_NUMERO_MAYOR"),
+                        str(self.valor_actual)))
+            self.mandar_mensaje_a_todos(
+                Mensaje(parametro("OP_CAMBIAR_TURNOS"),
+                        (self.turnos[self.turno_actual].id,
+                         self.turnos[turno_anterior].id,
+                         str(self.turnos_totales))))
+
 
 if __name__ == "__main__":
     host = parametro("host")

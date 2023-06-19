@@ -1,16 +1,15 @@
 {
     "host": "localhost",
     "port": 3000,
-    "ids": {
-        "id_1": "Lily416",
-        "id_2": "Sir Hernan4444",
-        "id_3": "Rey Joaking",
-        "id_4": "Dr. Pinto",
-        "id_5": "Cliente 5",
-        "id_6": "Cliente 6",
-        "id_7": "Cliente 7",
-        "id_8": "Cliente 8"
-    },
+    "IDS": ["Lily416",
+        "Sir Hernan4444",
+        "Rey Joaking",
+        "Dr. Pinto",
+        "Cliente 5",
+        "Cliente 6",
+        "Cliente 7",
+        "Cliente 8"
+    ],
     "N_PONDERADOR": 1,
     "NUMERO_JUGADORES": 4,
     "USUARIO_CONECTADO": "conectado:",
@@ -27,6 +26,11 @@
     "NUMERO_VIDAS": 3,
     "PROB_DUDAR": 0.3,
     "PROB_ANUNCIAR": 0.5,
+    "AC_ANUNCIAR_VALOR": "ANUNCIAR_VALOR",
     "AC_DUDAR": "DUDAR",
-    "AC_CAMBIAR_DADOS": "CAMBIAR_DADOS"
+    "AC_PASAR_TURNO": "PASAR_TURNO",
+    "AC_CAMBIAR_DADOS": "CAMBIAR_DADOS",
+    "AC_USAR_PODER": "USAR_PODER",
+    "OP_CAMBIAR_NUMERO_MAYOR": "CAMBIAR_NUMERO_MAYOR",
+    "OP_CAMBIAR_TURNOS": "CAMBIAR_TURNOS"
 }

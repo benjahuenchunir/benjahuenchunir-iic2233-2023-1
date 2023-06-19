@@ -12,6 +12,8 @@ class Logica(QObject):
     senal_servidor_cerrado = pyqtSignal(str)
     senal_empezar_juego = pyqtSignal(list)
     senal_cambiar_dados = pyqtSignal(tuple)
+    senal_cambiar_numero_mayor = pyqtSignal(str)
+    senal_actualizar_turnos = pyqtSignal(tuple)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -35,12 +37,11 @@ class Logica(QObject):
             data = self.socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
             if data:
                 mensaje = self.recibir_mensaje(data)
-                print(mensaje)
                 self.manejar_mensaje(mensaje)
             else:
                 self.senal_servidor_cerrado.emit("El servidor se cerró")
                 # TODO arreglar
-                
+
     def manejar_mensaje(self, mensaje: Mensaje):
         print(mensaje)
         if mensaje == parametro("OP_ASIGNAR_NOMBRE"):
@@ -56,23 +57,54 @@ class Logica(QObject):
             self.senal_empezar_juego.emit(mensaje.data)
         elif mensaje == parametro("OP_CAMBIAR_DADOS"):
             self.senal_cambiar_dados.emit((self.id, mensaje.data))
+        elif mensaje == parametro("OP_CAMBIAR_NUMERO_MAYOR"):
+            self.senal_cambiar_numero_mayor.emit(mensaje.data)
+        elif mensaje == parametro("OP_CAMBIAR_TURNOS"):
+            self.senal_actualizar_turnos.emit(mensaje.data)
         else:
             print("El tipo de operacion no existe")
 
     def recibir_mensaje(self, data: bytes) -> Mensaje:
-        largo = int.from_bytes(data, byteorder='little')
-        largo_total = (parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")) * (largo // parametro("TAMANO_CHUNKS_MENSAJE") + min(1, largo % parametro("TAMANO_CHUNKS_MENSAJE")))
+        print(data)
+        largo = int.from_bytes(data, byteorder="little")
+        largo_total = (
+            parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")
+        ) * (
+            largo // parametro("TAMANO_CHUNKS_MENSAJE")
+            + min(1, largo % parametro("TAMANO_CHUNKS_MENSAJE"))
+        )
         bytes_mensaje = self.socket_cliente.recv(largo_total)
         mensaje_decodificado = self.decodificar_mensaje(bytes_mensaje, largo)
-        mensaje_desencriptado = cr.desencriptar(mensaje_decodificado, parametro("N_PONDERADOR"))
+        mensaje_desencriptado = cr.desencriptar(
+            mensaje_decodificado, parametro("N_PONDERADOR")
+        )
         mensaje = pickle.loads(mensaje_desencriptado)
         return mensaje
 
     def decodificar_mensaje(self, mensaje: bytes, largo: int) -> bytearray:
         mensaje_decodificado = bytearray()
-        for i in range(0, len(mensaje) - (parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")), parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")):
-            mensaje_decodificado.extend(mensaje[i+parametro("TAMANO_CHUNKS_BLOQUE"):i+parametro("TAMANO_CHUNKS_MENSAJE")+parametro("TAMANO_CHUNKS_BLOQUE")])
-        mensaje_decodificado.extend(mensaje[-parametro("TAMANO_CHUNKS_MENSAJE"):][:largo])
+        for i in range(
+            0,
+            len(mensaje)
+            - (parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")),
+            parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE"),
+        ):
+            print(mensaje_decodificado)
+            mensaje_decodificado.extend(
+                mensaje[
+                    i
+                    + parametro("TAMANO_CHUNKS_BLOQUE") : i
+                    + parametro("TAMANO_CHUNKS_MENSAJE")
+                    + parametro("TAMANO_CHUNKS_BLOQUE")
+                ]
+            )
+        mensaje_decodificado.extend(
+            mensaje[-parametro("TAMANO_CHUNKS_MENSAJE") :][
+                : largo
+                - (parametro("TAMANO_CHUNKS_MENSAJE"))
+                * (largo // parametro("TAMANO_CHUNKS_MENSAJE"))
+            ]
+        )
         return mensaje_decodificado
 
     def codificar_mensaje(self, mensaje: bytearray) -> bytearray:
@@ -81,11 +113,11 @@ class Logica(QObject):
         )
         for i in range(0, len(mensaje), parametro("TAMANO_CHUNKS_MENSAJE")):
             mensaje_codificado.extend(
-                i.to_bytes(parametro("TAMANO_CHUNKS_BLOQUE"), "big"))
-            chunk = mensaje[i: i + parametro("TAMANO_CHUNKS_MENSAJE")]
+                i.to_bytes(parametro("TAMANO_CHUNKS_BLOQUE"), "big")
+            )
+            chunk = mensaje[i : i + parametro("TAMANO_CHUNKS_MENSAJE")]
             if len(chunk) < parametro("TAMANO_CHUNKS_MENSAJE"):
-                chunk.extend(
-                    bytearray(parametro("TAMANO_CHUNKS_MENSAJE") - len(chunk)))
+                chunk.extend(bytearray(parametro("TAMANO_CHUNKS_MENSAJE") - len(chunk)))
             mensaje_codificado.extend(chunk)
         return mensaje_codificado
 
@@ -95,9 +127,12 @@ class Logica(QObject):
         mensaje_codificado = self.codificar_mensaje(mensaje_encriptado)
         self.socket_cliente.sendall(mensaje_codificado)
 
-    def empezar_partida(self): #Mensaje exacto
+    def empezar_partida(self):  # Mensaje exacto
         self.mandar_mensaje(Mensaje(parametro("OP_COMENZAR_PARTIDA")))
 
     def test_manejar_mensaje2(self):
         mensaje = Mensaje("eliminar", "xd")
         self.mandar_mensaje(mensaje)
+
+    def enviar_anunciar_valor(self, valor: str):
+        self.mandar_mensaje(Mensaje(parametro("AC_ANUNCIAR_VALOR"), valor))

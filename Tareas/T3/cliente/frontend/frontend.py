@@ -162,16 +162,16 @@ class Jugador1(Jugador):
 class Jugador2(Jugador):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setGeometry(200, 310, 210, 130)
+        self.setGeometry(830, 310, 210, 130)
         vbox = QVBoxLayout(self)
         hbox = QHBoxLayout()
-        hbox.addWidget(self.lbl_vidas)
-        hbox.addWidget(self.lbl_imagen)
         layout_dados = QVBoxLayout()
         layout_dados.setSpacing(15)
         layout_dados.addWidget(self.dado1)
         layout_dados.addWidget(self.dado2)
         hbox.addLayout(layout_dados)
+        hbox.addWidget(self.lbl_imagen)
+        hbox.addWidget(self.lbl_vidas)
         vbox.addLayout(hbox)
         vbox.addWidget(self.lbl_nombre)
 
@@ -196,21 +196,23 @@ class Jugador3(Jugador):
 class Jugador4(Jugador):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setGeometry(830, 310, 210, 130)
+        self.setGeometry(200, 310, 210, 130)
         vbox = QVBoxLayout(self)
         hbox = QHBoxLayout()
+        hbox.addWidget(self.lbl_vidas)
+        hbox.addWidget(self.lbl_imagen)
         layout_dados = QVBoxLayout()
         layout_dados.setSpacing(15)
         layout_dados.addWidget(self.dado1)
         layout_dados.addWidget(self.dado2)
         hbox.addLayout(layout_dados)
-        hbox.addWidget(self.lbl_imagen)
-        hbox.addWidget(self.lbl_vidas)
         vbox.addLayout(hbox)
         vbox.addWidget(self.lbl_nombre)
 
 
 class VentanaJuego(QWidget):
+    senal_env_anunciar_valor = pyqtSignal(str)
+    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Ventana juego")
@@ -233,13 +235,13 @@ class VentanaJuego(QWidget):
         layout_info = QHBoxLayout(widget_info)
         widget_info.setLayout(layout_info)
         widget_info.setGeometry(QRect(0, 34, self.width(), 40))
-        self.label_mayor_numero = LabelTextos("Numero mayor anunciado: x", widget_info)
+        self.label_mayor_numero = LabelTextos("Numero mayor anunciado: 0", widget_info)
         layout_info.addWidget(self.label_mayor_numero)
         self.label_turno_anterior = LabelTextos(
-            "Turno anterior fue 'Jugador'", widget_info
+            "Turno anterior fue -", widget_info
         )
         layout_info.addWidget(self.label_turno_anterior)
-        self.label_numero_turno = LabelTextos("Numero Turno: x", widget_info)
+        self.label_numero_turno = LabelTextos("Numero Turno: 1", widget_info)
         layout_info.addWidget(self.label_numero_turno)
 
         widget_acciones = QWidget(self)
@@ -257,7 +259,6 @@ class VentanaJuego(QWidget):
         layout_acciones.addWidget(self.btn_usar_poder, 2, 0)
         self.btn_dudar = CustomButton("Dudar", widget_acciones)
         layout_acciones.addWidget(self.btn_dudar, 2, 1)
-        
         self.jugadores = {}
 
     def iniciar(self, jugadores):
@@ -274,11 +275,25 @@ class VentanaJuego(QWidget):
         self.jugadores[id2] = jugador2
         self.jugadores[id3] = jugador3
         self.jugadores[id4] = jugador4
+        self.label_turno_actual.setText(f"Turno de {id1}")
         self.show()
 
     def actualizar_dados(self, data):
         id, dados = data
         self.jugadores[id].actualizar_dados(dados)
+
+    def enviar_anunciar_valor(self):
+        print("Anunciando valor: front")
+        self.senal_env_anunciar_valor.emit(self.txt_valor.text())
+
+    def actualizar_numero_mayor(self, numero):
+        self.label_mayor_numero.setText(f"Numero mayor anunciado: {numero}")
+
+    def actualizar_turnos(self, turnos):
+        id_actual, id_anterior, total = turnos
+        self.label_turno_actual.setText(f"Turno de {id_actual}")
+        self.label_turno_anterior.setText(f"Turno anterior fue {id_anterior}")
+        self.label_numero_turno.setText(f"Numero turno {total}")
 
 
 if __name__ == "__main__":
