@@ -13,6 +13,8 @@ class Jugador():
         self.dado1 = None
         self.dado2 = None
         self.vidas = parametro("NUMERO_VIDAS")
+        self.puede_cambiar = True
+        self.puede_dudar = True
 
     def lanzar_dados(self):
         self.dado1 = random.randint(1, 6)
@@ -174,6 +176,14 @@ class Server:
             return
         if mensaje == parametro("AC_ANUNCIAR_VALOR"):
             self.anunciar_valor(mensaje.data)
+        elif mensaje == parametro("AC_PASAR_TURNO"):
+            self.pasar()
+        elif mensaje == parametro("AC_CAMBIAR_DADOS"):
+            self.cambiar_dados(socket_cliente)
+        elif mensaje == parametro("AC_USAR_PODER"):
+            self.usar_poder(socket_cliente)
+        elif mensaje == parametro("AC_DUDAR"):
+            self.dudar(socket_cliente)
         else:
             print("No existe esa operacion")
 
@@ -194,8 +204,7 @@ class Server:
             data.append(jugador.id)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_JUGADORES"), data))
         for socket, jugador in self.socket_players.items():
-            jugador.lanzar_dados()
-            self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
+            self.lanzar_dados(socket, jugador)
         if isinstance(self.turnos[self.turno_actual], Bot):
             self.jugar_bot(self.turnos[self.turno_actual])
 
@@ -211,7 +220,18 @@ class Server:
         turno_anterior = self.turno_actual
         self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
         self.turnos_totales += 1
-        return turno_anterior
+        for jugador in self.socket_players.values():  # TODO quizas mejor solo actualizar los del jugador actual pasandole el socket a esta funcion
+            jugador.puede_cambiar = True
+            jugador.puede_dudar = True
+        self.mandar_mensaje_a_todos(
+                Mensaje(parametro("OP_CAMBIAR_TURNOS"),
+                        (self.turnos[self.turno_actual].id,
+                         self.turnos[turno_anterior].id,
+                         str(self.turnos_totales))))
+
+    def lanzar_dados(self, socket, jugador):
+        jugador.lanzar_dados()
+        self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
 
     def anunciar_valor(self, valor: str):
         if not valor.isdecimal():
@@ -219,15 +239,50 @@ class Server:
         if int(valor) > self.valor_actual and (1 <= int(valor) <= 12):
             self.valor_anterior = self.valor_actual
             self.valor_actual = int(valor)
-            turno_anterior = self.actualizar_turno()
+            self.actualizar_turno()
             self.mandar_mensaje_a_todos(
                 Mensaje(parametro("OP_CAMBIAR_NUMERO_MAYOR"),
                         str(self.valor_actual)))
-            self.mandar_mensaje_a_todos(
-                Mensaje(parametro("OP_CAMBIAR_TURNOS"),
-                        (self.turnos[self.turno_actual].id,
-                         self.turnos[turno_anterior].id,
-                         str(self.turnos_totales))))
+
+    def pasar(self):
+        self.actualizar_turno()
+
+    def cambiar_dados(self, socket_cliente: socket.socket):
+        jugador = self.socket_players[socket_cliente]
+        if jugador.puede_cambiar:
+            jugador.puede_dudar = False
+            jugador.puede_cambiar = False
+            self.lanzar_dados(socket_cliente, jugador)
+
+    def usar_poder(self, socket_cliente): # TODO preguntar jugador
+        jugador = self.socket_players[socket_cliente]
+        if len(set([jugador.dado1, jugador.dado2, 1, 2])) == 2:
+            print("Usando Ataque")
+        elif len(set([jugador.dado1, jugador.dado2, 1, 3])) == 2:
+            print("Usando Terremoto")
+
+    def dudar(self, socket_cliente):
+        jugador = self.socket_players[socket_cliente]
+        turno_anterior = self.turno_actual - 1 if self.turno_actual > 0 else len(self.turnos) - 1
+        jugador_anterior = self.turnos[turno_anterior]
+        valor = jugador_anterior.dado1 + jugador_anterior.dado2
+        if jugador_anterior.dudo:
+            if valor < self.valor_actual:
+                self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
+            else:
+                self.terminar_ronda(jugador_anterior, jugador, self.turno_actual)
+        elif jugador_anterior.paso:
+            if valor != parametro("VALOR_PASO"):
+                self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
+            else:
+                self.terminar_ronda(jugador_anterior, jugador, self.turno_actual)
+
+    def terminar_ronda(self, ganador, perdedor, turno):
+        if perdedor.perder_vida:
+            self.mandar_mensaje("OP_PERDER", )
+        self.turno_actual = 
+        self.actualizar_turno() # TODO esto resetea los turnos?
+            
 
 
 if __name__ == "__main__":

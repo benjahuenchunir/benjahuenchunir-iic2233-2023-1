@@ -136,3 +136,15 @@ class Logica(QObject):
 
     def enviar_anunciar_valor(self, valor: str):
         self.mandar_mensaje(Mensaje(parametro("AC_ANUNCIAR_VALOR"), valor))
+
+    def enviar_pasar(self):
+        self.mandar_mensaje(Mensaje(parametro("AC_PASAR_TURNO")))
+
+    def enviar_cambiar_dados(self):
+        self.mandar_mensaje(Mensaje(parametro("AC_CAMBIAR_DADOS")))
+
+    def enviar_usar_poder(self):
+        self.mandar_mensaje(Mensaje(parametro("AC_USAR_PODER")))
+
+    def enviar_dudar(self):
+        self.mandar_mensaje(Mensaje(parametro("AC_DUDAR")))

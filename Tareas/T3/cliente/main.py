@@ -36,6 +36,10 @@ class DCCachos:
         self.back.senal_actualizar_turnos.connect(self.juego.actualizar_turnos)
         self.juego.btn_anunciar_valor.clicked.connect(self.juego.enviar_anunciar_valor)
         self.juego.senal_env_anunciar_valor.connect(self.back.enviar_anunciar_valor)
+        self.juego.btn_pasar.clicked.connect(self.back.enviar_pasar)
+        self.juego.btn_cambiar_dados.clicked.connect(self.back.enviar_cambiar_dados)
+        self.juego.btn_usar_poder.clicked.connect(self.back.enviar_usar_poder)
+        self.juego.btn_dudar.clicked.connect(self.back.enviar_dudar)
 
 
 if __name__ == "__main__":
