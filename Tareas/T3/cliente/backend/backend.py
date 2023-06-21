@@ -1,5 +1,5 @@
 import socket
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from threading import Thread
 from utils.utils import parametro, Mensaje
 import backend.Scripts.cripto as cr
@@ -14,6 +14,7 @@ class Logica(QObject):
     senal_cambiar_dados = pyqtSignal(tuple)
     senal_cambiar_numero_mayor = pyqtSignal(str)
     senal_actualizar_turnos = pyqtSignal(tuple)
+    senal_mostrar_dados = pyqtSignal(tuple)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -21,6 +22,7 @@ class Logica(QObject):
         self.host = host
         self.port = port
         self.id = None
+        self.pressed_keys = []
 
     def conectar_servidor(self):
         try:
@@ -61,6 +63,8 @@ class Logica(QObject):
             self.senal_cambiar_numero_mayor.emit(mensaje.data)
         elif mensaje == parametro("OP_CAMBIAR_TURNOS"):
             self.senal_actualizar_turnos.emit(mensaje.data)
+        elif mensaje == parametro("OP_MOSTRAR_DADOS"):
+            self.senal_mostrar_dados.emit(mensaje.data)
         else:
             print("El tipo de operacion no existe")
 
@@ -121,30 +125,38 @@ class Logica(QObject):
             mensaje_codificado.extend(chunk)
         return mensaje_codificado
 
-    def mandar_mensaje(self, mensaje: Mensaje):
+    def mandar_mensaje(self, llave, data=None):
+        mensaje = Mensaje(llave, data)
         bytes_mensaje = pickle.dumps(mensaje)
         mensaje_encriptado = cr.encriptar(bytes_mensaje, parametro("N_PONDERADOR"))
         mensaje_codificado = self.codificar_mensaje(mensaje_encriptado)
         self.socket_cliente.sendall(mensaje_codificado)
 
     def empezar_partida(self):  # Mensaje exacto
-        self.mandar_mensaje(Mensaje(parametro("OP_COMENZAR_PARTIDA")))
+        self.mandar_mensaje(parametro("OP_COMENZAR_PARTIDA"))
 
     def test_manejar_mensaje2(self):
         mensaje = Mensaje("eliminar", "xd")
         self.mandar_mensaje(mensaje)
 
     def enviar_anunciar_valor(self, valor: str):
-        self.mandar_mensaje(Mensaje(parametro("AC_ANUNCIAR_VALOR"), valor))
+        self.mandar_mensaje(parametro("AC_ANUNCIAR_VALOR"), valor)
 
     def enviar_pasar(self):
-        self.mandar_mensaje(Mensaje(parametro("AC_PASAR_TURNO")))
+        self.mandar_mensaje(parametro("AC_PASAR_TURNO"))
 
     def enviar_cambiar_dados(self):
-        self.mandar_mensaje(Mensaje(parametro("AC_CAMBIAR_DADOS")))
+        self.mandar_mensaje(parametro("AC_CAMBIAR_DADOS"))
 
     def enviar_usar_poder(self):
-        self.mandar_mensaje(Mensaje(parametro("AC_USAR_PODER")))
+        self.mandar_mensaje(parametro("AC_USAR_PODER"))
 
     def enviar_dudar(self):
-        self.mandar_mensaje(Mensaje(parametro("AC_DUDAR")))
+        self.mandar_mensaje(parametro("AC_DUDAR"))
+    
+    def manejar_key_pressed(self, key):
+        self.pressed_keys.append(key)
+        if len(self.pressed_keys) > 3:
+            self.pressed_keys.pop(0)
+        if self.pressed_keys == [Qt.Key_S, Qt.Key_E, Qt.Key_E]:
+            self.mandar_mensaje(parametro("AC_SEE"))

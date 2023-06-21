@@ -61,6 +61,8 @@ class Server:
         self.valor_actual = 0
 
     def aceptar_conexiones(self) -> None:
+        print(f"{'Cliente':^17}|{'Evento':^24}|{'Detalles':^24}")
+        print("-" * 17 + "|" + "-" * 24 + "|" + "-" * 24)
         thread = Thread(
             target=self.accept_connections_thread)
         thread.start()
@@ -68,9 +70,7 @@ class Server:
     def accept_connections_thread(self) -> None:
         while not self.jugando: # TODO jugador se debe conectar, pero permanecer en ventana inicio
             try:
-                print("Esperando que alguien se quiera conectar...")
                 socket_cliente, address = self.sock.accept()
-                print("Conexión aceptada desde", address)
                 self.agregar_cliente(socket_cliente)
                 listening_client_thread = Thread(
                     target=self.escuchar_cliente,
@@ -93,13 +93,13 @@ class Server:
         self.mandar_mensaje(Mensaje(parametro("OP_AGREGAR_USUARIOS"), [usuario for usuario in map(lambda x: x.id, self.socket_players.values())]), socket_cliente)
         self.socket_players[socket_cliente] = Jugador(socket_cliente, id)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_USUARIO"), id))
+        self.log(id, "Conectarse")
 
     def escuchar_cliente(self, socket_cliente: socket.socket) -> None:
         while True:
             try:
                 data = socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
                 if len(data) > 0:
-                    print("Recibiendo mensaje de un cliente")
                     if self.jugando:
                         self.manejar_mensaje_juego(self.recibir_mensaje(socket_cliente, data), socket_cliente)
                     else:
@@ -114,12 +114,12 @@ class Server:
                 break
 
     def eliminar_cliente(self, socket_cliente):
-        print("Eliminando cliente")
-        self.ids.append(self.socket_players[socket_cliente].id)
+        jugador = self.socket_players[socket_cliente]
+        self.ids.append(jugador.id)
         self.sockets.remove(socket_cliente)
-        self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), self.socket_players[socket_cliente].id))
+        self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), jugador.id))
         del self.socket_players[socket_cliente]
-        print("Cliente eliminado")
+        self.log(jugador.id, "Desconexion")
 
     def recibir_mensaje(self, socket_cliente: socket.socket, data: bytes) -> Mensaje:
         largo = int.from_bytes(data, byteorder='little')
@@ -185,6 +185,8 @@ class Server:
             self.usar_poder(socket_cliente)
         elif mensaje == parametro("AC_DUDAR"):
             self.dudar(socket_cliente)
+        elif mensaje == parametro("AC_SEE"):
+            self.mostrar_dados(socket_cliente)
         else:
             print("No existe esa operacion")
 
@@ -235,6 +237,7 @@ class Server:
         self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
 
     def anunciar_valor(self, socket_cliente, valor: str): # TODO indicar en QLineEdit que el valor es invalido
+        jugador = self.socket_players[socket_cliente]
         if not valor.isdecimal():
             return
         if int(valor) > self.valor_actual and (1 <= int(valor) <= 12):
@@ -242,19 +245,23 @@ class Server:
             self.valor_actual = int(valor)
             self.actualizar_turno()
             self.mandar_valor()
-        self.socket_players[socket_cliente].accion = parametro("AC_ANUNCIAR_VALOR")
-        
+            jugador.accion = parametro("AC_ANUNCIAR_VALOR")
+            self.log(jugador.id, "Anunciar valor", str(valor))
+
     def mostrar_dados(self, socket_cliente):
-        self.mandar_mensaje(Mensaje(parametro("OP_MOSTRAR_DADOS"), ()), socket_cliente)
-    
+        dados = [(x.id, (x.dado1, x.dado2)) for x in self.turnos]
+        self.mandar_mensaje(Mensaje(parametro("OP_MOSTRAR_DADOS"), (dados)), socket_cliente)
+
     def mandar_valor(self):
         self.mandar_mensaje_a_todos(
                 Mensaje(parametro("OP_CAMBIAR_NUMERO_MAYOR"),
                         str(self.valor_actual)))
 
     def pasar(self, socket_cliente):
-        self.socket_players[socket_cliente].accion = parametro("AC_PASAR")
+        jugador = self.socket_players[socket_cliente]
+        jugador.accion = parametro("AC_PASAR_TURNO")
         self.actualizar_turno()
+        self.log(jugador.id, "Pasar")
 
     def cambiar_dados(self, socket_cliente: socket.socket):
         jugador = self.socket_players[socket_cliente]
@@ -262,16 +269,18 @@ class Server:
             jugador.puede_dudar = False
             jugador.puede_cambiar = False
             self.lanzar_dados(socket_cliente, jugador)
+            self.log(jugador.id, "Cambiar dados")
 
     def usar_poder(self, socket_cliente): # TODO preguntar jugador, activar boton solo si tiene los dados
         jugador = self.socket_players[socket_cliente]
         if len(set([jugador.dado1, jugador.dado2, 1, 2])) == 2:
-            print("Usando Ataque")
+            self.log(jugador.id, "Usando Ataque")
         elif len(set([jugador.dado1, jugador.dado2, 1, 3])) == 2:
-            print("Usando Terremoto")
+            self.log(jugador.id, "Usando Terremoto")
 
     def dudar(self, socket_cliente):
         jugador = self.socket_players[socket_cliente]
+        self.log(jugador.id, "Dudar")
         turno_anterior = self.obtener_turno_anterior(self.turno_actual)
         jugador_anterior = self.turnos[turno_anterior]
         valor = jugador_anterior.dado1 + jugador_anterior.dado2
@@ -280,7 +289,7 @@ class Server:
                 self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
             else:
                 self.terminar_ronda(jugador_anterior, jugador, self.turno_actual)
-        elif jugador_anterior.accion == parametro("AC_PASAR"):
+        elif jugador_anterior.accion == parametro("AC_PASAR_TURNO"):
             if valor != parametro("VALOR_PASO"):
                 self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
             else:
@@ -310,6 +319,9 @@ class Server:
             self.turnos.remove(perdedor)
             self.eliminar_cliente(socket_cliente)
             return True
+
+    def log(self, usuario, evento, detalles="-"):
+        print(f"{usuario:^17.15}|{evento:^24.22}|{detalles:^24.22}")
 
 
 if __name__ == "__main__":

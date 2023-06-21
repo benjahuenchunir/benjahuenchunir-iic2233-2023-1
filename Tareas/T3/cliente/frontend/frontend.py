@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPixmap, QMouseEvent, QFont
+from PyQt5.QtGui import QPixmap, QMouseEvent, QFont, QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import (
     QListWidgetItem,
     QMessageBox,
@@ -15,7 +15,9 @@ from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QSizePolicy,
-    QGridLayout
+    QGridLayout,
+    QShortcut
+    
 )
 from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize, QRect
 from PyQt5.QtMultimedia import QSoundEffect
@@ -64,7 +66,7 @@ class VentanaInicio(QWidget):
         print("Agregando label usuario")
         layout = QVBoxLayout()
         label_usuario = QLabel(self)
-        label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")).scaled(100, 100))
+        label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")).scaled(100, 100, transformMode=Qt.TransformationMode.SmoothTransformation))
         label_id = QLabel(id, self)
         layout.addWidget(label_usuario)
         layout.addWidget(label_id)
@@ -212,6 +214,7 @@ class Jugador4(Jugador):
 
 class VentanaJuego(QWidget):
     senal_env_anunciar_valor = pyqtSignal(str)
+    senal_keys_pressed = pyqtSignal(int)
     
     def __init__(self):
         super().__init__()
@@ -223,7 +226,8 @@ class VentanaJuego(QWidget):
         )
         background = QLabel(self)
         background.setPixmap(
-            QPixmap(parametro("PATH_FONDO_JUEGO")).scaled(self.width(), self.height())
+            QPixmap(
+                parametro("PATH_FONDO_JUEGO")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
         )
         background.setGeometry(0, 0, self.width(), self.height())
 
@@ -294,6 +298,13 @@ class VentanaJuego(QWidget):
         self.label_turno_actual.setText(f"Turno de {id_actual}")
         self.label_turno_anterior.setText(f"Turno anterior fue {id_anterior}")
         self.label_numero_turno.setText(f"Numero turno {total}")
+
+    def mostrar_dados(self, data):
+        for i in range(len(data)):
+            self.actualizar_dados(data)
+            
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        self.senal_keys_pressed.emit(event.key())
 
 
 if __name__ == "__main__":
