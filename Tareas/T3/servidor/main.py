@@ -121,6 +121,14 @@ class Server:
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), jugador.id))
         del self.socket_players[socket_cliente]
         self.log(jugador.id, "Desconexion")
+    
+    def eliminar_cliente_juego(self, socket_cliente): # TODO si se desconecta un cliente que esta jugando, entonces se debe eliminar de turnos y verificar ganador, bots, etc
+        jugador = self.socket_players[socket_cliente]
+        self.ids.append(jugador.id)
+        self.sockets.remove(socket_cliente)
+        self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), jugador.id))
+        del self.socket_players[socket_cliente]
+        self.log(jugador.id, "Desconexion")
 
     def recibir_mensaje(self, socket_cliente: socket.socket, data: bytes) -> Mensaje:
         largo = int.from_bytes(data, byteorder='little')
@@ -176,20 +184,21 @@ class Server:
 
     def manejar_mensaje_juego(self, mensaje: Mensaje, socket_cliente):
         print(mensaje)
+        jugador = self.socket_players[socket_cliente]
         if mensaje == parametro("AC_SEE"):
             self.mostrar_dados(socket_cliente)
-        elif self.socket_players[socket_cliente] != self.turnos[self.turno_actual]:
+        elif jugador != self.turnos[self.turno_actual]:
             return
         elif mensaje == parametro("AC_ANUNCIAR_VALOR"):
-            self.anunciar_valor(self.socket_players[socket_cliente], mensaje.data)
+            self.anunciar_valor(jugador, mensaje.data)
         elif mensaje == parametro("AC_PASAR_TURNO"):
-            self.pasar(socket_cliente)
+            self.pasar(jugador)
         elif mensaje == parametro("AC_CAMBIAR_DADOS"):
             self.cambiar_dados(socket_cliente)
         elif mensaje == parametro("AC_USAR_PODER"):
             self.usar_poder(socket_cliente)
         elif mensaje == parametro("AC_DUDAR"):
-            self.dudar(self.socket_players[socket_cliente])
+            self.dudar(jugador)
         else:
             print("No existe esa operacion")
 
@@ -198,7 +207,7 @@ class Server:
         self.ids.remove(id)
         return id
 
-    def comenzar_partida(self): # TODO sumar bots
+    def comenzar_partida(self): # TODO recibir conexiones, pero dejarlos en inicio
         self.jugando = True
         self.turnos = list(self.socket_players.values())
         if len(self.turnos) < parametro("NUMERO_JUGADORES"):
@@ -212,30 +221,34 @@ class Server:
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_JUGADORES"), data))
         for socket, jugador in self.socket_players.items():
             self.lanzar_dados(socket, jugador)
-        if isinstance(self.turnos[self.turno_actual], Bot):
-            self.jugar_bot(self.turnos[self.turno_actual])
+        self.verificar_turno_bot()
 
     def jugar_bot(self, bot: Bot):
+        print("Bot esta jugando")
         jugador_anterior = self.turnos[self.obtener_turno_anterior(self.turno_actual)]
+        time.sleep(5)
         if jugador_anterior.accion is not None and bot.dudar():
             self.dudar(bot)
         else:
             bot.lanzar_dados()
             valor = random.randint(self.valor_actual, 12)
             if bot.anunciar() and valor != 12:
-                bot.accion = parametro("AC_ANUNCIAR_VALOR")
                 self.anunciar_valor(bot, str(valor))
-                print("Anunciar")
             else:
-                bot.accion = parametro("AC_PASAR")
-                print("PASAR")
+                self.pasar(bot)
+        print("termino el bot")
 
-    def actualizar_turno(self, socket_cliente): # TODO Reformatear, ahora recibe jugador, no socket
-        turno_anterior = self.turno_actual
+    def verificar_turno_bot(self):
+        print(type(self.turnos[self.turno_actual]))
+        if isinstance(self.turnos[self.turno_actual], Bot):
+            self.jugar_bot(self.turnos[self.turno_actual])
+
+    def actualizar_turno(self, jugador):
         self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
         self.turnos_totales += 1
-        self.reiniciar_jugador(self.socket_players[socket_cliente])
-        self.mandar_turno(self.turnos[self.turno_actual].id, self.turnos[turno_anterior].id)
+        self.reiniciar_jugador(jugador)
+        self.mandar_turno(self.turnos[self.turno_actual].id, jugador.id)
+        self.verificar_turno_bot()
 
     def reiniciar_opciones_jugador(self, jugador):
         jugador.puede_cambiar = True
@@ -260,8 +273,8 @@ class Server:
             self.valor_anterior = self.valor_actual
             self.valor_actual = int(valor)
             self.log(jugador.id, "Anunciar valor", f"Valor: {valor}")
-            self.actualizar_turno(jugador)
             self.mandar_valor()
+            self.actualizar_turno(jugador)
             jugador.accion = parametro("AC_ANUNCIAR_VALOR")
 
     def mostrar_dados(self, socket_cliente):
@@ -273,15 +286,16 @@ class Server:
         self.mandar_mensaje(Mensaje(parametro("OP_OCULTAR_DADOS"), ids), socket_cliente)
 
     def mandar_valor(self):
+        print("Esperando a mandar valor...")
         self.mandar_mensaje_a_todos(
                 Mensaje(parametro("OP_CAMBIAR_NUMERO_MAYOR"),
                         str(self.valor_actual)))
+        print("Valor mandado")
 
-    def pasar(self, socket_cliente):
-        jugador = self.socket_players[socket_cliente]
+    def pasar(self, jugador):
         jugador.accion = parametro("AC_PASAR_TURNO")
-        self.actualizar_turno(socket_cliente)
         self.log(jugador.id, "Pasar")
+        self.actualizar_turno(jugador)
 
     def cambiar_dados(self, socket_cliente: socket.socket):
         jugador = self.socket_players[socket_cliente]
@@ -340,12 +354,14 @@ class Server:
         self.mandar_valor()
         for jugador in self.turnos:
             self.reiniciar_jugador(jugador)
+        self.verificar_turno_bot()
 
     def verificar_ganador(self):
         return len(self.turnos) == 1
 
     def reiniciar_jugador(self, jugador):
-        self.reiniciar_opciones_jugador(jugador)
+        if isinstance(jugador, Jugador):
+            self.reiniciar_opciones_jugador(jugador)
         jugador.accion = None
 
     def obtener_turno_anterior(self, turno):
