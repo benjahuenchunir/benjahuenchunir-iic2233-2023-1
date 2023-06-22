@@ -29,6 +29,7 @@ class Bot():
         self.dado1 = None
         self.dado2 = None
         self.vidas = parametro("NUMERO_VIDAS")
+        self.accion = None
 
     def lanzar_dados(self):
         self.dado1 = random.randint(1, 6)
@@ -180,7 +181,7 @@ class Server:
         elif self.socket_players[socket_cliente] != self.turnos[self.turno_actual]:
             return
         elif mensaje == parametro("AC_ANUNCIAR_VALOR"):
-            self.anunciar_valor(socket_cliente, mensaje.data)
+            self.anunciar_valor(self.socket_players[socket_cliente], mensaje.data)
         elif mensaje == parametro("AC_PASAR_TURNO"):
             self.pasar(socket_cliente)
         elif mensaje == parametro("AC_CAMBIAR_DADOS"):
@@ -188,7 +189,7 @@ class Server:
         elif mensaje == parametro("AC_USAR_PODER"):
             self.usar_poder(socket_cliente)
         elif mensaje == parametro("AC_DUDAR"):
-            self.dudar(socket_cliente)
+            self.dudar(self.socket_players[socket_cliente])
         else:
             print("No existe esa operacion")
 
@@ -215,14 +216,21 @@ class Server:
             self.jugar_bot(self.turnos[self.turno_actual])
 
     def jugar_bot(self, bot: Bot):
-        if bot.dudar():
-            print("Dudando")
+        jugador_anterior = self.turnos[self.obtener_turno_anterior(self.turno_actual)]
+        if jugador_anterior.accion is not None and bot.dudar():
+            self.dudar(bot)
         else:
             bot.lanzar_dados()
-            if bot.anunciar():
+            valor = random.randint(self.valor_actual, 12)
+            if bot.anunciar() and valor != 12:
+                bot.accion = parametro("AC_ANUNCIAR_VALOR")
+                self.anunciar_valor(bot, str(valor))
                 print("Anunciar")
+            else:
+                bot.accion = parametro("AC_PASAR")
+                print("PASAR")
 
-    def actualizar_turno(self, socket_cliente):
+    def actualizar_turno(self, socket_cliente): # TODO Reformatear, ahora recibe jugador, no socket
         turno_anterior = self.turno_actual
         self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
         self.turnos_totales += 1
@@ -245,15 +253,14 @@ class Server:
         jugador.lanzar_dados()
         self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
 
-    def anunciar_valor(self, socket_cliente, valor: str): # TODO indicar en QLineEdit que el valor es invalido
-        jugador = self.socket_players[socket_cliente]
+    def anunciar_valor(self, jugador, valor: str): # TODO indicar en QLineEdit que el valor es invalido
         if not valor.isdecimal():
             return
         if int(valor) > self.valor_actual and (1 <= int(valor) <= 12):
             self.valor_anterior = self.valor_actual
             self.valor_actual = int(valor)
             self.log(jugador.id, "Anunciar valor", f"Valor: {valor}")
-            self.actualizar_turno(socket_cliente)
+            self.actualizar_turno(jugador)
             self.mandar_valor()
             jugador.accion = parametro("AC_ANUNCIAR_VALOR")
 
@@ -291,12 +298,11 @@ class Server:
         elif len(set([jugador.dado1, jugador.dado2, 1, 3])) == 2:
             self.log(jugador.id, "Usando Terremoto")
 
-    def dudar(self, socket_cliente):
+    def dudar(self, jugador):
         turno_anterior = self.obtener_turno_anterior(self.turno_actual)
         jugador_anterior = self.turnos[turno_anterior]
         if jugador_anterior.accion is None:
             return
-        jugador = self.socket_players[socket_cliente]
         valor = jugador_anterior.dado1 + jugador_anterior.dado2
         self.log(jugador.id, "Dudar")
         if jugador_anterior.accion == parametro("AC_ANUNCIAR_VALOR"):
@@ -350,10 +356,11 @@ class Server:
         self.log(perdedor.id, "Perdió una vida", f"Quedan: {perdedor.vidas}")
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ACTUALIZAR_VIDA"), (perdedor.id, str(perdedor.vidas))))
         if perdedor.vidas == 0:
-            socket_cliente = list(filter(lambda x: self.socket_players[x] == perdedor, self.socket_players))[0]
-            self.mandar_mensaje(Mensaje(parametro("OP_PERDER")), socket_cliente)
-            self.turnos.remove(perdedor)
-            self.eliminar_cliente(socket_cliente) # TODO creo que el cliente deberia ser eliminado al cerrar la pestaña, no antes: ojo que entonces es necesario cambiar el mensaje que se envia de a todos a solo los que no han perdido en terminmar partida
+            if isinstance(perdedor, Jugador):
+                socket_cliente = list(filter(lambda x: self.socket_players[x] == perdedor, self.socket_players))[0]
+                self.mandar_mensaje(Mensaje(parametro("OP_PERDER")), socket_cliente)
+                self.eliminar_cliente(socket_cliente) # TODO creo que el cliente deberia ser eliminado al cerrar la pestaña, no antes: ojo que entonces es necesario cambiar el mensaje que se envia de a todos a solo los que no han perdido en terminmar partida                
+            self.turnos.remove(perdedor) # TODO liberar id?
             return True
 
     def log(self, usuario, evento, detalles="-"):
