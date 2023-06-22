@@ -1,9 +1,10 @@
 import socket
 import random
-from threading import Thread
+from threading import Thread, Lock
 import Scripts.cripto as cr
 from utils.utils import parametro, Mensaje
 import pickle
+import time
 
 
 class Jugador():
@@ -46,14 +47,13 @@ class Server:
         self.socket_players = {}
         self.host = host
         self.port = port
+        self.pickle_lock = Lock()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.host, self.port))
         self.sock.listen()
         self.jugando = False
         self.ids = parametro("IDS")
         self.aceptar_conexiones()
-        
-
         self.turnos = []
         self.turno_actual = 0
         self.turnos_totales = 1
@@ -127,7 +127,8 @@ class Server:
         bytes_mensaje = socket_cliente.recv(largo_total)
         mensaje_decodificado = self.decodificar_mensaje(bytes_mensaje, largo)
         mensaje_desencriptado = cr.desencriptar(mensaje_decodificado, parametro("N_PONDERADOR"))
-        mensaje = pickle.loads(mensaje_desencriptado)
+        with self.pickle_lock:
+            mensaje = pickle.loads(mensaje_desencriptado)
         return mensaje
 
     def decodificar_mensaje(self, mensaje: bytes, largo: int) -> bytearray:
@@ -151,7 +152,8 @@ class Server:
         return mensaje_codificado
 
     def convertir_mensaje(self, mensaje: Mensaje):
-        bytes_mensaje = pickle.dumps(mensaje)
+        with self.pickle_lock:
+            bytes_mensaje = pickle.dumps(mensaje)
         mensaje_encriptado = cr.encriptar(bytes_mensaje, parametro("N_PONDERADOR"))
         return self.codificar_mensaje(mensaje_encriptado)
 
@@ -173,9 +175,11 @@ class Server:
 
     def manejar_mensaje_juego(self, mensaje: Mensaje, socket_cliente):
         print(mensaje)
-        if self.socket_players[socket_cliente] != self.turnos[self.turno_actual]:
+        if mensaje == parametro("AC_SEE"):
+            self.mostrar_dados(socket_cliente)
+        elif self.socket_players[socket_cliente] != self.turnos[self.turno_actual]:
             return
-        if mensaje == parametro("AC_ANUNCIAR_VALOR"):
+        elif mensaje == parametro("AC_ANUNCIAR_VALOR"):
             self.anunciar_valor(socket_cliente, mensaje.data)
         elif mensaje == parametro("AC_PASAR_TURNO"):
             self.pasar(socket_cliente)
@@ -185,8 +189,6 @@ class Server:
             self.usar_poder(socket_cliente)
         elif mensaje == parametro("AC_DUDAR"):
             self.dudar(socket_cliente)
-        elif mensaje == parametro("AC_SEE"):
-            self.mostrar_dados(socket_cliente)
         else:
             print("No existe esa operacion")
 
@@ -205,6 +207,7 @@ class Server:
         data = []
         for jugador in self.turnos:
             data.append(jugador.id)
+        self.log("-", "Inicio partida", ",".join(data))
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_JUGADORES"), data))
         for socket, jugador in self.socket_players.items():
             self.lanzar_dados(socket, jugador)
@@ -219,17 +222,23 @@ class Server:
             if bot.anunciar():
                 print("Anunciar")
 
-    def actualizar_turno(self):
+    def actualizar_turno(self, socket_cliente):
         turno_anterior = self.turno_actual
         self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
         self.turnos_totales += 1
-        for jugador in self.socket_players.values():  # TODO quizas mejor solo actualizar los del jugador actual pasandole el socket a esta funcion
-            jugador.puede_cambiar = True
-            jugador.puede_dudar = True
+        self.reiniciar_jugador(self.socket_players[socket_cliente])
+        self.mandar_turno(self.turnos[self.turno_actual].id, self.turnos[turno_anterior].id)
+
+    def reiniciar_opciones_jugador(self, jugador):
+        jugador.puede_cambiar = True
+        jugador.puede_dudar = True
+
+    def mandar_turno(self, turno_actual, turno_anterior):
+        self.log(turno_actual, "Comienzo turno")
         self.mandar_mensaje_a_todos(
                 Mensaje(parametro("OP_CAMBIAR_TURNOS"),
-                        (self.turnos[self.turno_actual].id,
-                         self.turnos[turno_anterior].id,
+                        (turno_actual,
+                         turno_anterior,
                          str(self.turnos_totales))))
 
     def lanzar_dados(self, socket, jugador):
@@ -243,14 +252,18 @@ class Server:
         if int(valor) > self.valor_actual and (1 <= int(valor) <= 12):
             self.valor_anterior = self.valor_actual
             self.valor_actual = int(valor)
-            self.actualizar_turno()
+            self.log(jugador.id, "Anunciar valor", f"Valor: {valor}")
+            self.actualizar_turno(socket_cliente)
             self.mandar_valor()
             jugador.accion = parametro("AC_ANUNCIAR_VALOR")
-            self.log(jugador.id, "Anunciar valor", str(valor))
 
     def mostrar_dados(self, socket_cliente):
         dados = [(x.id, (x.dado1, x.dado2)) for x in self.turnos]
         self.mandar_mensaje(Mensaje(parametro("OP_MOSTRAR_DADOS"), (dados)), socket_cliente)
+
+    def ocultar_dados(self, socket_cliente):
+        ids = [x.id for x in self.turnos if x != self.socket_players[socket_cliente]]
+        self.mandar_mensaje(Mensaje(parametro("OP_OCULTAR_DADOS"), ids), socket_cliente)
 
     def mandar_valor(self):
         self.mandar_mensaje_a_todos(
@@ -260,7 +273,7 @@ class Server:
     def pasar(self, socket_cliente):
         jugador = self.socket_players[socket_cliente]
         jugador.accion = parametro("AC_PASAR_TURNO")
-        self.actualizar_turno()
+        self.actualizar_turno(socket_cliente)
         self.log(jugador.id, "Pasar")
 
     def cambiar_dados(self, socket_cliente: socket.socket):
@@ -279,49 +292,72 @@ class Server:
             self.log(jugador.id, "Usando Terremoto")
 
     def dudar(self, socket_cliente):
-        jugador = self.socket_players[socket_cliente]
-        self.log(jugador.id, "Dudar")
         turno_anterior = self.obtener_turno_anterior(self.turno_actual)
         jugador_anterior = self.turnos[turno_anterior]
+        if jugador_anterior.accion is None:
+            return
+        jugador = self.socket_players[socket_cliente]
         valor = jugador_anterior.dado1 + jugador_anterior.dado2
-        if jugador_anterior.accion == parametro("AC_ANUNCIAR_VALOR"): # TODO, accion puede ser none (cuando no hay turno anterior, en ese casp no pasa nada, esta bien?)
+        self.log(jugador.id, "Dudar")
+        if jugador_anterior.accion == parametro("AC_ANUNCIAR_VALOR"):
             if valor < self.valor_actual:
-                self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
+                self.terminar_ronda(jugador_anterior, turno_anterior)
             else:
-                self.terminar_ronda(jugador_anterior, jugador, self.turno_actual)
+                self.terminar_ronda(jugador, self.turno_actual)
         elif jugador_anterior.accion == parametro("AC_PASAR_TURNO"):
             if valor != parametro("VALOR_PASO"):
-                self.terminar_ronda(jugador, jugador_anterior, turno_anterior)
+                self.terminar_ronda(jugador_anterior, turno_anterior)
             else:
-                self.terminar_ronda(jugador_anterior, jugador, self.turno_actual)
+                self.terminar_ronda(jugador, self.turno_actual)
 
-    def terminar_ronda(self, ganador, perdedor, turno):
-        self.turno_actual = self.obtener_turno_anterior(turno) if self.perder_vida(perdedor) else turno
-        self.actualizar_turno() # TODO esto me va a cambiar el turno
+    def terminar_ronda(self, perdedor, turno):
+        for socket in self.socket_players: # Mostrar dados por 5 segundos
+            self.mostrar_dados(socket)
+        time.sleep(5)
+        for socket in self.socket_players:
+            self.ocultar_dados(socket)
+        if self.perder_vida(perdedor):
+            if self.verificar_ganador():
+                self.mandar_mensaje_a_todos(Mensaje(parametro("OP_GANAR")))
+                self.log("", "Termino partida", f"Ganador: {self.turnos[0].id}")
+            else:
+                self.turno_actual = self.obtener_turno_anterior(turno)
+                self.reiniciar_ronda()
+        else:
+            self.turno_actual = turno
+            self.reiniciar_ronda()
+
+    def reiniciar_ronda(self):
+        self.turnos_totales = 1
+        self.mandar_turno(self.turnos[self.turno_actual].id, "-")
         self.valor_actual = 0
         self.mandar_valor()
         for jugador in self.turnos:
-            jugador.accion = None
-        # TODO ganar
-        if len(self.turnos) == 1:
-            print("Solo queda uno")
-            # TODO falta revelar dados de todos
+            self.reiniciar_jugador(jugador)
+
+    def verificar_ganador(self):
+        return len(self.turnos) == 1
+
+    def reiniciar_jugador(self, jugador):
+        self.reiniciar_opciones_jugador(jugador)
+        jugador.accion = None
 
     def obtener_turno_anterior(self, turno):
         return turno - 1 if turno > 0 else len(self.turnos) - 1
 
     def perder_vida(self, perdedor):
         perdedor.vidas -= 1
+        self.log(perdedor.id, "Perdió una vida", f"Quedan: {perdedor.vidas}")
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ACTUALIZAR_VIDA"), (perdedor.id, str(perdedor.vidas))))
         if perdedor.vidas == 0:
             socket_cliente = list(filter(lambda x: self.socket_players[x] == perdedor, self.socket_players))[0]
             self.mandar_mensaje(Mensaje(parametro("OP_PERDER")), socket_cliente)
             self.turnos.remove(perdedor)
-            self.eliminar_cliente(socket_cliente)
+            self.eliminar_cliente(socket_cliente) # TODO creo que el cliente deberia ser eliminado al cerrar la pestaña, no antes: ojo que entonces es necesario cambiar el mensaje que se envia de a todos a solo los que no han perdido en terminmar partida
             return True
 
     def log(self, usuario, evento, detalles="-"):
-        print(f"{usuario:^17.15}|{evento:^24.22}|{detalles:^24.22}")
+        print(f"{usuario:^17.15}|{evento:^24.22}|{detalles:^24}")
 
 
 if __name__ == "__main__":

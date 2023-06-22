@@ -1,6 +1,6 @@
 import socket
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from threading import Thread
+from threading import Thread, Lock
 from utils.utils import parametro, Mensaje
 import backend.Scripts.cripto as cr
 import pickle
@@ -14,7 +14,11 @@ class Logica(QObject):
     senal_cambiar_dados = pyqtSignal(tuple)
     senal_cambiar_numero_mayor = pyqtSignal(str)
     senal_actualizar_turnos = pyqtSignal(tuple)
-    senal_mostrar_dados = pyqtSignal(tuple)
+    senal_mostrar_dados = pyqtSignal(list)
+    senal_cambiar_vida = pyqtSignal(tuple)
+    senal_ocultar_dados = pyqtSignal(list)
+    senal_perder = pyqtSignal()
+    senal_ganar = pyqtSignal()
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -23,6 +27,7 @@ class Logica(QObject):
         self.port = port
         self.id = None
         self.pressed_keys = []
+        self.pickle_lock = Lock()
 
     def conectar_servidor(self):
         try:
@@ -65,6 +70,14 @@ class Logica(QObject):
             self.senal_actualizar_turnos.emit(mensaje.data)
         elif mensaje == parametro("OP_MOSTRAR_DADOS"):
             self.senal_mostrar_dados.emit(mensaje.data)
+        elif mensaje == parametro("OP_ACTUALIZAR_VIDA"):
+            self.senal_cambiar_vida.emit(mensaje.data)
+        elif mensaje == parametro("OP_OCULTAR_DADOS"):
+            self.senal_ocultar_dados.emit(mensaje.data)
+        elif mensaje == parametro("OP_PERDER"):
+            self.senal_perder.emit()
+        elif mensaje == parametro("OP_GANAR"):
+            self.senal_ganar.emit()
         else:
             print("El tipo de operacion no existe")
 
@@ -82,7 +95,8 @@ class Logica(QObject):
         mensaje_desencriptado = cr.desencriptar(
             mensaje_decodificado, parametro("N_PONDERADOR")
         )
-        mensaje = pickle.loads(mensaje_desencriptado)
+        with self.pickle_lock:
+            mensaje = pickle.loads(mensaje_desencriptado)
         return mensaje
 
     def decodificar_mensaje(self, mensaje: bytes, largo: int) -> bytearray:
@@ -127,7 +141,8 @@ class Logica(QObject):
 
     def mandar_mensaje(self, llave, data=None):
         mensaje = Mensaje(llave, data)
-        bytes_mensaje = pickle.dumps(mensaje)
+        with self.pickle_lock:
+            bytes_mensaje = pickle.dumps(mensaje)
         mensaje_encriptado = cr.encriptar(bytes_mensaje, parametro("N_PONDERADOR"))
         mensaje_codificado = self.codificar_mensaje(mensaje_encriptado)
         self.socket_cliente.sendall(mensaje_codificado)
@@ -158,5 +173,6 @@ class Logica(QObject):
         self.pressed_keys.append(key)
         if len(self.pressed_keys) > 3:
             self.pressed_keys.pop(0)
+        print(self.pressed_keys)
         if self.pressed_keys == [Qt.Key_S, Qt.Key_E, Qt.Key_E]:
             self.mandar_mensaje(parametro("AC_SEE"))

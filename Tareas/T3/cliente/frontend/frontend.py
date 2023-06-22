@@ -38,7 +38,7 @@ class VentanaInicio(QWidget):
         main_layout = QVBoxLayout()
         background = QLabel(self)
         background.setPixmap(
-            QPixmap(parametro("path_fondo_inicio")).scaled(self.width(), self.height())
+            QPixmap(parametro("path_fondo_inicio")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
         )
         background.setGeometry(0, 0, self.width(), self.height())
         label_sala_espera = QLabel("SALA DE ESPERA", self)
@@ -106,6 +106,16 @@ class LabelCuadrados(QLabel):
         self.setMinimumSize(QSize(50, 50))
         self.setMaximumSize(QSize(50, 50))
 
+    def mostrar_dado(self, dado):
+        self.setText("")
+        self.setStyleSheet("")
+        self.setPixmap(QPixmap(parametro("PATH_DADOS")[dado - 1]).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation))
+
+    def ocultar_dado(self, dado):
+        self.clear()
+        self.setText(dado)
+        self.setStyleSheet("background-color:white")
+
 
 class CustomButton(QPushButton):
     def __init__(self, *args, **kwargs):
@@ -136,12 +146,12 @@ class Jugador(QWidget):
 
     def actualizar_dados(self, dados):
         dado1, dado2 = dados
-        self.dado1.setText("")
-        self.dado2.setText("")
-        self.dado1.setStyleSheet("")
-        self.dado2.setStyleSheet("")
-        self.dado1.setPixmap(QPixmap(parametro("PATH_DADOS")[dado1 - 1]).scaled(self.dado1.width(), self.dado1.height()))
-        self.dado2.setPixmap(QPixmap(parametro("PATH_DADOS")[dado2 - 1]).scaled(self.dado1.width(), self.dado1.height()))
+        self.dado1.mostrar_dado(dado1)
+        self.dado2.mostrar_dado(dado2)
+
+    def ocultar_dados(self):
+        self.dado1.ocultar_dado("Dado 1")
+        self.dado2.ocultar_dado("Dado 2")
 
 
 class Jugador1(Jugador):
@@ -215,7 +225,7 @@ class Jugador4(Jugador):
 class VentanaJuego(QWidget):
     senal_env_anunciar_valor = pyqtSignal(str)
     senal_keys_pressed = pyqtSignal(int)
-    
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Ventana juego")
@@ -300,11 +310,35 @@ class VentanaJuego(QWidget):
         self.label_numero_turno.setText(f"Numero turno {total}")
 
     def mostrar_dados(self, data):
-        for i in range(len(data)):
-            self.actualizar_dados(data)
-            
+        for info in data:
+            self.actualizar_dados(info)
+
     def keyPressEvent(self, event: QKeyEvent) -> None:
         self.senal_keys_pressed.emit(event.key())
+
+    def cambiar_vida(self, data):
+        id, vida = data
+        self.jugadores[id].lbl_vidas.setText(vida)
+
+    def ocultar_dados(self, ids):
+        for id in ids:
+            self.jugadores[id].ocultar_dados()
+
+    def mostrar_alerta(self, resultado):
+        alerta = QMessageBox(self)
+        alerta.setWindowTitle("Alerta")
+        alerta.setIcon(QMessageBox.Warning)
+        alerta.setText(resultado)
+        btn_salir = alerta.addButton("Salir", QMessageBox.RejectRole)
+        alerta.exec()
+        if alerta.clickedButton() == btn_salir:
+            self.close()
+
+    def perder(self):
+        self.mostrar_alerta("Perdiste :(, debes salir de la partida")
+
+    def ganar(self):
+        self.mostrar_alerta("Ganaste!!!, debes salir de la partida")
 
 
 if __name__ == "__main__":

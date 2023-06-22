@@ -42,6 +42,10 @@ class DCCachos:
         self.juego.btn_dudar.clicked.connect(self.back.enviar_dudar)
         self.juego.senal_keys_pressed.connect(self.back.manejar_key_pressed)
         self.back.senal_mostrar_dados.connect(self.juego.mostrar_dados)
+        self.back.senal_cambiar_vida.connect(self.juego.cambiar_vida)
+        self.back.senal_ocultar_dados.connect(self.juego.ocultar_dados)
+        self.back.senal_perder.connect(self.juego.perder)
+        self.back.senal_ganar.connect(self.juego.ganar)
 
 
 if __name__ == "__main__":
