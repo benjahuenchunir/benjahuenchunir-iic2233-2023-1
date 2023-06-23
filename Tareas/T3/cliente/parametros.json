@@ -1,10 +1,10 @@
 {
-    "host": "localhost",
-    "port": "3000",
-    "ventana_inicio_size": 800,
+    "HOST": "localhost",
+    "PORT": "3000",
+    "VENTANA_INICIO_SIZE": 800,
     "VENTANA_JUEGO_ANCHO": 1280,
     "VENTANA_JUEGO_ALTO": 720,
-    "path_fondo_inicio": "frontend/Sprites/background/background_inicio.png",
+    "PATH_FONDO_INICIO": "frontend/Sprites/background/background_inicio.png",
     "PATH_USER_IMAGE": "frontend/Sprites/extra/user_profile.png",
     "PATH_FONDO_JUEGO": "frontend/Sprites/background/background_juego.png",
     "N_PONDERADOR": 1,
@@ -38,5 +38,7 @@
     "OP_GANAR": "GANAR",
     "OP_PARTIDA_EN_CURSO": "PARTIDA_EN_CURSO",
     "OP_SALA_LLENA": "SALA_LLENA",
-    "OP_ACTUALIZAR_CLIENTES": "ACTUALIZAR_CLIENTES"
+    "OP_ACTUALIZAR_CLIENTES": "ACTUALIZAR_CLIENTES",
+    "OP_ELEGIR_USUARIO": "ELEGIR_USUARIO",
+    "AC_ENVIAR_SELECCION_USUARIO": "ENVIAR_SELECCION_USUARIO"
 }

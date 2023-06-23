@@ -1,9 +1,6 @@
-from PyQt5.QtGui import QPixmap, QMouseEvent, QFont, QKeyEvent, QKeySequence
+from PyQt5.QtGui import QPixmap, QFont, QKeyEvent
 from PyQt5.QtWidgets import (
-    QListWidgetItem,
     QMessageBox,
-    QAbstractItemView,
-    QStackedWidget,
     QWidget,
     QListWidget,
     QLabel,
@@ -11,16 +8,11 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QPushButton,
-    QComboBox,
     QApplication,
-    QMainWindow,
-    QSizePolicy,
     QGridLayout,
-    QShortcut
-    
+    QDialog
 )
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QSize, QRect
-from PyQt5.QtMultimedia import QSoundEffect
+from PyQt5.QtCore import pyqtSignal, Qt, QSize, QRect
 import sys
 from utils.utils import parametro
 
@@ -31,14 +23,14 @@ class VentanaInicio(QWidget):
         self.setWindowTitle("Ventana inicio")
         self.move(0, 0)
         self.setFixedSize(
-            parametro("ventana_inicio_size"),
-            parametro("ventana_inicio_size"),
+            parametro("VENTANA_INICIO_SIZE"),
+            parametro("VENTANA_INICIO_SIZE"),
         )
 
         main_layout = QVBoxLayout()
         background = QLabel(self)
         background.setPixmap(
-            QPixmap(parametro("path_fondo_inicio")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
+            QPixmap(parametro("PATH_FONDO_INICIO")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
         )
         background.setGeometry(0, 0, self.width(), self.height())
         label_sala_espera = QLabel("SALA DE ESPERA", self)
@@ -60,7 +52,7 @@ class VentanaInicio(QWidget):
         alerta.setIcon(QMessageBox.Warning)
         alerta.setText(mensaje)
         alerta.exec()
-        
+
     def mostrar_alerta(self, mensaje):
         alerta = QMessageBox(self)
         alerta.setWindowTitle("Alerta")
@@ -69,7 +61,7 @@ class VentanaInicio(QWidget):
         btn_salir = alerta.addButton("Salir", QMessageBox.RejectRole)
         alerta.exec()
         if alerta.clickedButton() == btn_salir:
-            self.close()
+            exit()
 
     def actualizar_clientes(self, ids) -> None:
         print("Agregando label usuario")
@@ -84,7 +76,6 @@ class VentanaInicio(QWidget):
             layout.addWidget(label_id)
             self.usuarios[id] = layout
             self.players_layout.addLayout(layout)
-        #self.repaint()
 
     def servidor_cerrado(self, mensaje: str) -> None:
         self.mostrar_alerta(mensaje)
@@ -116,7 +107,10 @@ class LabelCuadrados(QLabel):
     def mostrar_dado(self, dado):
         self.setText("")
         self.setStyleSheet("")
-        self.setPixmap(QPixmap(parametro("PATH_DADOS")[dado - 1]).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation))
+        self.setPixmap(QPixmap(
+            parametro("PATH_DADOS")[dado - 1]).scaled(
+                self.width(),self.height(),
+                transformMode=Qt.TransformationMode.SmoothTransformation))
 
     def ocultar_dado(self, dado):
         self.clear()
@@ -229,9 +223,24 @@ class Jugador4(Jugador):
         vbox.addWidget(self.lbl_nombre)
 
 
+class DialogoUsuarios(QDialog):
+    def __init__(self, usuarios, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.setWindowTitle("ELige un usuario")
+        self.usuarios = QListWidget()
+        self.usuarios.addItems(usuarios)
+        self.btn_elegir = QPushButton("OK")
+        self.btn_elegir.clicked.connect(self.accept)
+        layout.addWidget(self.usuarios)
+        layout.addWidget(self.btn_elegir)
+
+
 class VentanaJuego(QWidget):
     senal_env_anunciar_valor = pyqtSignal(str)
     senal_keys_pressed = pyqtSignal(int)
+    senal_enviar_seleccion_usuario = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -244,7 +253,9 @@ class VentanaJuego(QWidget):
         background = QLabel(self)
         background.setPixmap(
             QPixmap(
-                parametro("PATH_FONDO_JUEGO")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
+                parametro("PATH_FONDO_JUEGO")).scaled(
+                    self.width(), self.height(),
+                    transformMode=Qt.TransformationMode.SmoothTransformation)
         )
         background.setGeometry(0, 0, self.width(), self.height())
 
@@ -347,21 +358,12 @@ class VentanaJuego(QWidget):
     def ganar(self):
         self.mostrar_alerta("Ganaste!!!, debes salir de la partida")
 
-
-if __name__ == "__main__":
-
-    def hook(type_, value, traceback):
-        print(type_)
-        print(traceback)
-
-    sys.__excepthook__ = hook
-
-    app = QApplication([])
-    game = VentanaJuego()
-    game.show()
-
-    sys.exit(app.exec())
-
+    def elegir_usuario(self, usuarios):
+        dialog = DialogoUsuarios(usuarios)
+        resultado = dialog.exec_()
+        if resultado == QDialog.Accepted:
+            usuario = dialog.usuarios.currentItem().text()
+            self.senal_enviar_seleccion_usuario.emit(usuario)
 
 
 if __name__ == "__main__":

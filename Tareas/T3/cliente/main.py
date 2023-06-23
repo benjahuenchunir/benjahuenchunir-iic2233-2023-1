@@ -7,8 +7,8 @@ from utils.utils import parametro
 
 class DCCachos:
     def __init__(self):
-        port = int(parametro("port")) if len(sys.argv) < 2 else int(sys.argv[1])
-        host = parametro("host") if len(sys.argv) < 3 else int(sys.argv[2])
+        port = int(parametro("PORT")) if len(sys.argv) < 2 else int(sys.argv[1])
+        host = parametro("HOST") if len(sys.argv) < 3 else int(sys.argv[2])
         self.back = backend.Logica(host, port)
         self.inicio = frontend.VentanaInicio()
         self.juego = frontend.VentanaJuego()
@@ -22,8 +22,8 @@ class DCCachos:
     def conectar_senales_inicio(self):
         self.inicio.btn_comenzar.pressed.connect(self.back.empezar_partida)
         self.inicio.btn_salir.pressed.connect(
-            self.back.test_manejar_mensaje2
-        )  # TODO creo que no necesito conectarlo, solo que salga y el server sabra
+            self.inicio.close
+        )
         self.back.senal_actualizar_clientes.connect(self.inicio.actualizar_clientes)
         self.back.senal_servidor_cerrado.connect(self.inicio.mostrar_alerta)
         self.back.senal_emitir_alerta.connect(self.inicio.mostrar_pop_up)
@@ -46,6 +46,9 @@ class DCCachos:
         self.back.senal_ocultar_dados.connect(self.juego.ocultar_dados)
         self.back.senal_perder.connect(self.juego.perder)
         self.back.senal_ganar.connect(self.juego.ganar)
+        self.back.senal_elegir_usuario.connect(self.juego.elegir_usuario)
+        self.juego.senal_enviar_seleccion_usuario.connect(
+            self.back.mandar_seleccion_usario)
 
 
 if __name__ == "__main__":

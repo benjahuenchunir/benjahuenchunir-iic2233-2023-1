@@ -19,6 +19,7 @@ class Logica(QObject):
     senal_perder = pyqtSignal()
     senal_ganar = pyqtSignal()
     senal_emitir_alerta = pyqtSignal(str)
+    senal_elegir_usuario = pyqtSignal(list)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -35,23 +36,23 @@ class Logica(QObject):
             listening_server_thread = Thread(target=self.escuchar_servidor, daemon=True)
             listening_server_thread.start()
         except ConnectionError:
-            print("Conexion terminada")
             self.socket_cliente.close()
             exit()
 
     def escuchar_servidor(self):
-        while True:
-            data = self.socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
-            if data:
-                mensaje = self.recibir_mensaje(data)
-                self.manejar_mensaje(mensaje)
-            else:
-                self.senal_servidor_cerrado.emit("El servidor se cerró")
-                break
+        try:
+            while True:
+                data = self.socket_cliente.recv(parametro("TAMANO_CHUNKS_BLOQUE"))
+                if data:
+                    mensaje = self.recibir_mensaje(data)
+                    self.manejar_mensaje(mensaje)
+                else:
+                    self.senal_servidor_cerrado.emit("El servidor se cerró")
+                    break
+        except ConnectionError:
+            self.senal_servidor_cerrado.emit("El servidor se cerró")
 
     def manejar_mensaje(self, mensaje: Mensaje):
-        print(mensaje)
-        print(mensaje.data)
         if mensaje == parametro("OP_ASIGNAR_NOMBRE"):
             self.id = mensaje.data
         elif mensaje == parametro("OP_SALA_LLENA"):
@@ -78,11 +79,10 @@ class Logica(QObject):
             self.senal_perder.emit()
         elif mensaje == parametro("OP_GANAR"):
             self.senal_ganar.emit()
-        else:
-            print("El tipo de operacion no existe")
+        elif mensaje == parametro("OP_ELEGIR_USUARIO"):
+            self.senal_elegir_usuario.emit(mensaje.data)
 
     def recibir_mensaje(self, data: bytes) -> Mensaje:
-        print(data)
         largo = int.from_bytes(data, byteorder="little")
         largo_total = (
             parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")
@@ -107,7 +107,6 @@ class Logica(QObject):
             - (parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE")),
             parametro("TAMANO_CHUNKS_BLOQUE") + parametro("TAMANO_CHUNKS_MENSAJE"),
         ):
-            print(mensaje_decodificado)
             mensaje_decodificado.extend(
                 mensaje[
                     i
@@ -168,11 +167,13 @@ class Logica(QObject):
 
     def enviar_dudar(self):
         self.mandar_mensaje(parametro("AC_DUDAR"))
-    
+
     def manejar_key_pressed(self, key):
         self.pressed_keys.append(key)
         if len(self.pressed_keys) > 3:
             self.pressed_keys.pop(0)
-        print(self.pressed_keys)
         if self.pressed_keys == [Qt.Key_S, Qt.Key_E, Qt.Key_E]:
             self.mandar_mensaje(parametro("AC_SEE"))
+
+    def mandar_seleccion_usario(self, usuario):
+        self.mandar_mensaje(parametro("AC_ENVIAR_SELECCION_USUARIO"), usuario)
