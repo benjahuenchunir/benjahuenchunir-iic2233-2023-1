@@ -29,8 +29,10 @@ class VentanaInicio(QWidget):
 
         main_layout = QVBoxLayout()
         background = QLabel(self)
-        background.setPixmap(
-            QPixmap(parametro("PATH_FONDO_INICIO")).scaled(self.width(), self.height(), transformMode=Qt.TransformationMode.SmoothTransformation)
+        background.setPixmap(QPixmap(
+            parametro("PATH_FONDO_INICIO")).scaled(
+                self.width(), self.height(),
+                transformMode=Qt.TransformationMode.SmoothTransformation)
         )
         background.setGeometry(0, 0, self.width(), self.height())
         label_sala_espera = QLabel("SALA DE ESPERA", self)
@@ -70,7 +72,9 @@ class VentanaInicio(QWidget):
         for id in ids:
             layout = QVBoxLayout()
             label_usuario = QLabel(self)
-            label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")).scaled(100, 100, transformMode=Qt.TransformationMode.SmoothTransformation))
+            label_usuario.setPixmap(
+                QPixmap(parametro("PATH_USER_IMAGE")).scaled(
+                    100, 100, transformMode=Qt.TransformationMode.SmoothTransformation))
             label_id = QLabel(id, self)
             layout.addWidget(label_usuario)
             layout.addWidget(label_id)
