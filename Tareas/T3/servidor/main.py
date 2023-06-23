@@ -42,7 +42,7 @@ class Bot():
         return random.random() < parametro("PROB_ANUNCIAR")
 
 
-class Server:
+class Server():
     def __init__(self, host: str, port: int):
         self.sockets = []
         self.socket_players = {}
@@ -69,10 +69,10 @@ class Server:
         thread.start()
 
     def accept_connections_thread(self) -> None:
-        while not self.jugando: # TODO jugador se debe conectar, pero permanecer en ventana inicio
+        while True:
             try:
                 socket_cliente, address = self.sock.accept()
-                self.agregar_cliente(socket_cliente)
+                self.manejar_agregar_cliente(socket_cliente)
                 listening_client_thread = Thread(
                     target=self.escuchar_cliente,
                     args=(socket_cliente, ),
@@ -87,14 +87,35 @@ class Server:
         print("Cerrando server")
         self.sock.close()
 
-    def agregar_cliente(self, socket_cliente) -> str:
+    def asignar_id(self):
+        id = random.choice(self.ids)
+        self.ids.remove(id)
+        return id
+
+    def manejar_agregar_cliente(self, socket_cliente):
         self.sockets.append(socket_cliente)
         id = self.asignar_id()
         self.mandar_mensaje(Mensaje(parametro("OP_ASIGNAR_NOMBRE"), id), socket_cliente)
-        self.mandar_mensaje(Mensaje(parametro("OP_AGREGAR_USUARIOS"), [usuario for usuario in map(lambda x: x.id, self.socket_players.values())]), socket_cliente)
-        self.socket_players[socket_cliente] = Jugador(socket_cliente, id)
-        self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_USUARIO"), id))
         self.log(id, "Conectarse")
+        self.socket_players[socket_cliente] = Jugador(socket_cliente, id)
+        if self.jugando:
+            self.agregar_cliente_juego(socket_cliente)
+        else:
+            self.agregar_cliente_inicio(socket_cliente)
+
+    def agregar_cliente_inicio(self, socket_cliente) -> str:
+        for socket in self.sockets:
+            self.actualizar_clientes(socket)
+        if len(self.sockets) >= parametro("NUMERO_JUGADORES"):
+            self.mandar_mensaje(Mensaje(parametro("OP_SALA_LLENA")), socket_cliente)
+
+    def agregar_cliente_juego(self, socket_cliente):
+        self.actualizar_clientes(socket_cliente)
+        self.mandar_mensaje(Mensaje(parametro("OP_PARTIDA_EN_CURSO")), socket_cliente)
+
+    def actualizar_clientes(self, socket_cliente):
+        usuarios = [usuario.id for socket, usuario in self.socket_players.items() if socket in self.sockets[:4]]
+        self.mandar_mensaje(Mensaje(parametro("OP_ACTUALIZAR_CLIENTES"), usuarios), socket_cliente)
 
     def escuchar_cliente(self, socket_cliente: socket.socket) -> None:
         while True:
@@ -115,13 +136,14 @@ class Server:
                 break
 
     def eliminar_cliente(self, socket_cliente):
+        socket_cliente.close()
         jugador = self.socket_players[socket_cliente]
         self.ids.append(jugador.id)
         self.sockets.remove(socket_cliente)
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_ELIMINAR_USUARIO"), jugador.id))
         del self.socket_players[socket_cliente]
         self.log(jugador.id, "Desconexion")
-    
+
     def eliminar_cliente_juego(self, socket_cliente): # TODO si se desconecta un cliente que esta jugando, entonces se debe eliminar de turnos y verificar ganador, bots, etc
         jugador = self.socket_players[socket_cliente]
         self.ids.append(jugador.id)
@@ -202,11 +224,6 @@ class Server:
         else:
             print("No existe esa operacion")
 
-    def asignar_id(self):
-        id = random.choice(self.ids)
-        self.ids.remove(id)
-        return id
-
     def comenzar_partida(self): # TODO recibir conexiones, pero dejarlos en inicio
         self.jugando = True
         self.turnos = list(self.socket_players.values())
@@ -219,8 +236,7 @@ class Server:
             data.append(jugador.id)
         self.log("-", "Inicio partida", ",".join(data))
         self.mandar_mensaje_a_todos(Mensaje(parametro("OP_AGREGAR_JUGADORES"), data))
-        for socket, jugador in self.socket_players.items():
-            self.lanzar_dados(socket, jugador)
+        self.lanzar_dados_todos()
         self.verificar_turno_bot()
 
     def jugar_bot(self, bot: Bot):
@@ -246,7 +262,7 @@ class Server:
     def actualizar_turno(self, jugador):
         self.turno_actual = (self.turno_actual + 1) % len(self.turnos)
         self.turnos_totales += 1
-        self.reiniciar_jugador(jugador)
+        self.reiniciar_opciones_jugador(jugador)
         self.mandar_turno(self.turnos[self.turno_actual].id, jugador.id)
         self.verificar_turno_bot()
 
@@ -265,6 +281,13 @@ class Server:
     def lanzar_dados(self, socket, jugador):
         jugador.lanzar_dados()
         self.mandar_mensaje(Mensaje(parametro("OP_CAMBIAR_DADOS"), (jugador.dado1, jugador.dado2)), socket)
+
+    def lanzar_dados_todos(self):
+        for socket, jugador in self.socket_players.items():
+            self.lanzar_dados(socket, jugador)
+        for bot in self.turnos:
+            if isinstance(bot, Bot):
+                bot.lanzar_dados()
 
     def anunciar_valor(self, jugador, valor: str): # TODO indicar en QLineEdit que el valor es invalido
         if not valor.isdecimal():
@@ -354,6 +377,7 @@ class Server:
         self.mandar_valor()
         for jugador in self.turnos:
             self.reiniciar_jugador(jugador)
+        self.lanzar_dados_todos()
         self.verificar_turno_bot()
 
     def verificar_ganador(self):

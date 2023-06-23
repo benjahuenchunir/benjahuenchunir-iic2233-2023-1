@@ -7,8 +7,7 @@ import pickle
 
 
 class Logica(QObject):
-    senal_agregar_usuario = pyqtSignal(str)
-    senal_eliminar_usuario = pyqtSignal(str)
+    senal_actualizar_clientes = pyqtSignal(list)
     senal_servidor_cerrado = pyqtSignal(str)
     senal_empezar_juego = pyqtSignal(list)
     senal_cambiar_dados = pyqtSignal(tuple)
@@ -19,6 +18,7 @@ class Logica(QObject):
     senal_ocultar_dados = pyqtSignal(list)
     senal_perder = pyqtSignal()
     senal_ganar = pyqtSignal()
+    senal_emitir_alerta = pyqtSignal(str)
 
     def __init__(self, host: str, port: int) -> None:
         super().__init__()
@@ -47,19 +47,19 @@ class Logica(QObject):
                 self.manejar_mensaje(mensaje)
             else:
                 self.senal_servidor_cerrado.emit("El servidor se cerró")
-                # TODO arreglar
+                break
 
     def manejar_mensaje(self, mensaje: Mensaje):
         print(mensaje)
+        print(mensaje.data)
         if mensaje == parametro("OP_ASIGNAR_NOMBRE"):
             self.id = mensaje.data
-        elif mensaje == parametro("OP_AGREGAR_USUARIO"):
-            self.senal_agregar_usuario.emit(mensaje.data)
-        elif mensaje == parametro("OP_AGREGAR_USUARIOS"):
-            for id in mensaje.data:
-                self.senal_agregar_usuario.emit(id)
-        elif mensaje == parametro("OP_ELIMINAR_USUARIO"):
-            self.senal_eliminar_usuario.emit(mensaje.data)
+        elif mensaje == parametro("OP_SALA_LLENA"):
+            self.senal_emitir_alerta.emit(parametro("OP_SALA_LLENA"))
+        elif mensaje == parametro("OP_PARTIDA_EN_CURSO"):
+            self.senal_emitir_alerta.emit(parametro("OP_PARTIDA_EN_CURSO"))
+        elif mensaje == parametro("OP_ACTUALIZAR_CLIENTES"):
+            self.senal_actualizar_clientes.emit(mensaje.data)
         elif mensaje == parametro("OP_AGREGAR_JUGADORES"):
             self.senal_empezar_juego.emit(mensaje.data)
         elif mensaje == parametro("OP_CAMBIAR_DADOS"):

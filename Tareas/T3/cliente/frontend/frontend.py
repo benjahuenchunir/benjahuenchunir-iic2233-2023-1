@@ -54,30 +54,37 @@ class VentanaInicio(QWidget):
         self.setLayout(main_layout)
         self.usuarios = {}
 
-    def mostrar_alerta(self, mensaje: str):
+    def mostrar_pop_up(self, mensaje: str):
         alerta = QMessageBox(self)
         alerta.setWindowTitle("Alerta")
         alerta.setIcon(QMessageBox.Warning)
         alerta.setText(mensaje)
-        alerta.setStandardButtons(QMessageBox.Ok)
         alerta.exec()
+        
+    def mostrar_alerta(self, mensaje):
+        alerta = QMessageBox(self)
+        alerta.setWindowTitle("Alerta")
+        alerta.setIcon(QMessageBox.Warning)
+        alerta.setText(mensaje)
+        btn_salir = alerta.addButton("Salir", QMessageBox.RejectRole)
+        alerta.exec()
+        if alerta.clickedButton() == btn_salir:
+            self.close()
 
-    def agregar_usuario(self, id: str) -> None:
+    def actualizar_clientes(self, ids) -> None:
         print("Agregando label usuario")
-        layout = QVBoxLayout()
-        label_usuario = QLabel(self)
-        label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")).scaled(100, 100, transformMode=Qt.TransformationMode.SmoothTransformation))
-        label_id = QLabel(id, self)
-        layout.addWidget(label_usuario)
-        layout.addWidget(label_id)
-        self.usuarios[id] = layout
-        self.players_layout.addLayout(layout)
-
-    def eliminar_usuario(self, id: str):
-        print("Eliminando label usuario")
-        self.players_layout.removeItem(self.usuarios[id])
-        self.usuarios[id].deleteLater()
-        del self.usuarios[id]
+        while self.players_layout.count():
+            self.players_layout.takeAt(0).widget().deleteLater()
+        for id in ids:
+            layout = QVBoxLayout()
+            label_usuario = QLabel(self)
+            label_usuario.setPixmap(QPixmap(parametro("PATH_USER_IMAGE")).scaled(100, 100, transformMode=Qt.TransformationMode.SmoothTransformation))
+            label_id = QLabel(id, self)
+            layout.addWidget(label_usuario)
+            layout.addWidget(label_id)
+            self.usuarios[id] = layout
+            self.players_layout.addLayout(layout)
+        #self.repaint()
 
     def servidor_cerrado(self, mensaje: str) -> None:
         self.mostrar_alerta(mensaje)

@@ -24,9 +24,9 @@ class DCCachos:
         self.inicio.btn_salir.pressed.connect(
             self.back.test_manejar_mensaje2
         )  # TODO creo que no necesito conectarlo, solo que salga y el server sabra
-        self.back.senal_agregar_usuario.connect(self.inicio.agregar_usuario)
-        self.back.senal_servidor_cerrado.connect(self.inicio.servidor_cerrado)
-        self.back.senal_eliminar_usuario.connect(self.inicio.eliminar_usuario)
+        self.back.senal_actualizar_clientes.connect(self.inicio.actualizar_clientes)
+        self.back.senal_servidor_cerrado.connect(self.inicio.mostrar_alerta)
+        self.back.senal_emitir_alerta.connect(self.inicio.mostrar_pop_up)
 
     def conectar_senales_juego(self):
         self.back.senal_empezar_juego.connect(self.inicio.close)
